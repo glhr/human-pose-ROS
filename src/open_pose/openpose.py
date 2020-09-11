@@ -61,9 +61,9 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
 
         # Display Image
         print("Body keypoints: \n" + str(datum.poseKeypoints))
-        cv2.imshow("OpenPose 1.6.0 - Tutorial Python API", datum.cvOutputData)
         save_image(bgr_to_rgb(datum.cvOutputData), "{}/test/base_cam_pose_{}.png".format(get_working_directory(), get_timestamp()))
-        cv2.waitKey(0)
+        # cv2.imshow("OpenPose 1.6.0 - Tutorial Python API", datum.cvOutputData)
+        # cv2.waitKey(0)
     except Exception as e:
         print(e)
         sys.exit(-1)
@@ -80,10 +80,7 @@ if __name__ == "__main__":
     imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image)
     image = image_to_numpy(imagemsg)
     print("saving image")
-    save_image(image, get_working_directory()+"/test/base_cam.png")
+    save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(get_timestamp()))
 
     run_openpose(get_working_directory()+"/test/base_cam.png")
-
-
-    run_openpose()
-    rospy.spin()
+    sys.exit(0)
