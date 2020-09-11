@@ -30,6 +30,7 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
         # Custom Params (refer to include/openpose/flags.hpp for more parameters)
         params = dict()
         params["model_folder"] = "/home/slave/openpose/models/"
+        params["number_people_max"] = 1
         print(params)
 
         # Add others in path?
@@ -80,7 +81,8 @@ if __name__ == "__main__":
     imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image)
     image = image_to_numpy(imagemsg)
     print("saving image")
-    save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(get_timestamp()))
+    timestamp = get_timestamp()
+    save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
 
-    run_openpose(get_working_directory()+"/test/base_cam.png")
+    run_openpose(get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
     sys.exit(0)
