@@ -8,7 +8,11 @@ import os
 from sys import platform
 import argparse
 
-def run_openpose():
+from utils.img import image_to_numpy, save_image, bgr_to_rgb
+from utils.file import get_filename_from_path, get_working_directory
+from utils.timing import get_timestamp
+
+def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
     try:
         # Import Openpose (Windows/Ubuntu/OSX)
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -20,7 +24,7 @@ def run_openpose():
 
         # Flags
         parser = argparse.ArgumentParser()
-        parser.add_argument("--image_path", default="/home/slave/Downloads/trump.jpg", help="Process an image. Read all standard formats (jpg, png, bmp, etc.).")
+        parser.add_argument("--image_path", default=img_path, help="Process an image. Read all standard formats (jpg, png, bmp, etc.).")
         args = parser.parse_known_args()
 
         # Custom Params (refer to include/openpose/flags.hpp for more parameters)
@@ -58,10 +62,28 @@ def run_openpose():
         # Display Image
         print("Body keypoints: \n" + str(datum.poseKeypoints))
         cv2.imshow("OpenPose 1.6.0 - Tutorial Python API", datum.cvOutputData)
+        save_image(bgr_to_rgb(datum.cvOutputData), "{}/test/base_cam_pose_{}.png".format(get_working_directory(), get_timestamp()))
         cv2.waitKey(0)
     except Exception as e:
         print(e)
         sys.exit(-1)
 
 if __name__ == "__main__":
+
+    import rospy
+    from sensor_msgs.msg import Image
+    import numpy as np
+
+    rospy.init_node('human_pose', anonymous=True)
+    CAMERA_TOPIC = '/wrist_camera/color/image_raw'
+
+    imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image)
+    image = image_to_numpy(imagemsg)
+    print("saving image")
+    save_image(image, get_working_directory()+"/test/base_cam.png")
+
+    run_openpose(get_working_directory()+"/test/base_cam.png")
+
+
     run_openpose()
+    rospy.spin()
