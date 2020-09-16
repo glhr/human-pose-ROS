@@ -8,9 +8,9 @@ import os
 from sys import platform
 import argparse
 
-from utils.img import image_to_numpy, save_image, bgr_to_rgb
-from utils.file import get_filename_from_path, get_working_directory
-from utils.timing import get_timestamp
+from vision_utils.img import image_to_numpy, save_image, bgr_to_rgb
+from vision_utils.file import get_filename_from_path, get_working_directory
+from vision_utils.timing import get_timestamp
 
 def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
     try:
