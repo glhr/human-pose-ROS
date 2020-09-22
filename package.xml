@@ -51,6 +51,7 @@
   <depend>message_runtime</depend>
   <depend>message_generation</depend>
   <depend>rospy</depend>
+  <depend>roscpp</depend>
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- <exec_depend>TTS</exec_depend> -->
