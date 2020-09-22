@@ -1,0 +1,3 @@
+[submodule "src/fastpose"]
+	path = src/fastpose
+	url = https://github.com/ZexinChen/FastPose.git
