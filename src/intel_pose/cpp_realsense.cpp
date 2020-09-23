@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 #include "ros/ros.h"
+#include <ros/console.h>
+#include "visualization_msgs/MarkerArray.h"
+#include "visualization_msgs/Marker.h"
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -20,6 +23,7 @@ using CUBEMOS_SKEL_Buffer_Ptr = std::unique_ptr<CM_SKEL_Buffer, void (*)(CM_SKEL
 
 static const cv::Scalar skeletonColor = cv::Scalar(100, 254, 213);
 static const cv::Scalar jointColor = cv::Scalar(222, 55, 22);
+
 
 struct cmPoint {
     float color_pixel[2];
@@ -62,7 +66,7 @@ create_skel_buffer()
 Render skeletons and tracking ids on top of the color image
 */
 inline void
-renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& depth_frame, cv::Mat& image)
+renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& depth_frame, cv::Mat& image, ros::Publisher skeleton_pub)
 {
     CV_Assert(image.type() == CV_8UC3);
     const cv::Point2f absentKeypoint(-1.0f, -1.0f);
@@ -78,18 +82,55 @@ renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& 
         int id = skeletons_buffer->skeletons[i].id;
         cv::Point2f keyPointHead(skeletons_buffer->skeletons[i].keypoints_coord_x[0],
                                  skeletons_buffer->skeletons[i].keypoints_coord_y[0]);
+        
+        visualization_msgs::MarkerArray ros_skeleton;
+
 
         for (size_t keypointIdx = 0; keypointIdx < skeletons_buffer->skeletons[i].numKeyPoints; keypointIdx++) {
-            const cv::Point2f keyPoint(skeletons_buffer->skeletons[i].keypoints_coord_x[keypointIdx],
-                                       skeletons_buffer->skeletons[i].keypoints_coord_y[keypointIdx]);
+            //Ros marker
+            visualization_msgs::Marker marker;
+
+            const cv::Point2f keyPoint(skeletons_buffer->skeletons[i].keypoints_coord_x[keypointIdx], skeletons_buffer->skeletons[i].keypoints_coord_y[keypointIdx]);
             if (keyPoint != absentKeypoint) {
                 cv::circle(image, keyPoint, 4, jointColor, -1);
 
                 // get the 3d point and render it on the joints
-                cmPoint point3d =
-                  get_skeleton_point_3d(depth_frame, static_cast<int>(keyPoint.x), static_cast<int>(keyPoint.y));
+                cmPoint point3d = get_skeleton_point_3d(depth_frame, static_cast<int>(keyPoint.x), static_cast<int>(keyPoint.y));
+                
+
+
+                marker.header.frame_id = "my_frame";
+                marker.header.stamp = ros::Time::now();
+                marker.type = 2;
+                marker.pose.position.x = point3d.point3d[0];
+                marker.pose.position.y = point3d.point3d[1];
+                marker.pose.position.z = point3d.point3d[2];
+
+                marker.pose.orientation.x = 0;
+                marker.pose.orientation.y = 0;
+                marker.pose.orientation.z = 0;
+                marker.pose.orientation.w = 1;
+                marker.lifetime = ros::Duration(0.5);
+
+                marker.id = keypointIdx+i*10;
+                marker.color.a = 0.7;
+                marker.color.r = 0.0;
+                marker.color.g = 1.0;
+                marker.color.b = 0.3 * i;
+                
+
+
+                marker.scale.x = 0.05;
+                marker.scale.y = 0.05;
+                marker.scale.z = 0.05; 
+
+                ros_skeleton.markers.push_back(marker);
+
                 cv::putText(image, point3d.to_string(), keyPoint, cv::FONT_HERSHEY_COMPLEX, 1, jointColor);
             }
+
+            skeleton_pub.publish(ros_skeleton);
+            ros::spinOnce();
         }
 
         for (const auto& limbKeypointsId : limbKeypointsIds) {
@@ -122,9 +163,12 @@ renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& 
     }
 }
 
-int
-main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]){
+
+    ros::init(argc, argv, "Skeleton_talker");
+    ros::NodeHandle n;
+
+    ros::Publisher skeleton_pub = n.advertise<visualization_msgs::MarkerArray>("spawn_skeleton", 10);
     // set up the intel realsense pipeline
     rs2::pipeline pipe;
     rs2::config cfg;
@@ -260,7 +304,7 @@ main(int argc, char* argv[])
                 // Assign tracking ids to the skeletons in the present frame
                 cm_skel_update_tracking_id(handle, skeletonsLast.get(), skeletonsPresent.get());
                 // Render skeleton overlays with tracking ids
-                renderSkeletons(skeletonsPresent.get(), depthFrame, capturedFrame);
+                renderSkeletons(skeletonsPresent.get(), depthFrame, capturedFrame, skeleton_pub);
                 // Set the present frame as last one to track the next frame
                 skeletonsLast.swap(skeletonsPresent);
                 // Free memory of the latest frame
