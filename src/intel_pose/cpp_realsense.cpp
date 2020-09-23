@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <stdlib.h>
 #include "ros/ros.h"
 #include <ros/console.h>
 #include "visualization_msgs/MarkerArray.h"
@@ -53,6 +54,9 @@ get_skeleton_point_3d(rs2::depth_frame const& depthFrame, int x, int y)
     return point;
 }
 
+
+
+
 CUBEMOS_SKEL_Buffer_Ptr
 create_skel_buffer()
 {
@@ -66,7 +70,7 @@ create_skel_buffer()
 Render skeletons and tracking ids on top of the color image
 */
 inline void
-renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& depth_frame, cv::Mat& image, ros::Publisher skeleton_pub)
+renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& depth_frame, cv::Mat& image, ros::Publisher skeleton_pub, float *r, float *g, float *b)
 {
     CV_Assert(image.type() == CV_8UC3);
     const cv::Point2f absentKeypoint(-1.0f, -1.0f);
@@ -89,7 +93,7 @@ renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& 
         for (size_t keypointIdx = 0; keypointIdx < skeletons_buffer->skeletons[i].numKeyPoints; keypointIdx++) {
             //Ros marker
             visualization_msgs::Marker marker;
-
+            
             const cv::Point2f keyPoint(skeletons_buffer->skeletons[i].keypoints_coord_x[keypointIdx], skeletons_buffer->skeletons[i].keypoints_coord_y[keypointIdx]);
             if (keyPoint != absentKeypoint) {
                 cv::circle(image, keyPoint, 4, jointColor, -1);
@@ -114,12 +118,13 @@ renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& 
 
                 marker.id = keypointIdx+i*10;
                 marker.color.a = 0.7;
-                marker.color.r = 0.0;
-                marker.color.g = 1.0;
-                marker.color.b = 0.3 * i;
+                std::cout << r[id] << " " << g[id] << " " << b[id] << std::endl;
+                marker.color.r = r[id];
+                marker.color.g = g[id];
+                marker.color.b = b[id];
                 
 
-
+                // marker.text = std::to_string(keypointIdx);
                 marker.scale.x = 0.05;
                 marker.scale.y = 0.05;
                 marker.scale.z = 0.05; 
@@ -169,6 +174,18 @@ int main(int argc, char* argv[]){
     ros::NodeHandle n;
 
     ros::Publisher skeleton_pub = n.advertise<visualization_msgs::MarkerArray>("spawn_skeleton", 10);
+
+    int num_colors = 30;
+    float color_r[num_colors];
+    float color_g[num_colors];
+    float color_b[num_colors];
+    srand(100);
+    for(int i = 0 ;i < num_colors; i++){
+        color_r[i] = (float)(rand() % 100)/100;
+        color_g[i] = (float)(rand() % 100)/100;
+        color_b[i] = (float)(rand() % 100)/100;
+    }
+
     // set up the intel realsense pipeline
     rs2::pipeline pipe;
     rs2::config cfg;
@@ -304,7 +321,7 @@ int main(int argc, char* argv[]){
                 // Assign tracking ids to the skeletons in the present frame
                 cm_skel_update_tracking_id(handle, skeletonsLast.get(), skeletonsPresent.get());
                 // Render skeleton overlays with tracking ids
-                renderSkeletons(skeletonsPresent.get(), depthFrame, capturedFrame, skeleton_pub);
+                renderSkeletons(skeletonsPresent.get(), depthFrame, capturedFrame, skeleton_pub, color_r, color_g, color_b);
                 // Set the present frame as last one to track the next frame
                 skeletonsLast.swap(skeletonsPresent);
                 // Free memory of the latest frame

@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /MarkerArray1
+        - /MarkerArray1/Status1
       Splitter Ratio: 0.5
     Tree Height: 549
   - Class: rviz/Selection
@@ -64,7 +66,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: my_frame
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -88,25 +90,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10
+      Distance: 5.301131725311279
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: -0.12126786261796951
+        Y: 0.5362597107887268
+        Z: -0.0697198212146759
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.785398006439209
+      Pitch: 1.4403973817825317
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.785398006439209
+      Yaw: 1.5353974103927612
     Saved: ~
 Window Geometry:
   Displays:
