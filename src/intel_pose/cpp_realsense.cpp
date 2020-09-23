@@ -175,7 +175,7 @@ int main(int argc, char* argv[]){
 
     ros::Publisher skeleton_pub = n.advertise<visualization_msgs::MarkerArray>("spawn_skeleton", 10);
 
-    int num_colors = 30;
+    int num_colors = 100;
     float color_r[num_colors];
     float color_g[num_colors];
     float color_b[num_colors];
