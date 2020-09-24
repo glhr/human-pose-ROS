@@ -52,6 +52,8 @@
   <depend>message_generation</depend>
   <depend>rospy</depend>
   <depend>roscpp</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
   <buildtool_depend>catkin</buildtool_depend>
 
   <!-- <exec_depend>TTS</exec_depend> -->

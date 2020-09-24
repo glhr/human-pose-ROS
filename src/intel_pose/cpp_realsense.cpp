@@ -173,7 +173,7 @@ int main(int argc, char* argv[]){
     ros::init(argc, argv, "Skeleton_talker");
     ros::NodeHandle n;
 
-    ros::Publisher skeleton_pub = n.advertise<visualization_msgs::MarkerArray>("spawn_skeleton", 10);
+    ros::Publisher skeleton_pub = n.advertise<visualization_msgs::MarkerArray>("spawn_skeleton", 1);
 
     int num_colors = 100;
     float color_r[num_colors];

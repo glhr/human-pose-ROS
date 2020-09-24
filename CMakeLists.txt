@@ -3,15 +3,22 @@ project(human_pose_ROS LANGUAGES CXX)
 
 # add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp message_generation message_runtime geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp message_generation message_runtime geometry_msgs cv_bridge)
 find_package(CUBEMOS_SKELETON_TRACKING REQUIRED PATHS /opt/cubemos/skeleton_tracking/lib/cmake/CUBEMOS_SKELETON_TRACKING)
 
 
 set(OpenCV_DIR "/opt/cubemos/skeleton_tracking/samples/dep/opencv/lib/cmake/opencv4")
+set(cv_bridge_DIR "/home/slave/Documents/workspaces/lh7_collab_ws/src/lh7-collab/vision_opencv/cv_bridge/cmake")
 
+
+# find_package(cv_bridge REQUIRED CONFIG)
 find_package(OpenCV REQUIRED CONFIG)
 
+find_package(image_transport)
+
 find_package(realsense2 REQUIRED CONFIG PATHS "/opt/cubemos/skeleton_tracking/samples/dep/realsense/lib/cmake/realsense2")
+
+
 
 include (src/intel_pose/cmake/linux_compiler_flags.cmake)
 # FIND_PACKAGE(PkgConfig REQUIRED)
@@ -53,11 +60,19 @@ target_link_libraries(cpp-realsense ${catkin_LIBRARIES})
 target_link_libraries(cpp-realsense PRIVATE cubemos_skeleton_tracking)
 target_link_libraries(cpp-realsense PRIVATE ${OpenCV_LIBS})
 target_link_libraries(cpp-realsense PRIVATE ${realsense2_LIBRARY})
+
+add_executable(cpp-webcam src/intel_pose/cpp_webcam.cpp src/intel_pose/samples.h)
+target_link_libraries(cpp-webcam ${catkin_LIBRARIES})
+target_link_libraries(cpp-webcam PRIVATE cubemos_skeleton_tracking)
+target_link_libraries(cpp-webcam PRIVATE ${OpenCV_LIBS})
 # target_link_libraries(cpp-realsense ${GTK2_LIBRARIES})
 
 
 
 set_target_properties (cpp-realsense PROPERTIES
+	FOLDER samples
+)
+set_target_properties (cpp-webcam PROPERTIES
 	FOLDER samples
 )
 
@@ -66,5 +81,8 @@ set_target_properties (cpp-realsense PROPERTIES
 # set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 install(TARGETS cpp-realsense
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(TARGETS cpp-webcam
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
