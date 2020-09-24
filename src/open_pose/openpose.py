@@ -11,8 +11,10 @@ import argparse
 from vision_utils.img import image_to_numpy, save_image, bgr_to_rgb
 from vision_utils.file import get_filename_from_path, get_working_directory
 from vision_utils.timing import get_timestamp
+from vision_utils.timing import CodeTimer
 
 def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
+    img_name = img_path.split("/")[-1]
     try:
         # Import Openpose (Windows/Ubuntu/OSX)
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -30,7 +32,7 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
         # Custom Params (refer to include/openpose/flags.hpp for more parameters)
         params = dict()
         params["model_folder"] = "/home/slave/openpose/models/"
-        params["number_people_max"] = 1
+        # params["number_people_max"] = 1
         print(params)
 
         # Add others in path?
@@ -48,21 +50,24 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
         # Construct it from system arguments
         # op.init_argv(args[1])
         # oppython = op.OpenposePython()
+        with CodeTimer() as timer:
+            # Starting OpenPose
+            opWrapper = op.WrapperPython()
+            opWrapper.configure(params)
+            opWrapper.start()
 
-        # Starting OpenPose
-        opWrapper = op.WrapperPython()
-        opWrapper.configure(params)
-        opWrapper.start()
+            # Process Image
+            datum = op.Datum()
+            imageToProcess = cv2.imread(args[0].image_path)
+            datum.cvInputData = imageToProcess
+            opWrapper.emplaceAndPop([datum])
+        print(img_name, timer.took)
 
-        # Process Image
-        datum = op.Datum()
-        imageToProcess = cv2.imread(args[0].image_path)
-        datum.cvInputData = imageToProcess
-        opWrapper.emplaceAndPop([datum])
 
         # Display Image
         print("Body keypoints: \n" + str(datum.poseKeypoints))
-        save_image(bgr_to_rgb(datum.cvOutputData), "{}/test/base_cam_pose_{}.png".format(get_working_directory(), get_timestamp()))
+        save_image(bgr_to_rgb(datum.cvOutputData), img_name)
+        return timer.took
         # cv2.imshow("OpenPose 1.6.0 - Tutorial Python API", datum.cvOutputData)
         # cv2.waitKey(0)
     except Exception as e:
@@ -78,11 +83,29 @@ if __name__ == "__main__":
     rospy.init_node('human_pose', anonymous=True)
     CAMERA_TOPIC = '/wrist_camera/color/image_raw'
 
-    imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image)
-    image = image_to_numpy(imagemsg)
-    print("saving image")
-    timestamp = get_timestamp()
-    save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
+    try:
+        imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image, timeout=2)
+        image = image_to_numpy(imagemsg)
+        print("saving image")
+        timestamp = get_timestamp()
+        save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
+        img_path = get_working_directory()+"/test/base_cam_{}.png".format(timestamp)
+        run_openpose(img_path)
+    except rospy.ROSException:
+        import glob
+        import numpy
+        print("loading images from file")
+        parser = argparse.ArgumentParser(description='Process some integers.')
+        parser.add_argument('--input_dir',
+                            default="/home/slave/Pictures/pose/pose test input",
+                            help='directory of PNG images to run fastpose on')
 
-    run_openpose(get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
+        args = parser.parse_args()
+        times = []
+        for test_image in glob.glob(f"{args.input_dir}/*.png"):
+            time = run_openpose(test_image)
+            times.append(time)
+
+        print(np.mean(times))
+
     sys.exit(0)
