@@ -1,3 +1,6 @@
 [submodule "src/fastpose"]
 	path = src/fastpose
 	url = https://github.com/ZexinChen/FastPose.git
+[submodule "src/pytorch_Realtime_Multi-Person_Pose_Estimation"]
+	path = src/pytorch_Realtime_Multi-Person_Pose_Estimation
+	url = https://github.com/glhr/pytorch_Realtime_Multi-Person_Pose_Estimation
