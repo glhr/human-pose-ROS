@@ -118,7 +118,7 @@ renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, rs2::depth_frame const& 
 
                 marker.id = keypointIdx+i*10;
                 marker.color.a = 0.7;
-                std::cout << r[id] << " " << g[id] << " " << b[id] << std::endl;
+                // std::cout << r[id] << " " << g[id] << " " << b[id] << std::endl;
                 marker.color.r = r[id];
                 marker.color.g = g[id];
                 marker.color.b = b[id];

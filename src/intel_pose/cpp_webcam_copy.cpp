@@ -18,26 +18,34 @@
 #include <cubemos/skeleton_tracking.h>
 
 #include "samples.h"
-
 using CUBEMOS_SKEL_Buffer_Ptr = std::unique_ptr<CM_SKEL_Buffer, void (*)(CM_SKEL_Buffer*)>;
-static cv::Scalar const skeletonColor = cv::Scalar(100, 254, 213);
-static cv::Scalar const jointColor = cv::Scalar(222, 55, 22);
 
-cv_bridge::CvImagePtr cv_ptr;
-cv_bridge::CvImagePtr cv_ptr1;
+class MyClass {
+  public:             
 
-// void imageCb(const sensor_msgs::ImageConstPtr& msg){
+    cv::Scalar const skeletonColor = cv::Scalar(100, 254, 213);
+    cv::Scalar const jointColor = cv::Scalar(222, 55, 22);
+
+    cv_bridge::CvImagePtr cv_ptr;
+    boost::shared_ptr<cv_bridge::CvImagePtr const> cv_ptr1(new cv_bridge::CvImagePtr);
+
+    void imageCb(const sensor_msgs::ImageConstPtr& msg);
+    CUBEMOS_SKEL_Buffer_Ptr create_skel_buffer();
+    inline void renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, cv::Mat& image);
+    int run(int argc, char* argv[]);
+    };
+
+
+
+void MyClass::imageCb(const sensor_msgs::ImageConstPtr& msg){
     
     
-//     cv_ptr = cv_bridge::toCvCopy(msg, "bgr8");
-//     // std::cout << cv_ptr->image.step << std::endl;
+    cv_ptr1 = cv_bridge::toCvCopy(msg, "bgr8");
 
+    // std::cout << cv_ptr->image.step << std::endl;
+}
 
-
-
-// }
-
-CUBEMOS_SKEL_Buffer_Ptr create_skel_buffer(){
+CUBEMOS_SKEL_Buffer_Ptr MyClass::create_skel_buffer(){
     return CUBEMOS_SKEL_Buffer_Ptr(new CM_SKEL_Buffer(), [](CM_SKEL_Buffer* pb) {
         cm_skel_release_buffer(pb);
         delete pb;
@@ -47,7 +55,7 @@ CUBEMOS_SKEL_Buffer_Ptr create_skel_buffer(){
 /*
 Render skeletons and tracking ids on top of the color image
 */
-inline void renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, cv::Mat& image){
+inline void MyClass::renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, cv::Mat& image){
     CV_Assert(image.type() == CV_8UC3);
     const cv::Point2f absentKeypoint(-1.0f, -1.0f);
     
@@ -102,7 +110,7 @@ inline void renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, cv::Mat& ima
     }
 }
 
-int main(int argc, char* argv[]){
+int MyClass::run(int argc, char* argv[]){
     ros::init(argc, argv, "Skeleton_talker");
     ros::NodeHandle n;
 
@@ -110,7 +118,6 @@ int main(int argc, char* argv[]){
 
     CM_TargetComputeDevice enInferenceMode = CM_TargetComputeDevice::CM_CPU;
 
-    std::string szInput = "webcam";
     if (argc > 1) {
         if (strcmp(argv[1], "CPU") == 0 || strcmp(argv[1], "MYRIAD") == 0 || strcmp(argv[1], "GPU") == 0) {
             if (strcmp(argv[1], "MYRIAD") == 0)
@@ -121,11 +128,7 @@ int main(int argc, char* argv[]){
                 enInferenceMode = CM_TargetComputeDevice::CM_GPU;
         }
     }
-    if (argc > 2) {
-        if (strcmp(argv[2], "webcam") != 0) {
-            szInput = argv[2];
-        }
-    }
+
 
     CM_SKEL_Handle* handle = nullptr;
     // Output all messages with severity level INFO or higher to the console
@@ -151,22 +154,12 @@ int main(int argc, char* argv[]){
     cv::namedWindow(cvWindowName, cv::WINDOW_NORMAL);
     cv::setWindowProperty(cvWindowName, cv::WND_PROP_FULLSCREEN, cv::WINDOW_FULLSCREEN);
 
-    // cv::VideoCapture webcam;
-    // if (szInput == "webcam")
-    //     webcam.open(0);
-    // else
-    //     webcam.open(szInput);
-
-    // cv::Mat capturedFrame;
 
     const int nHeight = 192; // height of the image with which the DNN model will run inference
 
     // create an async request handle
     CM_SKEL_AsyncRequestHandle* skeletRequestHandle = nullptr;
     cm_skel_create_async_request_handle(handle, &skeletRequestHandle);
-
-    // cache the first inference to get started with tracking
-    // webcam.read(capturedFrame);
 
     boost::shared_ptr<sensor_msgs::Image const> ros_image(new sensor_msgs::Image);
 
@@ -177,19 +170,12 @@ int main(int argc, char* argv[]){
     
     ros_img = *ros_image;
     
-    
-
     cv_ptr = cv_bridge::toCvCopy(ros_img, "bgr8");
 
     CM_Image imageLast = {
     cv_ptr->image.data,         CM_UINT8, cv_ptr->image.cols , cv_ptr->image.rows, cv_ptr->image.channels(),
     (int)cv_ptr->image.step[0], CM_HWC};
 
-    // CM_Image imageLast = {
-    //     capturedFrame.data,         CM_UINT8, capturedFrame.cols, capturedFrame.rows, capturedFrame.channels(),
-    //     (int)capturedFrame.step[0], CM_HWC
-    // };
-    
     CUBEMOS_SKEL_Buffer_Ptr skeletonsPresent = create_skel_buffer();
     CUBEMOS_SKEL_Buffer_Ptr skeletonsLast = create_skel_buffer();
     int nTimeoutMs = 1000;
@@ -207,38 +193,12 @@ int main(int argc, char* argv[]){
     // start measuring the time taken for execution
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
 
-
     // continue to loop through acquisition and display until the escape key is hit
     while (cv::waitKey(1) != 27) {
-        // capture image from a webcamera
-        // webcam.read(capturedFrame);
-
-        boost::shared_ptr<sensor_msgs::Image const> ros_image1(new sensor_msgs::Image);
-
-        ros_image1 = ros::topic::waitForMessage<sensor_msgs::Image>("/wrist_camera/camera/color/image_raw", n);
-        
-        sensor_msgs::Image ros_img1;
-
-        
-        ros_img1 = *ros_image1;
-        
-        
-        cv_ptr1 = cv_bridge::toCvCopy(ros_img1, "bgr8");
-        
-        // exit the loop if the captured frame is empty
-        // if (capturedFrame.empty()) {
-        //     std::cerr << "No new frame could be captured using the input source. Exiting the loop." << std::endl;
-        //     break;
-        // }
 
         CM_Image imagePresent = {
         cv_ptr1->image.data,         CM_UINT8, cv_ptr1->image.cols , cv_ptr1->image.rows, cv_ptr1->image.channels(),
         (int)cv_ptr1->image.step[0], CM_HWC};
-
-        // CM_Image imagePresent = {
-        //     capturedFrame.data,         CM_UINT8, capturedFrame.cols, capturedFrame.rows, capturedFrame.channels(),
-        //     (int)capturedFrame.step[0], CM_HWC
-        // };
 
         // Run Skeleton Tracking and display the results
         retCode = cm_skel_estimate_keypoints_start_async(handle, skeletRequestHandle, &imagePresent, nHeight);
@@ -268,12 +228,21 @@ int main(int argc, char* argv[]){
             fpsTest = "Frame rate: " + std::to_string(fps) + " FPS";
             startTime = std::chrono::system_clock::now();
         }
-        cv::putText(cv_ptr1->image, fpsTest, cv::Point(50, 50), cv::FONT_HERSHEY_COMPLEX, 1, skeletonColor);
-        cv::imshow(cvWindowName, cv_ptr1->image);
+        if(!cv_ptr1->image.empty()){
+            cv::putText(cv_ptr1->image, fpsTest, cv::Point(50, 50), cv::FONT_HERSHEY_COMPLEX, 1, skeletonColor);
+            cv::imshow(cvWindowName, cv_ptr1->image);
+        }
     }
 
     // release the memory which is managed by the cubemos framework
     cm_skel_destroy_async_request_handle(&skeletRequestHandle);
     cm_skel_destroy_handle(&handle);
+    return 0;
+}
+
+int main(int argc, char* argv[]){
+    MyClass skeleton;
+    skeleton.run(argc, argv);
+
     return 0;
 }
