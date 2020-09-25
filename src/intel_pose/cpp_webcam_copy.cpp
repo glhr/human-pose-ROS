@@ -27,7 +27,7 @@ class MyClass {
     cv::Scalar const jointColor = cv::Scalar(222, 55, 22);
 
     cv_bridge::CvImagePtr cv_ptr;
-    boost::shared_ptr<cv_bridge::CvImagePtr const> cv_ptr1(new cv_bridge::CvImagePtr);
+    cv_bridge::CvImagePtr cv_ptr1;
 
     void imageCb(const sensor_msgs::ImageConstPtr& msg);
     CUBEMOS_SKEL_Buffer_Ptr create_skel_buffer();
@@ -59,7 +59,6 @@ inline void MyClass::renderSkeletons(const CM_SKEL_Buffer* skeletons_buffer, cv:
     CV_Assert(image.type() == CV_8UC3);
     const cv::Point2f absentKeypoint(-1.0f, -1.0f);
     
-    ros::spinOnce();
     const std::vector<std::pair<int, int>> limbKeypointsIds = { { 1, 2 },   { 1, 5 },   { 2, 3 }, { 3, 4 },  { 5, 6 },
                                                                 { 6, 7 },   { 1, 8 },   { 8, 9 }, { 9, 10 }, { 1, 11 },
                                                                 { 11, 12 }, { 12, 13 }, { 1, 0 }, { 0, 14 }, { 14, 16 },
@@ -114,7 +113,7 @@ int MyClass::run(int argc, char* argv[]){
     ros::init(argc, argv, "Skeleton_talker");
     ros::NodeHandle n;
 
-    // ros::Subscriber camera_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/color/image_raw", 1, imageCb);
+    ros::Subscriber camera_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/color/image_raw", 1, &MyClass::imageCb,this);
 
     CM_TargetComputeDevice enInferenceMode = CM_TargetComputeDevice::CM_CPU;
 
@@ -195,49 +194,52 @@ int MyClass::run(int argc, char* argv[]){
 
     // continue to loop through acquisition and display until the escape key is hit
     while (cv::waitKey(1) != 27) {
+        if(cv_ptr1){
+            CM_Image imagePresent = {
+            cv_ptr1->image.data,         CM_UINT8, cv_ptr1->image.cols , cv_ptr1->image.rows, cv_ptr1->image.channels(),
+            (int)cv_ptr1->image.step[0], CM_HWC};
 
-        CM_Image imagePresent = {
-        cv_ptr1->image.data,         CM_UINT8, cv_ptr1->image.cols , cv_ptr1->image.rows, cv_ptr1->image.channels(),
-        (int)cv_ptr1->image.step[0], CM_HWC};
+            // Run Skeleton Tracking and display the results
+            retCode = cm_skel_estimate_keypoints_start_async(handle, skeletRequestHandle, &imagePresent, nHeight);
+            retCode = cm_skel_wait_for_keypoints(handle, skeletRequestHandle, skeletonsPresent.get(), nTimeoutMs);
 
-        // Run Skeleton Tracking and display the results
-        retCode = cm_skel_estimate_keypoints_start_async(handle, skeletRequestHandle, &imagePresent, nHeight);
-        retCode = cm_skel_wait_for_keypoints(handle, skeletRequestHandle, skeletonsPresent.get(), nTimeoutMs);
-
-        // track the skeletons in case of successful skeleton estimation
-        if (retCode == CM_SUCCESS) {
-            if (skeletonsPresent->numSkeletons > 0) {
-                // Assign tracking ids to the skeletons in the present frame
-                cm_skel_update_tracking_id(handle, skeletonsLast.get(), skeletonsPresent.get());
-                // Render skeleton overlays with tracking ids
-                renderSkeletons(skeletonsPresent.get(), cv_ptr1->image);
-                // Set the present frame as last one to track the next frame
-                skeletonsLast.swap(skeletonsPresent);
-                // Free memory of the latest frame
-                cm_skel_release_buffer(skeletonsPresent.get());
+            // track the skeletons in case of successful skeleton estimation
+            if (retCode == CM_SUCCESS) {
+                if (skeletonsPresent->numSkeletons > 0) {
+                    // Assign tracking ids to the skeletons in the present frame
+                    cm_skel_update_tracking_id(handle, skeletonsLast.get(), skeletonsPresent.get());
+                    // Render skeleton overlays with tracking ids
+                    renderSkeletons(skeletonsPresent.get(), cv_ptr1->image);
+                    // Set the present frame as last one to track the next frame
+                    skeletonsLast.swap(skeletonsPresent);
+                    // Free memory of the latest frame
+                    cm_skel_release_buffer(skeletonsPresent.get());
+                }
             }
-        }
 
-	frameCount++;
-        if (frameCount % 25 == 0) {
-            auto timePassed =
-              std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime)
-                .count();
-            auto fps = 25000.0 / timePassed;
+        frameCount++;
+            if (frameCount % 25 == 0) {
+                auto timePassed =
+                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime)
+                    .count();
+                auto fps = 25000.0 / timePassed;
 
-            fpsTest = "Frame rate: " + std::to_string(fps) + " FPS";
-            startTime = std::chrono::system_clock::now();
-        }
-        if(!cv_ptr1->image.empty()){
+                fpsTest = "Frame rate: " + std::to_string(fps) + " FPS";
+                startTime = std::chrono::system_clock::now();
+            }
+            
             cv::putText(cv_ptr1->image, fpsTest, cv::Point(50, 50), cv::FONT_HERSHEY_COMPLEX, 1, skeletonColor);
             cv::imshow(cvWindowName, cv_ptr1->image);
+            cv_ptr1.reset();
+       
         }
+    ros::spinOnce();
     }
-
     // release the memory which is managed by the cubemos framework
     cm_skel_destroy_async_request_handle(&skeletRequestHandle);
     cm_skel_destroy_handle(&handle);
     return 0;
+    
 }
 
 int main(int argc, char* argv[]){
