@@ -66,10 +66,16 @@ target_link_libraries(cpp-webcam ${catkin_LIBRARIES})
 target_link_libraries(cpp-webcam PRIVATE cubemos_skeleton_tracking)
 target_link_libraries(cpp-webcam PRIVATE ${OpenCV_LIBS})
 # target_link_libraries(cpp-realsense ${GTK2_LIBRARIES})
-
+add_executable(cpp-webcam_copy src/intel_pose/cpp_webcam_copy.cpp src/intel_pose/samples.h)
+target_link_libraries(cpp-webcam_copy ${catkin_LIBRARIES})
+target_link_libraries(cpp-webcam_copy PRIVATE cubemos_skeleton_tracking)
+target_link_libraries(cpp-webcam_copy PRIVATE ${OpenCV_LIBS})
 
 
 set_target_properties (cpp-realsense PROPERTIES
+	FOLDER samples
+)
+set_target_properties (cpp-webcam_copy PROPERTIES
 	FOLDER samples
 )
 set_target_properties (cpp-webcam PROPERTIES
@@ -81,6 +87,9 @@ set_target_properties (cpp-webcam PROPERTIES
 # set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 install(TARGETS cpp-realsense
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(TARGETS cpp-webcam_copy
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(TARGETS cpp-webcam
