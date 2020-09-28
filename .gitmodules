@@ -7,3 +7,12 @@
 [submodule "src/fastpose-drnoodle"]
 	path = src/fastpose-drnoodle
 	url = https://github.com/glhr/fastpose
+[submodule "src/mmpose"]
+	path = src/mmpose
+	url = https://github.com/open-mmlab/mmpose
+[submodule "src/AlphaPose"]
+	path = src/AlphaPose
+	url = https://github.com/MVIG-SJTU/AlphaPose
+[submodule "src/PoseFlow"]
+	path = src/PoseFlow
+	url = https://github.com/YuliangXiu/PoseFlow
