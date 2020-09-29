@@ -1,2 +1,6 @@
 
 test/
+
+*.png
+
+src/openpifpaf/test.jpg
