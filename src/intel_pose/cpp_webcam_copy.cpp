@@ -7,6 +7,7 @@
 #include "visualization_msgs/Marker.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "geometry_msgs/Point.h"
 #include "cv_bridge/cv_bridge.h"
 #include <sensor_msgs/image_encodings.h>
 
@@ -57,7 +58,7 @@ int run(int argc, char *argv[]);
 
 void pointcloudCb(const sensor_msgs::ImageConstPtr &msg)
 {
-    std::cout << "depth" << std::endl;
+    // std::cout << "depth" << std::endl;
     depth_image = cv_bridge::toCvCopy(msg, "32FC1");
 }
 
@@ -65,7 +66,7 @@ void imageCb(const sensor_msgs::ImageConstPtr &msg)
 {
 
     // ImagePtr = msg;
-    std::cout << "image" << std::endl;
+    // std::cout << "image" << std::endl;
     cv_ptr1 = cv_bridge::toCvCopy(msg, "bgr8");
 
     // std::cout << cv_ptr->image.step << std::endl;
@@ -83,7 +84,7 @@ cmPoint get_skeleton_point_3d(int x, int y)
 {
     // Get the distance at the given pixel
         float distance = depth_image->image.at<float>(y, x);
-        std::cout << distance << std::endl;
+        // std::cout << distance << std::endl;
  
         point.color_pixel[0] = static_cast<float>(x);
         point.color_pixel[1] = static_cast<float>(y);
@@ -138,46 +139,52 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
         int id = skeletons_buffer->skeletons[i].id;
         cv::Point2f keyPointHead(skeletons_buffer->skeletons[i].keypoints_coord_x[0],
                                  skeletons_buffer->skeletons[i].keypoints_coord_y[0]);
-        visualization_msgs::MarkerArray ros_skeleton;
+        // visualization_msgs::MarkerArray ros_skeleton;
+        visualization_msgs::Marker marker;
+        visualization_msgs::Marker line_strip;
+        line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+        line_strip.id = i;
+        marker.id = i * 100;
+        line_strip.scale.x = 0.01;
+        line_strip.scale.y = 0.01;
+        marker.scale.x = 0.05;
+        marker.scale.y = 0.05;
+        // marker.scale.z = 0.05;
+        line_strip.color.g = 1.0f;
+        line_strip.color.a = 1.0;
+        marker.color.r = r[id];
+        marker.color.g = g[id];
+        marker.color.b = b[id];
+        marker.color.a = 0.7;
+        marker.ns = line_strip.ns  = "points_and_lines";
+        marker.type = 8;
+        marker.header.frame_id = line_strip.header.frame_id = "wrist_camera_link";
+        marker.header.stamp = line_strip.header.stamp = ros::Time::now();
+        marker.action = line_strip.action = visualization_msgs::Marker::ADD;
+        marker.lifetime = ros::Duration(0.5);
+
+        marker.pose.orientation.w = line_strip.pose.orientation.w =  1.0;
         for (size_t keypointIdx = 0; keypointIdx < skeletons_buffer->skeletons[i].numKeyPoints; keypointIdx++)
         {
-            //Ros marker
-            visualization_msgs::Marker marker;
-
+  
             const cv::Point2f keyPoint(skeletons_buffer->skeletons[i].keypoints_coord_x[keypointIdx], skeletons_buffer->skeletons[i].keypoints_coord_y[keypointIdx]);
             if (keyPoint != absentKeypoint)
             {
                 cv::circle(image, keyPoint, 4, jointColor, -1);
                 // get the 3d point and render it on the joints
                 cmPoint point3d = get_skeleton_point_3d(static_cast<int>(keyPoint.x), static_cast<int>(keyPoint.y));
-                marker.header.frame_id = "wrist_camera_link";
-                marker.header.stamp = ros::Time::now();
-                marker.type = 2;
-                marker.pose.position.x = point3d.point3d[0];
-                marker.pose.position.y = point3d.point3d[1];
-                marker.pose.position.z = point3d.point3d[2];
 
-                marker.pose.orientation.x = 0;
-                marker.pose.orientation.y = 0;
-                marker.pose.orientation.z = 0;
-                marker.pose.orientation.w = 1;
-                marker.lifetime = ros::Duration(0.5);
 
-                marker.id = keypointIdx + i * 10;
-                marker.color.a = 0.7;
-                // std::cout << r[id] << " " << g[id] << " " << b[id] << std::endl;
-                marker.color.r = r[id];
-                marker.color.g = g[id];
-                marker.color.b = b[id];
+                geometry_msgs::Point ros_point;
+                ros_point.x = point3d.point3d[0];
+                ros_point.y = point3d.point3d[1];
+                ros_point.z = point3d.point3d[2];
 
-                // marker.text = std::to_string(keypointIdx);
-                marker.scale.x = 0.05;
-                marker.scale.y = 0.05;
-                marker.scale.z = 0.05;
-
-                ros_skeleton.markers.push_back(marker);
+                marker.points.push_back(ros_point);
+                line_strip.points.push_back(ros_point);
             }
-            skeleton_pub.publish(ros_skeleton);
+            skeleton_pub.publish(marker);
+            skeleton_pub.publish(line_strip);
         }
 
         for (const auto &limbKeypointsId : limbKeypointsIds)
@@ -222,7 +229,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber camera_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/color/image_raw", 1, imageCb);
     ros::Subscriber depth_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/aligned_depth_to_color/image_raw", 1, pointcloudCb);
-    ros::Publisher skeleton_pub = n.advertise<visualization_msgs::MarkerArray>("spawn_skeleton", 1);
+    ros::Publisher skeleton_pub = n.advertise<visualization_msgs::Marker>("spawn_skeleton", 1);
 
     int num_colors = 100;
     float color_r[num_colors];
