@@ -19,3 +19,5 @@
 [submodule "src/pytorch-pose-hg-3d"]
 	path = src/pytorch-pose-hg-3d
 	url = https://github.com/xingyizhou/pytorch-pose-hg-3d
+[submodule "src/pose-3d-pytorch-ros"]
+	url = https://github.com/fabro66/pose-3d-pytorch-ros
