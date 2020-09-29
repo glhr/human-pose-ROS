@@ -16,3 +16,6 @@
 [submodule "src/PoseFlow"]
 	path = src/PoseFlow
 	url = https://github.com/YuliangXiu/PoseFlow
+[submodule "src/pytorch-pose-hg-3d"]
+	path = src/pytorch-pose-hg-3d
+	url = https://github.com/xingyizhou/pytorch-pose-hg-3d
