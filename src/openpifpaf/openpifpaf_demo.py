@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import io
 import numpy as np
 import openpifpaf
@@ -30,9 +31,13 @@ preprocess = openpifpaf.transforms.Compose([
     openpifpaf.transforms.EVAL_TRANSFORM,
 ])
 
-def predict(img_path):
+def predict(img_path, scale=1):
     pil_im = PIL.Image.open(img_path)
+    dim = (int(i*scale) for i in pil_im.size)
+    pil_im = pil_im.resize(dim)
+
     img_name = img_path.split("/")[-1]
+    img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
     im = np.asarray(pil_im)
 
     predictions_list = []
@@ -70,6 +75,6 @@ parser.add_argument('--input_dir',
 args = parser.parse_args()
 
 for img_path in glob.glob(f"{args.input_dir}/*.png"):
-    _, time = predict(img_path)
+    _, time = predict(img_path, scale=0.5)
     times.append(time)
-print(f"Inference took {np.mean(times)}s per image (avg)" )
+print(f"Inference took {np.mean(times)}ms per image (avg)" )

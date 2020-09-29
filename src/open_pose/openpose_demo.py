@@ -13,8 +13,8 @@ from vision_utils.file import get_filename_from_path, get_working_directory
 from vision_utils.timing import get_timestamp
 from vision_utils.timing import CodeTimer
 
-def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
-    img_name = img_path.split("/")[-1]
+def run_openpose(img_path="/home/slave/Downloads/trump.jpg", scale=1):
+    img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
     try:
         # Import Openpose (Windows/Ubuntu/OSX)
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -59,6 +59,8 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg"):
             # Process Image
             datum = op.Datum()
             imageToProcess = cv2.imread(args[0].image_path)
+            dim = (int(imageToProcess.shape[1] * scale), int(imageToProcess.shape[0] * scale))
+            imageToProcess = cv2.resize(imageToProcess, dim)
             datum.cvInputData = imageToProcess
             opWrapper.emplaceAndPop([datum])
         print(img_name, timer.took)
@@ -79,11 +81,12 @@ if __name__ == "__main__":
     import rospy
     from sensor_msgs.msg import Image
     import numpy as np
+    import rosgraph
 
-    rospy.init_node('human_pose', anonymous=True)
     CAMERA_TOPIC = '/wrist_camera/color/image_raw'
 
-    try:
+    if rosgraph.is_master_online():
+        rospy.init_node('human_pose', anonymous=True)
         imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image, timeout=2)
         image = image_to_numpy(imagemsg)
         print("saving image")
@@ -91,7 +94,7 @@ if __name__ == "__main__":
         save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
         img_path = get_working_directory()+"/test/base_cam_{}.png".format(timestamp)
         run_openpose(img_path)
-    except rospy.ROSException:
+    except Exception as e:
         import glob
         import numpy
         print("loading images from file")
@@ -103,7 +106,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
         times = []
         for test_image in glob.glob(f"{args.input_dir}/*.png"):
-            time = run_openpose(test_image)
+            time = run_openpose(test_image, scale=1)
             times.append(time)
 
         print(np.mean(times))
