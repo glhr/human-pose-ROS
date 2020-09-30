@@ -10,6 +10,8 @@
 #include "geometry_msgs/Point.h"
 #include "cv_bridge/cv_bridge.h"
 #include <sensor_msgs/image_encodings.h>
+#include <numeric>
+#include <algorithm>    // std::max
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -81,55 +83,93 @@ CUBEMOS_SKEL_Buffer_Ptr create_skel_buffer()
 cmPoint get_skeleton_point_3d(int x, int y)
 {
     // Get the distance at the given pixel
-    float distance = depth_image->image.at<float>(y, x);
-    // std::cout << distance << std::endl;
+    int center[2] = {x, y};
+    int size = 10;
+    std::vector<float> buffer;
+    float distance = 0;
 
-    point.color_pixel[0] = static_cast<float>(x);
-    point.color_pixel[1] = static_cast<float>(y);
+    int i_min = std::max(0, center[0] - size);
+    int i_max = std::min(center[0] + size, 1279);
 
-    rs2_intrinsics intr;
+    int j_min = std::max(0, center[1] - size);
+    int j_max = std::min(center[1] + size, 719);
 
-    //ros intrinsic
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     intr.coeffs[i] = 0.0;
-    // }
-    // intr.width = 1280;
-    // intr.height = 720;
-    // intr.fx = 925.7305297851562;
-    // intr.fy = 925.7361450195312;
-    // intr.ppx = 640.8016967773438;
-    // intr.ppy = 369.9321594238281;
-    // rs2_distortion model = RS2_DISTORTION_BROWN_CONRADY;
-    // intr.model = model;
-
-    // Intel intr
-    for (int i = 0; i < 5; i++)
+    for (int i = i_min; i < i_max; i++)
     {
-        intr.coeffs[i] = 0.0;
+        for (int j = j_min; j < j_max; j++)
+        {
+            try
+            {
+                distance = depth_image->image.at<float>(j, i);
+                buffer.push_back(distance);
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
     }
-    intr.width = 1280;
-    intr.height = 720;
-    intr.fx = 660.351;
-    intr.fy = 660.351;
-    intr.ppx = 650.521;
-    intr.ppy = 344.305;
-    rs2_distortion model = RS2_DISTORTION_BROWN_CONRADY;
-    intr.model = model;
-    rs2_deproject_pixel_to_point(point.point3d, &intr, point.color_pixel, distance / 1000);
 
+    size_t n = buffer.size() / 2;
+    std::nth_element(buffer.begin(), buffer.begin() + n, buffer.end());
+    distance = buffer[n];
+    if (distance > 2000){
+        std::cout << distance << std::endl;
+    }
+    if (distance > 100 && distance < 2500)
+    {
+        // float distance = depth_image->image.at<float>(y, x);
+
+        // std::cout << distance << std::endl;
+
+        point.color_pixel[0] = static_cast<float>(x);
+        point.color_pixel[1] = static_cast<float>(y);
+
+        rs2_intrinsics intr;
+
+        //ros intrinsic
+        // for (int i = 0; i < 5; i++)
+        // {
+        //     intr.coeffs[i] = 0.0;
+        // }
+        // intr.width = 1280;
+        // intr.height = 720;
+        // intr.fx = 925.7305297851562;
+        // intr.fy = 925.7361450195312;
+        // intr.ppx = 640.8016967773438;
+        // intr.ppy = 369.9321594238281;
+        // rs2_distortion model = RS2_DISTORTION_BROWN_CONRADY;
+        // intr.model = model;
+
+        // Intel intr
+        for (int i = 0; i < 5; i++)
+        {
+            intr.coeffs[i] = 0.0;
+        }
+        intr.width = 1280;
+        intr.height = 720;
+        intr.fx = 660.351;
+        intr.fy = 660.351;
+        intr.ppx = 650.521;
+        intr.ppy = 344.305;
+        rs2_distortion model = RS2_DISTORTION_BROWN_CONRADY;
+        intr.model = model;
+        rs2_deproject_pixel_to_point(point.point3d, &intr, point.color_pixel, distance / 1000);
+        return point;
+    }
+    point.point3d[2] = -1.0;
     return point;
 }
 
 /*
 Render skeletons and tracking ids on top of the color image
 */
-inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &image, ros::Publisher skeleton_pub, ros::Publisher line_pub , float *r, float *g, float *b)
+inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &image, ros::Publisher skeleton_pub, ros::Publisher line_pub, float *r, float *g, float *b)
 {
     CV_Assert(image.type() == CV_8UC3);
     const cv::Point2f absentKeypoint(-1.0f, -1.0f);
 
-    const std::vector<std::pair<int, int>> limbKeypointsIds = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {1, 11}, {11, 12}, {12, 13}, {1, 0}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
+    const std::vector<std::pair<int, int>> limbKeypointsIds = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {1, 11}, {11, 12}, {12, 13}, {0, 1}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
 
     for (int i = 0; i < skeletons_buffer->numSkeletons; i++)
     {
@@ -141,9 +181,10 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
         // visualization_msgs::MarkerArray ros_skeleton;
         visualization_msgs::Marker marker;
 
-        marker.id = i * 100;
+        marker.id = i * 100 + 1;
         marker.scale.x = 0.05;
         marker.scale.y = 0.05;
+        marker.scale.z = 0.05;
 
         marker.color.r = r[id];
         marker.color.g = g[id];
@@ -151,11 +192,11 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
         marker.color.a = 0.7;
 
         marker.ns = "points_and_lines";
-        marker.type = 2;
+        marker.type = 7;
         marker.header.frame_id = "wrist_camera_link";
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
-        marker.lifetime = ros::Duration(0.5);
+        marker.lifetime = ros::Duration(0.2);
 
         marker.pose.orientation.w = 1.0;
         for (size_t keypointIdx = 0; keypointIdx < skeletons_buffer->skeletons[i].numKeyPoints; keypointIdx++)
@@ -177,31 +218,35 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
             }
             skeleton_pub.publish(marker);
         }
-
+        int body_counter = 0;
         for (const auto &limbKeypointsId : limbKeypointsIds)
-        {
+        {   
             visualization_msgs::Marker line_strip;
             line_strip.type = visualization_msgs::Marker::LINE_STRIP;
             line_strip.header.frame_id = "wrist_camera_link";
             line_strip.header.stamp = ros::Time::now();
-            line_strip.id = i * 10 + limbKeypointsId.first * limbKeypointsId.second;
+            line_strip.id = i * 100 + body_counter;
+            body_counter += 1;
             line_strip.scale.x = 0.05;
             line_strip.color.r = r[id];
             line_strip.color.g = g[id];
             line_strip.color.b = b[id];
             line_strip.color.a = 0.7;
             line_strip.action = visualization_msgs::Marker::ADD;
-            line_strip.lifetime = ros::Duration(0.5);
+            line_strip.lifetime = ros::Duration(0.2);
             line_strip.pose.orientation.w = 1.0;
             line_strip.ns = "points_and_lines";
+
             const cv::Point2f keyPointFirst(skeletons_buffer->skeletons[i].keypoints_coord_x[limbKeypointsId.first],
                                             skeletons_buffer->skeletons[i].keypoints_coord_y[limbKeypointsId.first]);
 
             const cv::Point2f keyPointSecond(skeletons_buffer->skeletons[i].keypoints_coord_x[limbKeypointsId.second],
                                              skeletons_buffer->skeletons[i].keypoints_coord_y[limbKeypointsId.second]);
 
+            // std::cout << "ID: " <<  line_strip.id << " limb ids: " << limbKeypointsId.first << " " << limbKeypointsId.second << std::endl;
             if (keyPointFirst == absentKeypoint || keyPointSecond == absentKeypoint)
             {
+                // std::cout << "Absent points: " <<  limbKeypointsId.first << " " << limbKeypointsId.second << std::endl;
                 continue;
             }
 
@@ -267,6 +312,7 @@ int main(int argc, char **argv)
     float color_g[num_colors];
     float color_b[num_colors];
     srand(100);
+
     for (int i = 0; i < num_colors; i++)
     {
         color_r[i] = (float)(rand() % 100) / 100;
