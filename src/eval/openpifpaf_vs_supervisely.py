@@ -13,22 +13,22 @@ import cv2
 mapping_ann_openpifpaf = {
   0: 0,
   1: 17,
-  2: 5,
-  3: 7,
-  4: 9,
-  5: 6,
-  6: 8,
-  7: 10,
-  8: 11,
-  9: 13,
-  10: 15,
-  11: 12,
-  12: 14,
-  13: 16,
-  14: 1,
-  15: 2,
-  16: 3,
-  17: 4
+  2: 6,
+  3: 8,
+  4: 10,
+  5: 5,
+  6: 7,
+  7: 9,
+  8: 12,
+  9: 14,
+  10: 16,
+  11: 11,
+  12: 13,
+  13: 15,
+  14: 2,
+  15: 1,
+  16: 4,
+  17: 3
 }
 
 ## process annotation metadata
@@ -65,9 +65,11 @@ for obj_i,obj in enumerate(data_openpifpaf):
   predictions[obj_i] = pnts_openpifpaf
 
 print(f"\n\n---------------- REFERENCE ----------------")
+ground_truths = dict()
 distances_per_person = dict()
 person_mappings = dict()
 pnt_pairs_matched = dict()
+ref_pnts = {'x':dict(), 'y':dict()}
 # parse reference annotations
 for obj_i,obj in enumerate(ann["objects"]):
 
@@ -83,6 +85,7 @@ for obj_i,obj in enumerate(ann["objects"]):
 
   pnts_ref = {int(k):v for k,v in pnts_ref.items()}
   pnts_ref = dict(sorted(pnts_ref.items()))
+  ground_truths[obj_i] = pnts_ref
 
   # add confidence
   for v in pnts_ref.values():
@@ -109,7 +112,7 @@ for obj_i,obj in enumerate(ann["objects"]):
         pass
 
     #print("--> Y pairs:", y_pairs, "\n")
-    #print("--> X pairs:", x_pairs, "\n")
+    # print("--> X pairs:", x_pairs, "\n")
 
     # print("--> Point pairs:")
     pnt_distances = []
@@ -122,13 +125,15 @@ for obj_i,obj in enumerate(ann["objects"]):
       distances_per_person[obj_i] = avg_distance
       person_mappings[obj_i] = person_openpifpad
       pnt_pairs_matched[obj_i] = pnt_pairs
+      ref_pnts['x'][obj_i] = [pair[0] for i,pair in enumerate(x_pairs) if pair[0]>0 or y_pairs[i][0]>0]
+      ref_pnts['y'][obj_i] = [pair[0] for i,pair in enumerate(y_pairs) if pair[0]>0 or x_pairs[i][0]>0]
 
 
 
   # find minimum average distance across detected skeletons
   # distances_per_person.append(distances)
 
-print("\nDistances per person:",distances_per_person)
+print("\nAvg. MPJPE (pixels) per person:",distances_per_person)
 print("\nPerson correspondences (ref:pred):",person_mappings)
 print("\nPerson point pairs:",pnt_pairs_matched)
 
@@ -148,3 +153,24 @@ for id,pairs in pnt_pairs_matched.items():
     image = cv2.circle(image, pred, radius=0, color=color, thickness=10)
 
 cv2.imwrite("test.png", image)
+
+for person_id, person_pairs in pnt_pairs_matched.items():
+  print(f"--- Person {person_id} ---")
+  #print(ref_pnts['x'][person_id])
+  #print(ref_pnts['y'][person_id])
+  x_span = (np.min(ref_pnts['x'][person_id]),np.max(ref_pnts['x'][person_id]))
+  person_width = x_span[1]-x_span[0]
+  y_span = (np.min(ref_pnts['y'][person_id]),np.max(ref_pnts['y'][person_id]))
+  person_height = y_span[1]-y_span[0]
+
+  print('width:',person_width)
+  print('height:',person_height)
+  correct_keypoints = 0
+  print("ground truth\tprediction\t\terror")
+  for pnt_pair in person_pairs:
+    error = distance.euclidean(pnt_pair[0], pnt_pair[1])
+    print(f"{pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:7.2f},{pnt_pair[1][1]:7.2f}\t\t{error:.2f}")
+    if error < person_width/6 and pnt_pair[0][0] > 0 and pnt_pair[0][1]>0:
+      correct_keypoints += 1
+
+  print(f"--> {correct_keypoints} correct keypoints / {len(ref_pnts['x'][person_id])} ground truth keypoints")
