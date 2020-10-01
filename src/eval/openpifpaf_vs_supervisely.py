@@ -1,7 +1,3 @@
-##
-# Author: Caio Marcellos
-# Email: caiocuritiba@gmail.com
-##
 import os
 import numpy as np
 import json
@@ -10,7 +6,8 @@ from datetime import datetime
 from pathlib import Path
 import argparse
 import sys
-
+from scipy.spatial import distance
+import cv2
 
 
 mapping_ann_openpifpaf = {
@@ -47,7 +44,7 @@ for cls in meta["classes"]:
   kps = cls["geometry_config"]["nodes"]
   for kp in kps.items():
     kp_labels[kp[0]] = kp[1]["label"]
-print(kp_labels)
+# print(kp_labels)
 
 with open('wrist_cam_1600951613.png.json') as f:
   ann = json.load(f)
@@ -57,60 +54,97 @@ with open('wrist_cam_1600951613.png.json') as f:
 
 data_openpifpaf = [{"keypoints": [761.31, 128.4, 0.95, 767.27, 120.0, 0.87, 760.54, 120.06, 0.3, 793.71, 119.45, 0.88, 0.0, 0.0, 0.0, 800.01, 175.22, 0.82, 812.67, 162.02, 0.5, 800.48, 251.25, 0.74, 0.0, 0.0, 0.0, 754.31, 271.28, 0.4, 0.0, 0.0, 0.0, 794.72, 304.22, 0.69, 797.45, 301.43, 0.38, 769.61, 381.48, 0.74, 778.86, 372.72, 0.47, 778.82, 470.71, 0.78, 838.08, 424.9, 0.58], "bbox": [744.61, 113.27, 109.91, 374.29], "score": 0.631, "category_id": 1}, {"keypoints": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 514.35, 145.7, 0.37, 605.86, 163.63, 0.45, 434.1, 246.18, 0.89, 619.17, 258.02, 0.7, 396.92, 410.43, 0.92, 753.39, 272.25, 0.6, 393.33, 493.57, 0.98, 692.87, 163.56, 0.62, 488.2, 558.21, 0.67, 607.81, 550.96, 0.58, 514.22, 702.44, 0.38, 601.03, 702.23, 0.48, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "bbox": [362.86, 130.54, 414.67, 607.17], "score": 0.575, "category_id": 1}]
 
-x_pairs = []
-y_pairs = []
-
+predictions = dict()
+print(f"\n\n---------------- PREDICTIONS ----------------")
+# parse predicted keypoints
 for obj_i,obj in enumerate(data_openpifpaf):
-  ref_openpifpaf = obj["keypoints"]
-  ref_openpifpaf = list(zip(ref_openpifpaf[0::3], ref_openpifpaf[1::3]))
-  print(ref_openpifpaf)
+  print(f"--- Person {obj_i} ---")
+  pnts_openpifpaf = obj["keypoints"]
+  pnts_openpifpaf = list(zip(pnts_openpifpaf[0::3], pnts_openpifpaf[1::3]))
+  print("OpenPifPaf points:",pnts_openpifpaf, "\n")
+  predictions[obj_i] = pnts_openpifpaf
 
-  # parse reference annotations
+print(f"\n\n---------------- REFERENCE ----------------")
+distances_per_person = dict()
+person_mappings = dict()
+pnt_pairs_matched = dict()
+# parse reference annotations
+for obj_i,obj in enumerate(ann["objects"]):
 
-  points = dict()
+  print(f"--- Person {obj_i} ---")
+  # create dictionary of points {id: [x,y]}
+  pnts_ref = dict()
   for id in kp_labels.values():
-    points[id] = [0.0, 0.0]
+    pnts_ref[id] = [0.0, 0.0]
 
-  keypoints = []
   object = ann["objects"][obj_i]
   for kp in object["nodes"].items():
-    keypoints.extend(kp[1]["loc"])
-    points[kp_labels[kp[0]]] = kp[1]["loc"]
+    pnts_ref[kp_labels[kp[0]]] = kp[1]["loc"]
 
-  points = {int(k):v for k,v in points.items()}
-  print(dict(sorted(points.items())))
+  pnts_ref = {int(k):v for k,v in pnts_ref.items()}
+  pnts_ref = dict(sorted(pnts_ref.items()))
 
-  res = []
-  for v in points.values():
+  # add confidence
+  for v in pnts_ref.values():
     v.append(1)
-    res.extend(v)
-  print(res, len(res))
+  print("Ref points:",pnts_ref, "\n")
 
-  # compute pairs of point between ref and prediction
+  for person_openpifpad, pnts_openpifpaf in predictions.items():
+    x_pairs = []
+    y_pairs = []
+    pnt_pairs = []
+    # compute pairs of point between ref and prediction
 
-  for ref_i in mapping_ann_openpifpaf.keys():
-    pred_i = mapping_ann_openpifpaf[ref_i]
-    try:
-      pred_x = ref_openpifpaf[pred_i][0]
-      pred_y = ref_openpifpaf[pred_i][1]
-      ref_x = points[ref_i][0]
-      ref_y = points[ref_i][1]
-      x_pairs.append((ref_x,pred_x))
-      y_pairs.append((ref_y,pred_y))
-    except IndexError:
-      pass
+    for ref_i in mapping_ann_openpifpaf.keys():
+      pred_i = mapping_ann_openpifpaf[ref_i]
+      try:
+        pred_x = pnts_openpifpaf[pred_i][0]
+        pred_y = pnts_openpifpaf[pred_i][1]
+        ref_x = pnts_ref[ref_i][0]
+        ref_y = pnts_ref[ref_i][1]
+        pnt_pairs.append([(ref_x, ref_y),(pred_x, pred_y)])
+        x_pairs.append((ref_x,pred_x))
+        y_pairs.append((ref_y,pred_y))
+      except IndexError:
+        pass
 
-  print(y_pairs)
+    #print("--> Y pairs:", y_pairs, "\n")
+    #print("--> X pairs:", x_pairs, "\n")
+
+    # print("--> Point pairs:")
+    pnt_distances = []
+    for pnt_pair in pnt_pairs:
+      # print(pnt_pair)
+      pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
+    # print("--> Avg. distance", np.mean(pnt_distances))
+    avg_distance = np.mean(pnt_distances)
+    if not distances_per_person.get(obj_i,0) or avg_distance < distances_per_person[obj_i]:
+      distances_per_person[obj_i] = avg_distance
+      person_mappings[obj_i] = person_openpifpad
+      pnt_pairs_matched[obj_i] = pnt_pairs
+
+
+
+  # find minimum average distance across detected skeletons
+  # distances_per_person.append(distances)
+
+print("\nDistances per person:",distances_per_person)
+print("\nPerson correspondences (ref:pred):",person_mappings)
+print("\nPerson point pairs:",pnt_pairs_matched)
 
 # write to image
-
-import cv2
 image = cv2.imread('wrist_cam_1600951613.png')
 
-for x,y in zip(x_pairs, y_pairs):
-  ref = (int(x[0]),int(y[0]))
-  pred = (int(x[1]),int(y[1]))
-  image = cv2.circle(image, ref, radius=0, color=(0, 255, 0), thickness=10)
-  image = cv2.circle(image, pred, radius=0, color=(255, 0, 0), thickness=10)
+colors = dict()
+for k in pnt_pairs_matched.keys():
+  colors[k] = tuple(np.random.randint(256, size=3))
+
+for id,pairs in pnt_pairs_matched.items():
+  color = tuple(map(int, colors[id]))
+  for pair in pairs:
+    ref = (int(pair[0][0]),int(pair[0][1]))
+    pred = (int(pair[1][0]),int(pair[1][1]))
+    image = cv2.drawMarker(image, ref, color=color, thickness=2)
+    image = cv2.circle(image, pred, radius=0, color=color, thickness=10)
 
 cv2.imwrite("test.png", image)
