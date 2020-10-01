@@ -141,16 +141,18 @@ print("\nPerson point pairs:",pnt_pairs_matched)
 image = cv2.imread('wrist_cam_1600951613.png')
 
 colors = dict()
-for k in pnt_pairs_matched.keys():
+for k in range(17):
   colors[k] = tuple(np.random.randint(256, size=3))
 
 for id,pairs in pnt_pairs_matched.items():
-  color = tuple(map(int, colors[id]))
-  for pair in pairs:
+  for k,pair in enumerate(pairs):
+    color = tuple(map(int, colors[k]))
     ref = (int(pair[0][0]),int(pair[0][1]))
     pred = (int(pair[1][0]),int(pair[1][1]))
     image = cv2.drawMarker(image, ref, color=color, thickness=2)
+    image = cv2.circle(image, ref, radius=0, color=(0,0,0), thickness=4)
     image = cv2.circle(image, pred, radius=0, color=color, thickness=10)
+    image = cv2.circle(image, pred, radius=0, color=(0,0,0), thickness=4)
 
 cv2.imwrite("test.png", image)
 
