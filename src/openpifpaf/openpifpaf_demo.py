@@ -5,6 +5,7 @@ import openpifpaf
 import PIL
 import requests
 import torch
+import json
 
 import matplotlib
 matplotlib.use('gtk3agg')
@@ -16,6 +17,9 @@ print(openpifpaf.__version__)
 print(torch.__version__)
 
 from vision_utils.timing import CodeTimer
+from vision_utils.logger import get_logger
+
+logger = get_logger()
 
 net_cpu, _ = openpifpaf.network.factory(checkpoint='shufflenetv2k16w', download_progress=False)
 net = net_cpu.to(device)
@@ -31,7 +35,7 @@ preprocess = openpifpaf.transforms.Compose([
     openpifpaf.transforms.EVAL_TRANSFORM,
 ])
 
-def predict(img_path, scale=1):
+def predict(img_path, scale=1, json_output=None):
     pil_im = PIL.Image.open(img_path)
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)
@@ -52,8 +56,15 @@ def predict(img_path, scale=1):
         keypoint_painter = openpifpaf.show.KeypointPainter(color_connections=True, linewidth=6)
 
         for images_batch, _, __ in loader:
-          predictions = processor.batch(net, images_batch, device=device)[0]
-          predictions_list.append(predictions)
+            predictions = processor.batch(net, images_batch, device=device)[0]
+            predictions_list.append(predictions)
+
+            if json_output is not None:
+                json_out_name = json_output + '/' + img_name + '.predictions.json'
+                logger.debug('json output = %s', json_out_name)
+                with open(json_out_name, 'w') as f:
+                    json.dump([ann.json_data() for ann in predictions], f)
+
     print(img_name, timer.took)
 
     for predictions in predictions_list:
@@ -71,10 +82,16 @@ parser = argparse.ArgumentParser(description='Directory of PNG images to use for
 parser.add_argument('--input_dir',
                     default="/home/slave/Pictures/pose/pose test input",
                     help='directory of PNG images to run fastpose on')
+parser.add_argument('--json_output',
+                    default="../eval/openpifpaf",
+                    help='JSON output directory')
+parser.add_argument('--scale',
+                    default=1,
+                    help='JSON output directory')
 
 args = parser.parse_args()
 
 for img_path in glob.glob(f"{args.input_dir}/*.png"):
-    _, time = predict(img_path, scale=0.5)
+    _, time = predict(img_path, scale=args.scale, json_output=args.json_output)
     times.append(time)
 print(f"Inference took {np.mean(times)}ms per image (avg)" )
