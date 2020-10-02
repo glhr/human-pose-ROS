@@ -147,6 +147,7 @@ for k in range(17):
 
 
 error_radius = dict()
+THRESHOLD = 1/25
 
 for person_id, person_pairs in pnt_pairs_matched.items():
   print(f"--- Person {person_id} ---")
@@ -157,7 +158,8 @@ for person_id, person_pairs in pnt_pairs_matched.items():
   y_span = (np.min(ref_pnts['y'][person_id]),np.max(ref_pnts['y'][person_id]))
   person_height = y_span[1]-y_span[0]
 
-  error_radius[person_id] = int((person_width/12))
+  error_threshold = person_height*THRESHOLD
+  error_radius[person_id] = int((error_threshold))
   print(error_radius[person_id])
 
   print('width:',person_width)
@@ -167,7 +169,7 @@ for person_id, person_pairs in pnt_pairs_matched.items():
   for pnt_pair in person_pairs:
     error = distance.euclidean(pnt_pair[0], pnt_pair[1])
     print(f"{pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:7.2f},{pnt_pair[1][1]:7.2f}\t\t{error:.2f}")
-    if error < person_width/12 and pnt_pair[0][0] > 0 and pnt_pair[0][1]>0:
+    if error < error_threshold and pnt_pair[0][0] > 0 and pnt_pair[0][1]>0:
       correct_keypoints += 1
 
   print(f"--> {correct_keypoints} correct keypoints / {len(ref_pnts['x'][person_id])} ground truth keypoints")
@@ -177,10 +179,12 @@ for id,pairs in pnt_pairs_matched.items():
         color = tuple(map(int, colors[k]))
         ref = (int(pair[0][0]),int(pair[0][1]))
         pred = (int(pair[1][0]),int(pair[1][1]))
-        image = cv2.circle(image, ref, radius=error_radius[id]*2, color=(0,0,0), thickness=2)
-        image = cv2.drawMarker(image, ref, color=color, thickness=2)
-        # image = cv2.circle(image, ref, radius=0, color=(0,0,0), thickness=4)
-        image = cv2.circle(image, pred, radius=0, color=color, thickness=10)
-        image = cv2.circle(image, pred, radius=0, color=(0,0,0), thickness=4)
+        if (ref[0] > 0 or ref[1] > 0):  # ignore (0,0) keypoints
+            image = cv2.circle(image, ref, radius=error_radius[id], color=(0,0,0), thickness=2)
+            image = cv2.drawMarker(image, ref, color=color, thickness=2, markerSize=error_radius[id])
+            # image = cv2.circle(image, ref, radius=0, color=(0,0,0), thickness=4)
+        if (pred[0] > 0 or pred[1] > 0):
+            image = cv2.circle(image, pred, radius=0, color=color, thickness=10)
+            image = cv2.circle(image, pred, radius=0, color=(0,0,0), thickness=4)
 
 cv2.imwrite("test.png", image)
