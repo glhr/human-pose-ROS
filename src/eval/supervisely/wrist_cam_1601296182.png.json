@@ -1,0 +1,108 @@
+{
+    "description": "",
+    "tags": [],
+    "size": {
+        "height": 720,
+        "width": 1280
+    },
+    "objects": [
+        {
+            "id": 529315887,
+            "classId": 2062248,
+            "description": "",
+            "geometryType": "graph",
+            "labelerLogin": "Janx1913",
+            "createdAt": "2020-09-29T11:43:46.262Z",
+            "updatedAt": "2020-09-29T11:44:38.315Z",
+            "tags": [],
+            "classTitle": "pose",
+            "nodes": {
+                "7aefda10-1d63-4eae-8889-fc851f2f68df": {
+                    "loc": [
+                        888,
+                        468
+                    ]
+                },
+                "ac471ac9-a3c6-433d-85e1-2f247bafffc5": {
+                    "loc": [
+                        689,
+                        458
+                    ]
+                },
+                "eacd081a-9808-4e81-927a-83a2e508cf92": {
+                    "loc": [
+                        613,
+                        669
+                    ]
+                },
+                "064b5738-059d-420b-a454-cf969cb81386": {
+                    "loc": [
+                        1072,
+                        472
+                    ]
+                },
+                "9132485b-e118-49f2-a621-4e509167b1fa": {
+                    "loc": [
+                        847,
+                        271
+                    ]
+                },
+                "663506b9-f3ac-41fd-9a95-8d34b81bc0e5": {
+                    "loc": [
+                        939,
+                        270
+                    ]
+                },
+                "2f66e09e-30dc-43ee-a26f-6733a7e54864": {
+                    "loc": [
+                        782,
+                        259
+                    ]
+                },
+                "64f83356-3110-453a-9bf4-43ef6f682047": {
+                    "loc": [
+                        999,
+                        257
+                    ]
+                },
+                "c7a2845b-b73c-4b89-af6d-ceb97b18f16f": {
+                    "loc": [
+                        892,
+                        321
+                    ]
+                }
+            }
+        },
+        {
+            "id": 529315944,
+            "classId": 2062248,
+            "description": "",
+            "geometryType": "graph",
+            "labelerLogin": "Janx1913",
+            "createdAt": "2020-09-29T11:44:38.101Z",
+            "updatedAt": "2020-09-29T11:45:10.597Z",
+            "tags": [],
+            "classTitle": "pose",
+            "nodes": {
+                "7aefda10-1d63-4eae-8889-fc851f2f68df": {
+                    "loc": [
+                        704,
+                        308
+                    ]
+                },
+                "ac471ac9-a3c6-433d-85e1-2f247bafffc5": {
+                    "loc": [
+                        782,
+                        331
+                    ]
+                },
+                "064b5738-059d-420b-a454-cf969cb81386": {
+                    "loc": [
+                        628,
+                        313
+                    ]
+                }
+            }
+        }
+    ]
+}
