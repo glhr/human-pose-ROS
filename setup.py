@@ -1,11 +1,19 @@
 ## ! DO NOT MANUALLY INVOKE THIS setup.py, USE CATKIN INSTEAD
 
 from distutils.core import setup
-from catkin_pkg.python_setup import generate_distutils_setup
 
-# fetch values from package.xml
-setup_args = generate_distutils_setup(
-    packages=['open_pose'],
-    package_dir={'': 'src'})
 
-setup(**setup_args)
+try:
+    from catkin_pkg.python_setup import generate_distutils_setup
+    # fetch values from package.xml
+    setup_args = generate_distutils_setup(
+        packages=['open_pose','eval'],
+        package_dir={'': 'src'})
+
+    setup(**setup_args)
+except ModuleNotFoundError:
+    setup(
+        name="human-pose-ROS",
+        packages=['open_pose','eval'],
+        package_dir={'': 'src'}
+    )

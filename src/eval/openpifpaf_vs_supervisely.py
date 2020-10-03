@@ -10,52 +10,10 @@ from scipy.spatial import distance
 import cv2
 
 from vision_utils.logger import get_logger
+from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-mapping_ann = dict()
-mapping_ann["openpifpaf"] = {
-  0: 0,
-  1: 17,
-  2: 6,
-  3: 8,
-  4: 10,
-  5: 5,
-  6: 7,
-  7: 9,
-  8: 12,
-  9: 14,
-  10: 16,
-  11: 11,
-  12: 13,
-  13: 15,
-  14: 2,
-  15: 1,
-  16: 4,
-  17: 3
-}
-
-mapping_ann["pytorch-pose-hg-3d"] = {
-  0: 17,
-  1: 8,
-  2: 12,
-  3: 11,
-  4: 10,
-  5: 13,
-  6: 14,
-  7: 15,
-  8: 2,
-  9: 1,
-  10: 6,
-  11: 3,
-  12: 4,
-  13: 5,
-  14: 0,
-  15: 0,
-  16: 0,
-  17: 0
-}
-
-method = "pytorch-pose-hg-3d"
+method = "pytorch_Realtime_Multi-Person_Pose_Estimation"
 
 def eval(method):
 
@@ -173,7 +131,7 @@ def eval(method):
         print("\nPerson point pairs:",pnt_pairs_matched)
 
         error_radius = dict()
-        THRESHOLD = 1/20
+        THRESHOLD = 1/15
 
         for person_id, person_pairs in pnt_pairs_matched.items():
           print(f"--- Person {person_id} ---")
@@ -205,7 +163,7 @@ def eval(method):
         image = cv2.imread(f"supervisely/{img_name}")
 
         colors = dict()
-        for k in range(17):
+        for k in range(18):
           colors[k] = tuple(np.random.randint(256, size=3))
 
         for id,pairs in pnt_pairs_matched.items():
