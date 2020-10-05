@@ -141,12 +141,20 @@ connected_points = [
 (6,12), (12,14), (14,16),
 (11,12), (5,6)]
 
+def get_points_centroid(arr):
+    length = len(arr)
+    arr = np.array(arr)
+    sum_x = np.sum(arr[:, 0])
+    sum_y = np.sum(arr[:, 1])
+    sum_z = np.sum(arr[:, 2])
+    return sum_x/length, sum_y/length, sum_z/length
+
 def skeleton_from_keypoints(skel_dict):
     skel = Skeleton()
     skel = skel_dict
     pp.pprint(skel)
 
-def openpifpaf_viz(predictions, im, time):
+def openpifpaf_viz(predictions, im, time, cam=True):
     predictions = [ann.json_data() for ann in predictions[0]]
     img_pub.publish(numpy_to_image(im))
 
@@ -158,17 +166,23 @@ def openpifpaf_viz(predictions, im, time):
         pnts_dict = dict()
 
         skel_dict = dict()
+
         for i,conn in enumerate(connected_points):
             pnt_1 = pnts_openpifpaf[conn[0]]
             pnt_2 = pnts_openpifpaf[conn[1]]
             if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
 
-                pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
-                pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[1])][int(pnt_2[0])]/1000)
+                if cam:
+                    pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
+                    pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[1])][int(pnt_2[0])]/1000)
+                else:
+                    pnt1_cam = [i/100 for i in pnt_1]
+                    pnt2_cam = [i/100 for i in pnt_2]
+                    pnt1_cam.append(1)
+                    pnt2_cam.append(1)
 
                 skel_dict[pairs[conn[0]]] = pnt1_cam
                 skel_dict[pairs[conn[1]]] = pnt2_cam
-
                 skeleton_from_keypoints(skel_dict)
 
                 now = rospy.get_rostime()
@@ -215,7 +229,7 @@ def openpifpaf_viz(predictions, im, time):
                 pnt_marker.pose.position.x = pnt1_cam[0]
                 pnt_marker.pose.position.y = pnt1_cam[1]
                 pnt_marker.pose.position.z = pnt1_cam[2]
-                print(pnt_marker.pose.position)
+                logger.debug(pnt_marker.pose.position)
                 pnt_marker.id = person_id*100 + i*2
                 pnt_marker.lifetime = rospy.Duration(time*4/1000)
                 pnt_marker.header.stamp = now
@@ -225,8 +239,27 @@ def openpifpaf_viz(predictions, im, time):
                 pnt_marker.pose.position.z = pnt2_cam[2]
                 skel_pub.publish(pnt_marker)
 
-cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
-logger.info("Got camera info")
+        skel_centroid = get_points_centroid(list(skel_dict.values()))
+        logger.info(f"Centroid: {skel_centroid}")
+        centroid_marker = Marker()
+        centroid_marker.header.frame_id = "/wrist_camera_link"
+        centroid_marker.type = centroid_marker.SPHERE
+        centroid_marker.action = centroid_marker.ADD
+        centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
+        centroid_marker.color.a = 1.0
+        centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (1.0,0.0,0.0)
+        centroid_marker.pose.orientation.w = 1.0
+        centroid_marker.pose.position.x = skel_centroid[0]
+        centroid_marker.pose.position.y = skel_centroid[1]
+        centroid_marker.pose.position.z = skel_centroid[2]
+        centroid_marker.id = person_id
+        centroid_marker.lifetime = rospy.Duration(time*4/1000)
+        centroid_marker.header.stamp = now
+        skel_pub.publish(centroid_marker)
+
+if args.cam:
+    cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
+    logger.info("Got camera info")
 
 def pixel_to_camera(pixel, depth):
     _intrinsics = rs.intrinsics()
@@ -251,14 +284,14 @@ while not rospy.is_shutdown():
         for img_path in glob.glob(f"{args.input_dir}/*.png"):
             # img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
             predictions, im, time = predict(img_path, scale=0.5)
-            openpifpaf_viz(predictions, im, time)
+            openpifpaf_viz(predictions, im, time, cam=False)
     else:
         # imagemsg = rospy.wait_for_message(RGB_CAMERA_TOPIC, Image, timeout=2)
         # depth_imagemsg = rospy.wait_for_message(DEPTH_CAMERA_TOPIC, Image, timeout=2)
         # image = image_to_numpy(imagemsg)
         if len(depth_image):
             predictions, im, time = predict(rgb_image, scale=0.5)
-            openpifpaf_viz(predictions, im, time)
+            openpifpaf_viz(predictions, im, time, cam=True)
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
 # while True:
