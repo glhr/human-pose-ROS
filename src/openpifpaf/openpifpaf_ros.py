@@ -6,6 +6,8 @@ import PIL
 import requests
 import torch
 
+import pyrealsense2 as rs
+
 import matplotlib
 # matplotlib.use('gtk3agg')
 import matplotlib.pyplot as plt
@@ -18,7 +20,7 @@ import roslib
 import rospy
 
 from std_msgs.msg import String
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
@@ -48,6 +50,7 @@ preprocess = openpifpaf.transforms.Compose([
     openpifpaf.transforms.CenterPadTight(16),
     openpifpaf.transforms.EVAL_TRANSFORM,
 ])
+
 
 def predict(img_path, scale=1, json_output=None):
     if isinstance(img_path, str):
@@ -107,8 +110,22 @@ img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
 pp.pprint(pairs)
 
+RGB_CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
+DEPTH_CAMERA_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/image_raw'
+DEPTH_INFO_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/camera_info'
+depth_image = []
+rgb_image = []
+def got_depth(msg):
+    global depth_image
+    depth_image = image_to_numpy(msg)
+def got_rgb(msg):
+    global rgb_image
+    rgb_image = image_to_numpy(msg)
+
 skel_pub = rospy.Publisher('openpifpaf_skeleton', Marker, queue_size=100)
 img_pub = rospy.Publisher('openpifpaf_img', Image, queue_size=10)
+depth_sub = rospy.Subscriber(DEPTH_CAMERA_TOPIC, Image, got_depth)
+rgb_sub = rospy.Subscriber(RGB_CAMERA_TOPIC, Image, got_rgb)
 rospy.init_node('openpifpaf')
 
 colors = dict()
@@ -137,33 +154,37 @@ def openpifpaf_viz(predictions, im, time):
             pnt_1 = pnts_openpifpaf[conn[0]]
             pnt_2 = pnts_openpifpaf[conn[1]]
             if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
+
+                pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
+                pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[1])][int(pnt_2[0])]/1000)
+
                 now = rospy.get_rostime()
                 line_marker = Marker()
-                line_marker.header.frame_id = "/map"
+                line_marker.header.frame_id = "/wrist_camera_link"
                 line_marker.type = line_marker.LINE_STRIP
                 line_marker.action = line_marker.ADD
-                line_marker.scale.x, line_marker.scale.y, line_marker.scale.z = 0.05, 0.05, 0.05
+                line_marker.scale.x = 0.02
                 line_marker.color.a = 1.0
                 line_marker.color.r, line_marker.color.g, line_marker.color.b = colors[person_id]
                 line_marker.pose.orientation.w = 1.0
                 line_marker.pose.position.x = 0
                 line_marker.pose.position.y = 0
-                line_marker.pose.position.z = 1
+                line_marker.pose.position.z = 0
                 line_marker.id = person_id*100 + i*2+1
                 line_marker.lifetime = rospy.Duration(time*4/1000)
                 line_marker.header.stamp = now
                 line_marker.points = []
                 # first point
                 first_line_point = Point()
-                first_line_point.x = pnt_1[0]/100
-                first_line_point.y = pnt_1[1]/100
-                first_line_point.z = 0.0
+                first_line_point.x = pnt1_cam[0]
+                first_line_point.y = pnt1_cam[1]
+                first_line_point.z = pnt1_cam[2]
                 line_marker.points.append(first_line_point)
                 # second point
                 second_line_point = Point()
-                second_line_point.x = pnt_2[0]/100
-                second_line_point.y = pnt_2[1]/100
-                second_line_point.z = 0.0
+                second_line_point.x = pnt2_cam[0]
+                second_line_point.y = pnt2_cam[1]
+                second_line_point.z = pnt2_cam[2]
                 line_marker.points.append(second_line_point)
 
                 # pp.pprint(marker.points)
@@ -171,20 +192,40 @@ def openpifpaf_viz(predictions, im, time):
                 skel_pub.publish(line_marker)
 
                 pnt_marker = Marker()
-                pnt_marker.header.frame_id = "/map"
+                pnt_marker.header.frame_id = "/wrist_camera_link"
                 pnt_marker.type = pnt_marker.SPHERE
                 pnt_marker.action = pnt_marker.ADD
-                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.1, 0.1, 0.1
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
                 pnt_marker.color.a = 1.0
                 pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
                 pnt_marker.pose.orientation.w = 1.0
-                pnt_marker.pose.position.x = pnt_1[0]/100
-                pnt_marker.pose.position.y = pnt_1[1]/100
-                pnt_marker.pose.position.z = 1
+                pnt_marker.pose.position.x = pnt1_cam[0]
+                pnt_marker.pose.position.y = pnt1_cam[1]
+                pnt_marker.pose.position.z = pnt1_cam[2]
+                print(pnt_marker.pose.position)
                 pnt_marker.id = person_id*100 + i*2
                 pnt_marker.lifetime = rospy.Duration(time*4/1000)
                 pnt_marker.header.stamp = now
                 skel_pub.publish(pnt_marker)
+
+cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
+logger.info("Got camera info")
+
+def pixel_to_camera(pixel, depth):
+    _intrinsics = rs.intrinsics()
+    _intrinsics.width = cameraInfo.width
+    _intrinsics.height = cameraInfo.height
+    _intrinsics.ppx = cameraInfo.K[2]
+    _intrinsics.ppy = cameraInfo.K[5]
+    _intrinsics.fx = cameraInfo.K[0]
+    _intrinsics.fy = cameraInfo.K[4]
+    #_intrinsics.model = cameraInfo.distortion_model
+    _intrinsics.model  = rs.distortion.none
+    _intrinsics.coeffs = [i for i in cameraInfo.D]
+    x,y = pixel
+    result = rs.rs2_deproject_pixel_to_point(_intrinsics, [x,y], depth)
+    # return rs.rs2_deproject_pixel_to_point(depth_intrin, pixel, 1.0)
+    return result
 
 # rosrun tf static_transform_publisher 0 0 0 0 0 0 1 map my_frame 10
 while not rospy.is_shutdown():
@@ -195,11 +236,12 @@ while not rospy.is_shutdown():
             predictions, im, time = predict(img_path, scale=0.5)
             openpifpaf_viz(predictions, im, time)
     else:
-        CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
-        imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image, timeout=2)
-        image = image_to_numpy(imagemsg)
-        predictions, im, time = predict(image, scale=0.5)
-        openpifpaf_viz(predictions, im, time)
+        # imagemsg = rospy.wait_for_message(RGB_CAMERA_TOPIC, Image, timeout=2)
+        # depth_imagemsg = rospy.wait_for_message(DEPTH_CAMERA_TOPIC, Image, timeout=2)
+        # image = image_to_numpy(imagemsg)
+        if len(depth_image):
+            predictions, im, time = predict(rgb_image, scale=0.5)
+            openpifpaf_viz(predictions, im, time)
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
 # while True:
