@@ -24,6 +24,8 @@ from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
+from human_pose_ROS.msg import Skeleton
+
 from vision_utils.img import image_to_numpy, numpy_to_image, load_image
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import get_timestamp
@@ -139,6 +141,11 @@ connected_points = [
 (6,12), (12,14), (14,16),
 (11,12), (5,6)]
 
+def skeleton_from_keypoints(skel_dict):
+    skel = Skeleton()
+    skel = skel_dict
+    pp.pprint(skel)
+
 def openpifpaf_viz(predictions, im, time):
     predictions = [ann.json_data() for ann in predictions[0]]
     img_pub.publish(numpy_to_image(im))
@@ -150,6 +157,7 @@ def openpifpaf_viz(predictions, im, time):
         #d = dict(zip(keys, values))
         pnts_dict = dict()
 
+        skel_dict = dict()
         for i,conn in enumerate(connected_points):
             pnt_1 = pnts_openpifpaf[conn[0]]
             pnt_2 = pnts_openpifpaf[conn[1]]
@@ -157,6 +165,11 @@ def openpifpaf_viz(predictions, im, time):
 
                 pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
                 pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[1])][int(pnt_2[0])]/1000)
+
+                skel_dict[pairs[conn[0]]] = pnt1_cam
+                skel_dict[pairs[conn[1]]] = pnt2_cam
+
+                skeleton_from_keypoints(skel_dict)
 
                 now = rospy.get_rostime()
                 line_marker = Marker()
@@ -206,6 +219,10 @@ def openpifpaf_viz(predictions, im, time):
                 pnt_marker.id = person_id*100 + i*2
                 pnt_marker.lifetime = rospy.Duration(time*4/1000)
                 pnt_marker.header.stamp = now
+                skel_pub.publish(pnt_marker)
+                pnt_marker.pose.position.x = pnt2_cam[0]
+                pnt_marker.pose.position.y = pnt2_cam[1]
+                pnt_marker.pose.position.z = pnt2_cam[2]
                 skel_pub.publish(pnt_marker)
 
 cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
