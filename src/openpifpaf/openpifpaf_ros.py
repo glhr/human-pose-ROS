@@ -22,8 +22,9 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
-from vision_utils.img import numpy_to_image, load_image
+from vision_utils.img import image_to_numpy, numpy_to_image, load_image
 from vision_utils.logger import get_logger, get_printer
+from vision_utils.timing import get_timestamp
 logger = get_logger()
 pp = get_printer()
 
@@ -49,12 +50,16 @@ preprocess = openpifpaf.transforms.Compose([
 ])
 
 def predict(img_path, scale=1, json_output=None):
-    pil_im = PIL.Image.open(img_path)
+    if isinstance(img_path, str):
+        pil_im = PIL.Image.open(img_path)
+        img_name = img_path.split("/")[-1]
+        img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
+    else:
+        pil_im = PIL.Image.fromarray(img_path)
+        img_name = f'wrist_camera_{get_timestamp()}.png'
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)
 
-    img_name = img_path.split("/")[-1]
-    img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
     im = np.asarray(pil_im)
 
     predictions_list = []
@@ -93,6 +98,7 @@ parser = argparse.ArgumentParser(description='Directory of PNG images to use for
 parser.add_argument('--input_dir',
                     default="/home/slave/Pictures/pose/pose test input",
                     help='directory of PNG images to run fastpose on')
+parser.add_argument('--cam', dest='cam', action='store_true')
 
 args = parser.parse_args()
 
@@ -116,77 +122,86 @@ connected_points = [
 (6,12), (12,14), (14,16),
 (11,12), (5,6)]
 
+def openpifpaf_viz(predictions, im, time):
+    predictions = [ann.json_data() for ann in predictions[0]]
+    img_pub.publish(numpy_to_image(im))
+
+    for person_id, person in enumerate(predictions):
+
+        pnts_openpifpaf = person['keypoints']
+        pnts_openpifpaf = list(zip(pnts_openpifpaf[0::3], pnts_openpifpaf[1::3]))
+        #d = dict(zip(keys, values))
+        pnts_dict = dict()
+
+        for i,conn in enumerate(connected_points):
+            pnt_1 = pnts_openpifpaf[conn[0]]
+            pnt_2 = pnts_openpifpaf[conn[1]]
+            if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
+                now = rospy.get_rostime()
+                line_marker = Marker()
+                line_marker.header.frame_id = "/map"
+                line_marker.type = line_marker.LINE_STRIP
+                line_marker.action = line_marker.ADD
+                line_marker.scale.x, line_marker.scale.y, line_marker.scale.z = 0.05, 0.05, 0.05
+                line_marker.color.a = 1.0
+                line_marker.color.r, line_marker.color.g, line_marker.color.b = colors[person_id]
+                line_marker.pose.orientation.w = 1.0
+                line_marker.pose.position.x = 0
+                line_marker.pose.position.y = 0
+                line_marker.pose.position.z = 1
+                line_marker.id = person_id*100 + i*2+1
+                line_marker.lifetime = rospy.Duration(time*4/1000)
+                line_marker.header.stamp = now
+                line_marker.points = []
+                # first point
+                first_line_point = Point()
+                first_line_point.x = pnt_1[0]/100
+                first_line_point.y = pnt_1[1]/100
+                first_line_point.z = 0.0
+                line_marker.points.append(first_line_point)
+                # second point
+                second_line_point = Point()
+                second_line_point.x = pnt_2[0]/100
+                second_line_point.y = pnt_2[1]/100
+                second_line_point.z = 0.0
+                line_marker.points.append(second_line_point)
+
+                # pp.pprint(marker.points)
+
+                skel_pub.publish(line_marker)
+
+                pnt_marker = Marker()
+                pnt_marker.header.frame_id = "/map"
+                pnt_marker.type = pnt_marker.SPHERE
+                pnt_marker.action = pnt_marker.ADD
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.1, 0.1, 0.1
+                pnt_marker.color.a = 1.0
+                pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
+                pnt_marker.pose.orientation.w = 1.0
+                pnt_marker.pose.position.x = pnt_1[0]/100
+                pnt_marker.pose.position.y = pnt_1[1]/100
+                pnt_marker.pose.position.z = 1
+                pnt_marker.id = person_id*100 + i*2
+                pnt_marker.lifetime = rospy.Duration(time*4/1000)
+                pnt_marker.header.stamp = now
+                skel_pub.publish(pnt_marker)
+
 # rosrun tf static_transform_publisher 0 0 0 0 0 0 1 map my_frame 10
 while not rospy.is_shutdown():
 
-    for img_path in glob.glob(f"{args.input_dir}/*.png"):
-        # img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
-        predictions, im, time = predict(img_path, scale=0.5)
-        predictions = [ann.json_data() for ann in predictions[0]]
-        img_pub.publish(numpy_to_image(im))
-
-        for person_id, person in enumerate(predictions):
-
-            pnts_openpifpaf = person['keypoints']
-            pnts_openpifpaf = list(zip(pnts_openpifpaf[0::3], pnts_openpifpaf[1::3]))
-            #d = dict(zip(keys, values))
-            pnts_dict = dict()
-
-            for i,conn in enumerate(connected_points):
-                pnt_1 = pnts_openpifpaf[conn[0]]
-                pnt_2 = pnts_openpifpaf[conn[1]]
-                if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
-                    time = rospy.get_rostime()
-                    line_marker = Marker()
-                    line_marker.header.frame_id = "/map"
-                    line_marker.type = line_marker.LINE_STRIP
-                    line_marker.action = line_marker.ADD
-                    line_marker.scale.x, line_marker.scale.y, line_marker.scale.z = 0.05, 0.05, 0.05
-                    line_marker.color.a = 1.0
-                    line_marker.color.r, line_marker.color.g, line_marker.color.b = colors[person_id]
-                    line_marker.pose.orientation.w = 1.0
-                    line_marker.pose.position.x = 0
-                    line_marker.pose.position.y = 0
-                    line_marker.pose.position.z = 1
-                    line_marker.id = person_id*100 + i*2+1
-                    line_marker.lifetime = rospy.Duration(1)
-                    line_marker.header.stamp = time
-                    line_marker.points = []
-                    # first point
-                    first_line_point = Point()
-                    first_line_point.x = pnt_1[0]/100
-                    first_line_point.y = pnt_1[1]/100
-                    first_line_point.z = 0.0
-                    line_marker.points.append(first_line_point)
-                    # second point
-                    second_line_point = Point()
-                    second_line_point.x = pnt_2[0]/100
-                    second_line_point.y = pnt_2[1]/100
-                    second_line_point.z = 0.0
-                    line_marker.points.append(second_line_point)
-
-                    # pp.pprint(marker.points)
-
-                    skel_pub.publish(line_marker)
-
-                    pnt_marker = Marker()
-                    pnt_marker.header.frame_id = "/map"
-                    pnt_marker.type = pnt_marker.SPHERE
-                    pnt_marker.action = pnt_marker.ADD
-                    pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.1, 0.1, 0.1
-                    pnt_marker.color.a = 1.0
-                    pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
-                    pnt_marker.pose.orientation.w = 1.0
-                    pnt_marker.pose.position.x = pnt_1[0]/100
-                    pnt_marker.pose.position.y = pnt_1[1]/100
-                    pnt_marker.pose.position.z = 1
-                    pnt_marker.id = person_id*100 + i*2
-                    pnt_marker.lifetime = rospy.Duration(1)
-                    pnt_marker.header.stamp = time
-                    skel_pub.publish(pnt_marker)
-        # pp.pprint(markerArray.markers)
-        # pp.pprint(pnts_dict)
-
+    if not args.cam:
+        for img_path in glob.glob(f"{args.input_dir}/*.png"):
+            # img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
+            predictions, im, time = predict(img_path, scale=0.5)
+            openpifpaf_viz(predictions, im, time)
+    else:
+        CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
+        imagemsg = rospy.wait_for_message(CAMERA_TOPIC, Image, timeout=2)
+        image = image_to_numpy(imagemsg)
+        predictions, im, time = predict(image, scale=0.5)
+        openpifpaf_viz(predictions, im, time)
+            # pp.pprint(markerArray.markers)
+            # pp.pprint(pnts_dict)
 # while True:
 #     predictions, time = predict(img_path, scale=0.5)
 #     times.append(time)
