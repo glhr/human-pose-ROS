@@ -55,7 +55,7 @@ def parse_annotation_json(supervisely_json, kp_labels, debug=True):
     with open(supervisely_json) as f:
         ann = json.load(f)
 
-    print(f"\n\n---------------- REFERENCE ----------------")
+    if debug: print(f"\n\n---------------- REFERENCE ----------------")
     ground_truths_per_instance_dict, ground_truths_dict  = dict(), dict()
     ground_truths_per_instance_list, ground_truths_list = dict(), dict()
     person_dimensions_per_instance_dict, person_dimensions_dict = dict(), dict()
@@ -133,6 +133,20 @@ def visualize_points(image, predictions, ground_truths, img_name, debug=False):
 
     cv2.imwrite(f"{method}/{img_name}", image)
 
+
+def reorder_keypoints_from_mappings(mapping_ann, predictions):
+    predictions_sorted = dict()
+    predictions_list_sorted = dict()
+    for person_id, val in predictions.items():
+        predictions_sorted[person_id] = dict()
+        predictions_list_sorted[person_id] = [0] * len(val)
+        for kp_id in val:
+            predictions_sorted[person_id][kp_id] = predictions[person_id][mapping_ann[kp_id]]
+            predictions_list_sorted[person_id][kp_id] = predictions[person_id][mapping_ann[kp_id]]
+
+    logger.info(predictions_sorted)
+    return predictions_sorted, predictions_list_sorted
+
 def eval(method):
 
     for file_id, supervisely_json in enumerate(glob.glob("supervisely/*.json")):
@@ -144,8 +158,10 @@ def eval(method):
 
         img_name = supervisely_json.split("/")[-1].replace('.json','')
 
-        predictions_dict, predictions_list = parse_prediction_json(method, img_name)
+        predictions_dict, predictions_list = parse_prediction_json(method, img_name, debug=True)
+        predictions_dict, predictions_list = reorder_keypoints_from_mappings(mapping_ann[method], predictions_dict)
         ground_truths_dict, ground_truths_list, person_dimensions_dict = parse_annotation_json(supervisely_json, kp_labels)
+
 
           #
           # for person_openpifpad, pnts_openpifpaf in predictions.items():
