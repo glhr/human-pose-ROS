@@ -13,7 +13,7 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "pytorch_Realtime_Multi-Person_Pose_Estimation"
+method = "openpifpaf"
 
 THRESHOLD = 1/15
 
@@ -274,11 +274,11 @@ def eval(method):
         visualize_points(image, predictions_list, ground_truths_list, person_dimensions_dict, img_name)
 
     logger.info(f"-- Out of ground truth --")
-    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['gt'])}")
+    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['gt'])} ({len(mpjpe_overall['gt'])} images)")
     logger.info(f"NCK across images for {method}: {nck_overall['gt']/totalk_overall['gt']:.2f}")
 
     logger.info(f"-- Out of predictions --")
-    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])}")
+    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])} ({len(mpjpe_overall['pred'])} images)")
     logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.2f}")
 
 eval(method)
