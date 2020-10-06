@@ -13,7 +13,7 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "pytorch_Realtime_Multi-Person_Pose_Estimation"
+method = "openpifpaf"
 
 THRESHOLD = 1/15
 
@@ -140,26 +140,50 @@ def reorder_keypoints_from_mappings(mapping_ann, predictions):
     predictions_list_sorted = dict()
     for person_id, val in predictions.items():
         predictions_sorted[person_id] = dict()
-        predictions_list_sorted[person_id] = [0] * len(val)
-        for kp_id in val:
-            predictions_sorted[person_id][kp_id] = predictions[person_id][mapping_ann[kp_id]]
-            predictions_list_sorted[person_id][kp_id] = predictions[person_id][mapping_ann[kp_id]]
+        predictions_list_sorted[person_id] = [0] * len(mapping_ann)
+        for kp_id in mapping_ann:
+            kp_pred = predictions[person_id].get(mapping_ann[kp_id],0)
+            if not kp_pred:
+                predictions_sorted[person_id][kp_id] = (-1, -1)
+                predictions_list_sorted[person_id][kp_id] = (-1, -1)
+            else:
+                predictions_sorted[person_id][kp_id] = kp_pred
+                predictions_list_sorted[person_id][kp_id] = kp_pred
 
     logger.info(predictions_sorted)
     return predictions_sorted, predictions_list_sorted
 
-def distance_between_keypoints(keypoints_1, keypoints_2, debug=False):
+def distance_between_skeletons(keypoints_1, keypoints_2, debug=False):
     pnt_distances = []
     for pnt_pair in zip(keypoints_1.values(), keypoints_2.values()):
         if debug: print(pnt_pair)
-        pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
+        if not (-1 in pnt_pair[0] or -1 in pnt_pair[1]):
+            pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
     if debug: print("--> Avg. distance", np.mean(pnt_distances))
     avg_distance = np.mean(pnt_distances)
     return avg_distance
 
+def nck_between_skeletons(predictions, ground_truths, person_dimensions):
+    error_threshold = int(person_dimensions['width']*THRESHOLD)
+    correct_keypoints = 0
+    logger.debug(f"Error threshold: {error_threshold}")
+    for pnt_pair in zip(predictions.values(), ground_truths.values()):
+        error = distance.euclidean(pnt_pair[0], pnt_pair[1])
+        if error < error_threshold:
+            correct_keypoints += 1
+            print(f"* {pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:4.0f},{pnt_pair[1][1]:4.0f}\t\t{error:.2f}")
+        else:
+            print(f"  {pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:4.0f},{pnt_pair[1][1]:4.0f}\t\t{error:.2f}")
+
+    total_keypoints = sum(-1.0 not in value for value in predictions.values())
+    print(f"--> {correct_keypoints} correct keypoints / {total_keypoints} ground truth keypoints ({len(predictions.values())-total_keypoints} ignored)")
+    return correct_keypoints, total_keypoints
+
 def eval(method):
 
-    mpjpe = []
+    mpjpe_overall = []
+    nck_overall = 0
+    totalk_overall = 0
     for file_id, supervisely_json in enumerate(glob.glob("supervisely/*.json")):
         # if file_id>1:
         #     break
@@ -173,11 +197,13 @@ def eval(method):
         predictions_dict, predictions_list = reorder_keypoints_from_mappings(mapping_ann[method], predictions_dict)
         ground_truths_dict, ground_truths_list, person_dimensions_dict = parse_annotation_json(supervisely_json, kp_labels)
 
+        ## OUT OF GROUND TRUTH
+
         person_mappings = dict()
         for person_ref, keypoints_ref in ground_truths_dict.items():
             distances_to_pred = dict()
             for person_pred, keypoints_pred in predictions_dict.items():
-                distances_to_pred[person_pred] = distance_between_keypoints(keypoints_ref, keypoints_pred)
+                distances_to_pred[person_pred] = distance_between_skeletons(keypoints_ref, keypoints_pred)
                 print(f"Person {person_ref} -> {person_pred}: {distances_to_pred[person_pred]}")
             person_mappings[person_ref] = min(distances_to_pred, key=distances_to_pred.get)
         logger.info(person_mappings)
@@ -185,85 +211,25 @@ def eval(method):
         # calculate MPJPE
         person_distances = []
         for person_ref, person_pred in person_mappings.items():
-            distance = distance_between_keypoints(ground_truths_dict[person_ref], predictions_dict[person_pred])
+            distance = distance_between_skeletons(ground_truths_dict[person_ref], predictions_dict[person_pred])
             person_distances.append(distance)
         mpjpe_per_img = np.mean(person_distances)
         logger.info(f"MPJPE: {mpjpe_per_img}")
         if not np.isnan(mpjpe_per_img):
-            mpjpe.append(mpjpe_per_img)
+            mpjpe_overall.append(mpjpe_per_img)
 
-          #
-          # for person_openpifpad, pnts_openpifpaf in predictions.items():
-          #   x_pairs = []
-          #   y_pairs = []
-          #   pnt_pairs = []
-          #   # compute pairs of point between ref and prediction
-          #
-          #   for ref_i in mapping_ann[method].keys():
-          #     pred_i = mapping_ann[method][ref_i]
-          #     try:
-          #       pred_x = pnts_openpifpaf[pred_i][0]
-          #       pred_y = pnts_openpifpaf[pred_i][1]
-          #       ref_x = pnts_ref[ref_i][0]
-          #       ref_y = pnts_ref[ref_i][1]
-          #       pnt_pairs.append([(ref_x, ref_y),(pred_x, pred_y)])
-          #       x_pairs.append((ref_x,pred_x))
-          #       y_pairs.append((ref_y,pred_y))
-          #     except IndexError:
-          #       pass
-          #
-          #   #print("--> Y pairs:", y_pairs, "\n")
-          #   # print("--> X pairs:", x_pairs, "\n")
-          #
-          #   # print("--> Point pairs:")
-          #   pnt_distances = []
-          #   for pnt_pair in pnt_pairs:
-          #     # print(pnt_pair)
-          #     pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
-          #   # print("--> Avg. distance", np.mean(pnt_distances))
-          #   avg_distance = np.mean(pnt_distances)
-          #   if not distances_per_person.get(obj_i,0) or avg_distance < distances_per_person[obj_i]:
-          #     distances_per_person[obj_i] = avg_distance
-          #     person_mappings[obj_i] = person_openpifpad
-          #     pnt_pairs_matched[obj_i] = pnt_pairs
-          #     ref_pnts['x'][obj_i] = [pair[0] for i,pair in enumerate(x_pairs) if pair[0]>0 or y_pairs[i][0]>0]
-          #     ref_pnts['y'][obj_i] = [pair[0] for i,pair in enumerate(y_pairs) if pair[0]>0 or x_pairs[i][0]>0]
-          #
+        # calculate PCK
+        correct_keypoints_per_img = 0
+        total_keypoints_per_img = 0
+        for person_ref, person_pred in person_mappings.items():
+            correct_keypoints, total_keypoints = nck_between_skeletons(predictions_dict[person_pred], ground_truths_dict[person_ref], person_dimensions_dict[person_ref])
+            correct_keypoints_per_img += correct_keypoints
+            total_keypoints_per_img += total_keypoints
+        logger.info(f"NCK: {correct_keypoints_per_img}/{total_keypoints_per_img}")
+        nck_overall += correct_keypoints_per_img
+        totalk_overall += total_keypoints_per_img
 
 
-          # find minimum average distance across detected skeletons
-          # distances_per_person.append(distances)
-
-        # print("\nAvg. MPJPE (pixels) per person:",distances_per_person)
-        # print("\nPerson correspondences (ref:pred):",person_mappings)
-        # print("\nPerson point pairs:",pnt_pairs_matched)
-        #
-        # error_radius = dict()
-        #
-        # for person_id, person_pairs in pnt_pairs_matched.items():
-        #   print(f"--- Person {person_id} ---")
-        #   #print(ref_pnts['x'][person_id])
-        #   #print(ref_pnts['y'][person_id])
-        #   x_span = (np.min(ref_pnts['x'][person_id]),np.max(ref_pnts['x'][person_id]))
-        #   person_width = x_span[1]-x_span[0]
-        #   y_span = (np.min(ref_pnts['y'][person_id]),np.max(ref_pnts['y'][person_id]))
-        #   person_height = y_span[1]-y_span[0]
-        #
-        #   error_threshold = 20
-        #   error_radius[person_id] = int((error_threshold))
-        #   print(error_radius[person_id])
-        #
-        #   print('width:',person_width)
-        #   print('height:',person_height)
-        #   correct_keypoints = 0
-        #   print("ground truth\tprediction\t\terror")
-        #   for pnt_pair in person_pairs:
-        #     error = distance.euclidean(pnt_pair[0], pnt_pair[1])
-        #     print(f"{pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:7.2f},{pnt_pair[1][1]:7.2f}\t\t{error:.2f}")
-        #     if error < error_threshold and pnt_pair[0][0] > 0 and pnt_pair[0][1]>0:
-        #       correct_keypoints += 1
-        #
-        #   print(f"--> {correct_keypoints} correct keypoints / {len(ref_pnts['x'][person_id])} ground truth keypoints")
 
         # write to image
         logger.debug(f"supervisely/{img_name}")
@@ -271,6 +237,7 @@ def eval(method):
 
         visualize_points(image, predictions_list, ground_truths_list, person_dimensions_dict, img_name)
 
-    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe)}")
+    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall)}")
+    logger.info(f"NCK across images for {method}: {nck_overall/totalk_overall:.2f}")
 
 eval(method)
