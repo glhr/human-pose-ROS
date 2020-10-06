@@ -148,8 +148,18 @@ def reorder_keypoints_from_mappings(mapping_ann, predictions):
     logger.info(predictions_sorted)
     return predictions_sorted, predictions_list_sorted
 
+def distance_between_keypoints(keypoints_1, keypoints_2, debug=False):
+    pnt_distances = []
+    for pnt_pair in zip(keypoints_1.values(), keypoints_2.values()):
+        if debug: print(pnt_pair)
+        pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
+    if debug: print("--> Avg. distance", np.mean(pnt_distances))
+    avg_distance = np.mean(pnt_distances)
+    return avg_distance
+
 def eval(method):
 
+    mpjpe = []
     for file_id, supervisely_json in enumerate(glob.glob("supervisely/*.json")):
         # if file_id>1:
         #     break
@@ -163,6 +173,24 @@ def eval(method):
         predictions_dict, predictions_list = reorder_keypoints_from_mappings(mapping_ann[method], predictions_dict)
         ground_truths_dict, ground_truths_list, person_dimensions_dict = parse_annotation_json(supervisely_json, kp_labels)
 
+        person_mappings = dict()
+        for person_ref, keypoints_ref in ground_truths_dict.items():
+            distances_to_pred = dict()
+            for person_pred, keypoints_pred in predictions_dict.items():
+                distances_to_pred[person_pred] = distance_between_keypoints(keypoints_ref, keypoints_pred)
+                print(f"Person {person_ref} -> {person_pred}: {distances_to_pred[person_pred]}")
+            person_mappings[person_ref] = min(distances_to_pred, key=distances_to_pred.get)
+        logger.info(person_mappings)
+
+        # calculate MPJPE
+        person_distances = []
+        for person_ref, person_pred in person_mappings.items():
+            distance = distance_between_keypoints(ground_truths_dict[person_ref], predictions_dict[person_pred])
+            person_distances.append(distance)
+        mpjpe_per_img = np.mean(person_distances)
+        logger.info(f"MPJPE: {mpjpe_per_img}")
+        if not np.isnan(mpjpe_per_img):
+            mpjpe.append(mpjpe_per_img)
 
           #
           # for person_openpifpad, pnts_openpifpaf in predictions.items():
@@ -242,5 +270,7 @@ def eval(method):
         image = cv2.imread(f"supervisely/{img_name}")
 
         visualize_points(image, predictions_list, ground_truths_list, person_dimensions_dict, img_name)
+
+    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe)}")
 
 eval(method)
