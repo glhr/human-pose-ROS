@@ -56,7 +56,7 @@ preprocess = openpifpaf.transforms.Compose([
 ])
 
 
-def predict(img_path, scale=1, json_output=None):
+def predict(img_path, scale=1, json_output=None, save=True):
     if isinstance(img_path, str):
         pil_im = PIL.Image.open(img_path)
         img_name = img_path.split("/")[-1]
@@ -93,11 +93,11 @@ def predict(img_path, scale=1, json_output=None):
     logger.info(f"{img_name} took {timer.took}ms")
 
     for predictions in predictions_list:
-      with openpifpaf.show.image_canvas(im, img_name, show=False) as ax:
+      with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
         keypoint_painter.annotations(ax, predictions)
 
 
-    return predictions_list, load_image(img_name)[:,:,:3], timer.took
+    return predictions_list, load_image(f"out/{img_name}")[:,:,:3], timer.took
 
 
 
