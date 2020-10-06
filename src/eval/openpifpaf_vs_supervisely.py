@@ -15,7 +15,7 @@ logger = get_logger()
 
 method = "pytorch_Realtime_Multi-Person_Pose_Estimation"
 
-THRESHOLD = 1/10
+THRESHOLD = 1/15
 
 def parse_annotation_meta_json():
     kp_labels = dict()
@@ -109,18 +109,19 @@ def parse_annotation_json(supervisely_json, kp_labels, debug=True):
 
     return ground_truths_dict, ground_truths_list, person_dimensions_dict
 
-def visualize_points(image, predictions, ground_truths, img_name, debug=False):
+def visualize_points(image, predictions, ground_truths, person_dimensions, img_name, debug=False):
     colors = dict()
     for k in range(18):
       colors[k] = tuple(np.random.randint(256, size=3))
 
     if debug: print(ground_truths)
     for person_id in ground_truths.keys():
+        error_threshold = int(person_dimensions[person_id]['width']*THRESHOLD)
         for kp_id, kp in enumerate(ground_truths[person_id]):
             color = tuple(map(int, colors[kp_id]))
             ref = (int(kp[0]),int(kp[1]))
             if (ref[0] > 0 or ref[1] > 0):  # ignore (0,0) keypoints
-                image = cv2.circle(image, ref, radius=20, color=(0,0,0), thickness=2)
+                image = cv2.circle(image, ref, radius=error_threshold, color=(0,0,0), thickness=2)
                 image = cv2.drawMarker(image, ref, color=color, thickness=2, markerSize=20)
 
     for person_id in predictions.keys():
@@ -240,6 +241,6 @@ def eval(method):
         logger.debug(f"supervisely/{img_name}")
         image = cv2.imread(f"supervisely/{img_name}")
 
-        visualize_points(image, predictions_list, ground_truths_list, img_name)
+        visualize_points(image, predictions_list, ground_truths_list, person_dimensions_dict, img_name)
 
 eval(method)
