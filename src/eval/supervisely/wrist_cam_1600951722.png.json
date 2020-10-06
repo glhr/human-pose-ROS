@@ -13,9 +13,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T11:36:46.330Z",
-            "updatedAt": "2020-09-29T11:37:53.001Z",
+            "updatedAt": "2020-10-06T17:32:24.472Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532852331",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -65,6 +66,55 @@
                         281
                     ]
                 }
+            }
+        },
+        {
+            "id": 532852331,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T17:31:51.216Z",
+            "updatedAt": "2020-10-06T17:32:24.472Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532852331",
+            "points": {
+                "exterior": [
+                    [
+                        258,
+                        0
+                    ],
+                    [
+                        928,
+                        719
+                    ]
+                ],
+                "interior": []
+            }
+        },
+        {
+            "id": 532852341,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T17:32:24.334Z",
+            "updatedAt": "2020-10-06T17:32:32.566Z",
+            "tags": [],
+            "classTitle": "person",
+            "points": {
+                "exterior": [
+                    [
+                        913,
+                        493
+                    ],
+                    [
+                        1139,
+                        719
+                    ]
+                ],
+                "interior": []
             }
         }
     ]

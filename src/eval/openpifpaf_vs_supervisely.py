@@ -31,33 +31,34 @@ def parse_annotation_meta_json():
         kp_labels[kp[0]] = kp[1]["label"]
     return kp_labels
 
-def parse_prediction_json(method, img_name):
+def parse_prediction_json(method, img_name, debug=False):
     with open(f"{method}/{img_name}.predictions.json") as f:
         data_predictions = json.load(f)
     predictions_list = dict()
     predictions_dict = dict()
-    print(f"\n\n---------------- PREDICTIONS ----------------")
+    if debug: print(f"\n\n---------------- PREDICTIONS ----------------")
     # parse predicted keypoints
     for obj_i,obj in enumerate(data_predictions):
         predictions_dict[obj_i] = dict()
-        print(f"--- Person {obj_i} ---")
+        if debug: print(f"--- Person {obj_i} ---")
         pnts_predictions = obj["keypoints"]
         pnts_predictions = list(zip(pnts_predictions[0::3], pnts_predictions[1::3]))
-        print("Predicted points:",pnts_predictions, "\n")
+        if debug: print("Predicted points:",pnts_predictions, "\n")
         predictions_list[obj_i] = pnts_predictions
         for kp_id, kp in enumerate(pnts_predictions):
             predictions_dict[obj_i][kp_id] = kp
-    logger.debug(predictions_dict)
+    if debug: logger.debug(predictions_dict)
     return predictions_dict, predictions_list
 
-def parse_annotation_json(supervisely_json, kp_labels):
+def parse_annotation_json(supervisely_json, kp_labels, debug=True):
 
     with open(supervisely_json) as f:
         ann = json.load(f)
 
     print(f"\n\n---------------- REFERENCE ----------------")
-    ground_truths_dict = dict()
-    ground_truths_list = dict()
+    ground_truths_per_instance_dict, ground_truths_dict  = dict(), dict()
+    ground_truths_per_instance_list, ground_truths_list = dict(), dict()
+    person_dimensions_per_instance_dict, person_dimensions_dict = dict(), dict()
     distances_per_person = dict()
     person_mappings = dict()
     pnt_pairs_matched = dict()
@@ -65,37 +66,55 @@ def parse_annotation_json(supervisely_json, kp_labels):
     # parse reference annotations
     for obj_i,obj in enumerate(ann["objects"]):
 
-      print(f"--- Person {obj_i} ---")
-      # create dictionary of points {id: [x,y]}
-      pnts_ref = dict()
-      for id in kp_labels.values():
-        pnts_ref[id] = [0.0, 0.0]
+        # create dictionary of points {id: [x,y]}
+        pnts_ref = dict()
+        for id in kp_labels.values():
+            pnts_ref[id] = [0.0, 0.0]
 
-      if not obj["classTitle"] == "pose":
-        continue
-      object = ann["objects"][obj_i]
+        instance = obj.get("instance","")
+        if not len(instance):
+            continue
 
-      for kp in object["nodes"].items():
-        pnts_ref[kp_labels[kp[0]]] = kp[1]["loc"]
+        if obj["classTitle"] == "pose":
+            for kp in obj["nodes"].items():
+                pnts_ref[kp_labels[kp[0]]] = kp[1]["loc"]
 
-      pnts_ref = {int(k):v for k,v in pnts_ref.items()}
-      pnts_ref = dict(sorted(pnts_ref.items()))
-      ground_truths_dict[obj_i] = pnts_ref
-      ground_truths_list[obj_i] = [tuple(v) for v in pnts_ref.values()]
+            pnts_ref = {int(k):v for k,v in pnts_ref.items()}
+            pnts_ref = dict(sorted(pnts_ref.items()))
+            ground_truths_per_instance_dict[instance] = pnts_ref
+            ground_truths_per_instance_list[instance] = [tuple(v) for v in pnts_ref.values()]
 
-      # add confidence
-      for v in pnts_ref.values():
-        v.append(1)
-      print("Ref points:",pnts_ref, "\n")
+            # add confidence
+            # for v in pnts_ref.values():
+            #     v.append(1)
+            # print("Ref points:",pnts_ref, "\n")
+        elif obj["classTitle"] == "person" and obj["geometryType"] == "rectangle":
+            points = obj["points"]["exterior"]
+            h = points[1][1]-points[0][1]
+            w = points[1][0]-points[0][0]
+            person_dimensions_per_instance_dict[instance] = {'height':h, 'width':w}
 
-      return ground_truths_dict, ground_truths_list
+    for i, instance in enumerate(ground_truths_per_instance_dict):
+        if debug: print(f"--- Person {i} ---")
+        ground_truths_dict[i] = ground_truths_per_instance_dict[instance]
+        ground_truths_list[i] = ground_truths_per_instance_list[instance]
+        if debug: logger.debug(f"Keypoints: {ground_truths_dict[i]} ")
 
-def visualize_points(image, predictions, ground_truths, img_name):
+        person_dimensions_dict[i] = person_dimensions_per_instance_dict.get(instance,{})
+        if not len(person_dimensions_dict[i]):
+            person_dimensions_dict[i] = {'height':0, 'width':0}
+        if debug: logger.debug(f"Dimensions: {person_dimensions_dict[i]}")
+
+
+
+    return ground_truths_dict, ground_truths_list, person_dimensions_dict
+
+def visualize_points(image, predictions, ground_truths, img_name, debug=False):
     colors = dict()
     for k in range(18):
       colors[k] = tuple(np.random.randint(256, size=3))
 
-    print(ground_truths)
+    if debug: print(ground_truths)
     for person_id in ground_truths.keys():
         for kp_id, kp in enumerate(ground_truths[person_id]):
             color = tuple(map(int, colors[kp_id]))
@@ -117,8 +136,8 @@ def visualize_points(image, predictions, ground_truths, img_name):
 def eval(method):
 
     for file_id, supervisely_json in enumerate(glob.glob("supervisely/*.json")):
-        if file_id>1:
-            break
+        # if file_id>1:
+        #     break
         logger.info(supervisely_json)
 
         kp_labels= parse_annotation_meta_json()
@@ -126,7 +145,7 @@ def eval(method):
         img_name = supervisely_json.split("/")[-1].replace('.json','')
 
         predictions_dict, predictions_list = parse_prediction_json(method, img_name)
-        ground_truths_dict, ground_truths_list = parse_annotation_json(supervisely_json, kp_labels)
+        ground_truths_dict, ground_truths_list, person_dimensions_dict = parse_annotation_json(supervisely_json, kp_labels)
 
           #
           # for person_openpifpad, pnts_openpifpaf in predictions.items():
