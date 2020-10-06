@@ -13,7 +13,7 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "openpifpaf"
+method = "pytorch_Realtime_Multi-Person_Pose_Estimation"
 
 THRESHOLD = 1/15
 
@@ -181,9 +181,10 @@ def nck_between_skeletons(predictions, ground_truths, person_dimensions):
 
 def eval(method):
 
-    mpjpe_overall = []
-    nck_overall = 0
-    totalk_overall = 0
+    mpjpe_overall, nck_overall, totalk_overall = dict(), dict(), dict()
+    mpjpe_overall['gt'], mpjpe_overall['pred']  = [], []
+    nck_overall['gt'], nck_overall['pred'] = 0, 0
+    totalk_overall['gt'], totalk_overall['pred'] = 0, 0
     for file_id, supervisely_json in enumerate(glob.glob("supervisely/*.json")):
         # if file_id>1:
         #     break
@@ -216,7 +217,7 @@ def eval(method):
         mpjpe_per_img = np.mean(person_distances)
         logger.info(f"MPJPE: {mpjpe_per_img}")
         if not np.isnan(mpjpe_per_img):
-            mpjpe_overall.append(mpjpe_per_img)
+            mpjpe_overall['gt'].append(mpjpe_per_img)
 
         # calculate PCK
         correct_keypoints_per_img = 0
@@ -226,8 +227,43 @@ def eval(method):
             correct_keypoints_per_img += correct_keypoints
             total_keypoints_per_img += total_keypoints
         logger.info(f"NCK: {correct_keypoints_per_img}/{total_keypoints_per_img}")
-        nck_overall += correct_keypoints_per_img
-        totalk_overall += total_keypoints_per_img
+        nck_overall['gt'] += correct_keypoints_per_img
+        totalk_overall['gt'] += total_keypoints_per_img
+
+
+        ## OUT OF PREDICTIONS
+
+        person_mappings = dict()
+        for person_ref, keypoints_ref in predictions_dict.items():
+            distances_to_pred = dict()
+            for person_pred, keypoints_pred in ground_truths_dict.items():
+                distances_to_pred[person_pred] = distance_between_skeletons(keypoints_ref, keypoints_pred)
+                print(f"Person {person_ref} -> {person_pred}: {distances_to_pred[person_pred]}")
+            if len(distances_to_pred):
+                person_mappings[person_ref] = min(distances_to_pred, key=distances_to_pred.get)
+        logger.info(person_mappings)
+
+        if len(person_mappings):
+            # calculate MPJPE
+            person_distances = []
+            for person_pred, person_ref in person_mappings.items():
+                distance = distance_between_skeletons(ground_truths_dict[person_ref], predictions_dict[person_pred])
+                person_distances.append(distance)
+            mpjpe_per_img = np.mean(person_distances)
+            logger.info(f"MPJPE: {mpjpe_per_img}")
+            if not np.isnan(mpjpe_per_img):
+                mpjpe_overall['pred'].append(mpjpe_per_img)
+
+            # calculate PCK
+            correct_keypoints_per_img = 0
+            total_keypoints_per_img = 0
+            for person_pred, person_ref in person_mappings.items():
+                correct_keypoints, total_keypoints = nck_between_skeletons(predictions_dict[person_pred], ground_truths_dict[person_ref], person_dimensions_dict[person_ref])
+                correct_keypoints_per_img += correct_keypoints
+                total_keypoints_per_img += total_keypoints
+            logger.info(f"NCK: {correct_keypoints_per_img}/{total_keypoints_per_img}")
+            nck_overall['pred'] += correct_keypoints_per_img
+            totalk_overall['pred'] += total_keypoints_per_img
 
 
 
@@ -237,7 +273,12 @@ def eval(method):
 
         visualize_points(image, predictions_list, ground_truths_list, person_dimensions_dict, img_name)
 
-    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall)}")
-    logger.info(f"NCK across images for {method}: {nck_overall/totalk_overall:.2f}")
+    logger.info(f"-- Out of ground truth --")
+    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['gt'])}")
+    logger.info(f"NCK across images for {method}: {nck_overall['gt']/totalk_overall['gt']:.2f}")
+
+    logger.info(f"-- Out of predictions --")
+    logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])}")
+    logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.2f}")
 
 eval(method)
