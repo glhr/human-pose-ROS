@@ -36,6 +36,7 @@ preprocess = openpifpaf.transforms.Compose([
 ])
 
 def predict(img_path, scale=1, json_output=None):
+    scale = float(scale)
     pil_im = PIL.Image.open(img_path)
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)

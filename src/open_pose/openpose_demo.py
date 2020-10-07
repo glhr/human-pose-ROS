@@ -94,7 +94,7 @@ if __name__ == "__main__":
         save_image(image, get_working_directory()+"/test/base_cam_{}.png".format(timestamp))
         img_path = get_working_directory()+"/test/base_cam_{}.png".format(timestamp)
         run_openpose(img_path)
-    except Exception as e:
+    else:
         import glob
         import numpy
         print("loading images from file")
