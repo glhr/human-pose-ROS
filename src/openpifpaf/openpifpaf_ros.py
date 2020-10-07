@@ -165,7 +165,7 @@ def skeleton_from_keypoints(skel_dict):
     pp.pprint(skel)
     return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel)
 
-def openpifpaf_viz(predictions, im, time, cam=True):
+def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     predictions = [ann.json_data() for ann in predictions[0]]
     pose_msg = PoseEstimation()
     pose_msg.skeletons = []
@@ -180,8 +180,8 @@ def openpifpaf_viz(predictions, im, time, cam=True):
         skel_dict = dict()
 
         for i,conn in enumerate(connected_points):
-            pnt_1 = pnts_openpifpaf[conn[0]]
-            pnt_2 = pnts_openpifpaf[conn[1]]
+            pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[conn[0]])
+            pnt_2 = tuple(pnt/scale for pnt in pnts_openpifpaf[conn[1]])
             if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
 
                 if cam:
@@ -310,7 +310,7 @@ while not rospy.is_shutdown():
         # image = image_to_numpy(imagemsg)
         if len(depth_image):
             predictions, im, time = predict(rgb_image, scale=0.5)
-            openpifpaf_viz(predictions, im, time, cam=True)
+            openpifpaf_viz(predictions, im, time, cam=True, scale=0.5)
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
 # while True:
