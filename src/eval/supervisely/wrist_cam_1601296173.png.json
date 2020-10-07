@@ -13,9 +13,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T13:20:14.516Z",
-            "updatedAt": "2020-09-29T13:37:15.182Z",
+            "updatedAt": "2020-10-06T18:28:06.374Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532854201",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -122,9 +123,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T13:22:15.372Z",
-            "updatedAt": "2020-09-29T13:37:15.182Z",
+            "updatedAt": "2020-10-06T18:29:57.728Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532854341",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -183,9 +185,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T13:23:14.489Z",
-            "updatedAt": "2020-09-29T13:37:15.182Z",
+            "updatedAt": "2020-10-06T18:28:06.374Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532854305",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -256,9 +259,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T13:37:15.019Z",
-            "updatedAt": "2020-09-29T13:38:16.122Z",
+            "updatedAt": "2020-10-06T18:28:06.374Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532854247",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -332,6 +336,106 @@
                         359.9486857233561
                     ]
                 }
+            }
+        },
+        {
+            "id": 532854201,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T18:26:09.699Z",
+            "updatedAt": "2020-10-06T18:28:06.374Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532854201",
+            "points": {
+                "exterior": [
+                    [
+                        963,
+                        110
+                    ],
+                    [
+                        1244,
+                        584
+                    ]
+                ],
+                "interior": []
+            }
+        },
+        {
+            "id": 532854247,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T18:26:35.985Z",
+            "updatedAt": "2020-10-06T18:28:06.374Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532854247",
+            "points": {
+                "exterior": [
+                    [
+                        750,
+                        305
+                    ],
+                    [
+                        906,
+                        705
+                    ]
+                ],
+                "interior": []
+            }
+        },
+        {
+            "id": 532854305,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T18:27:39.470Z",
+            "updatedAt": "2020-10-06T18:28:06.374Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532854305",
+            "points": {
+                "exterior": [
+                    [
+                        537,
+                        132
+                    ],
+                    [
+                        795,
+                        719
+                    ]
+                ],
+                "interior": []
+            }
+        },
+        {
+            "id": 532854341,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T18:28:06.250Z",
+            "updatedAt": "2020-10-06T18:28:06.250Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532854341",
+            "points": {
+                "exterior": [
+                    [
+                        178,
+                        60
+                    ],
+                    [
+                        609,
+                        719
+                    ]
+                ],
+                "interior": []
             }
         }
     ]

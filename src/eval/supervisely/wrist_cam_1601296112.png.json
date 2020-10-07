@@ -13,9 +13,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T13:55:10.288Z",
-            "updatedAt": "2020-09-29T13:55:41.128Z",
+            "updatedAt": "2020-10-06T17:34:04.875Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532852360",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -71,6 +72,31 @@
                         227
                     ]
                 }
+            }
+        },
+        {
+            "id": 532852360,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T17:33:47.320Z",
+            "updatedAt": "2020-10-06T17:33:57.831Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532852360",
+            "points": {
+                "exterior": [
+                    [
+                        824,
+                        134
+                    ],
+                    [
+                        1018,
+                        487
+                    ]
+                ],
+                "interior": []
             }
         }
     ]

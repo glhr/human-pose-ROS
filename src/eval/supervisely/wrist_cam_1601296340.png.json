@@ -13,9 +13,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T12:53:05.711Z",
-            "updatedAt": "2020-09-29T12:53:49.398Z",
+            "updatedAt": "2020-10-06T21:01:18.437Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532944048",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -62,9 +63,10 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T12:53:49.284Z",
-            "updatedAt": "2020-09-29T12:54:28.968Z",
+            "updatedAt": "2020-10-06T21:01:15.779Z",
             "tags": [],
             "classTitle": "pose",
+            "instance": "532944223",
             "nodes": {
                 "7aefda10-1d63-4eae-8889-fc851f2f68df": {
                     "loc": [
@@ -102,6 +104,56 @@
                         343.10943311168717
                     ]
                 }
+            }
+        },
+        {
+            "id": 532944048,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T21:01:00.216Z",
+            "updatedAt": "2020-10-06T21:01:08.221Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532944048",
+            "points": {
+                "exterior": [
+                    [
+                        457,
+                        5
+                    ],
+                    [
+                        1022,
+                        719
+                    ]
+                ],
+                "interior": []
+            }
+        },
+        {
+            "id": 532944223,
+            "classId": 2062250,
+            "description": "",
+            "geometryType": "rectangle",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-06T21:01:08.084Z",
+            "updatedAt": "2020-10-06T21:01:08.084Z",
+            "tags": [],
+            "classTitle": "person",
+            "instance": "532944223",
+            "points": {
+                "exterior": [
+                    [
+                        802,
+                        149
+                    ],
+                    [
+                        1204,
+                        719
+                    ]
+                ],
+                "interior": []
             }
         }
     ]
