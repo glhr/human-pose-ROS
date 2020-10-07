@@ -13,7 +13,7 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "openpifpaf"
+method = "pytorch-pose-hg-3d"
 
 THRESHOLD = 1/15
 
@@ -31,8 +31,9 @@ def parse_annotation_meta_json():
         kp_labels[kp[0]] = kp[1]["label"]
     return kp_labels
 
-def parse_prediction_json(method, img_name, debug=False):
-    with open(f"{method}/{img_name}.predictions.json") as f:
+def parse_prediction_json(method, img_name, debug=False, scale=1):
+    f_name = f"{method}/{img_name}.predictions.json"
+    with open(f_name) as f:
         data_predictions = json.load(f)
     predictions_list = dict()
     predictions_dict = dict()
@@ -43,6 +44,8 @@ def parse_prediction_json(method, img_name, debug=False):
         if debug: print(f"--- Person {obj_i} ---")
         pnts_predictions = obj["keypoints"]
         pnts_predictions = list(zip(pnts_predictions[0::3], pnts_predictions[1::3]))
+        pnts_predictions = [(p[0]/scale,p[1]/scale) for p in pnts_predictions]
+
         if debug: print("Predicted points:",pnts_predictions, "\n")
         predictions_list[obj_i] = pnts_predictions
         for kp_id, kp in enumerate(pnts_predictions):
@@ -179,7 +182,7 @@ def nck_between_skeletons(predictions, ground_truths, person_dimensions):
     print(f"--> {correct_keypoints} correct keypoints / {total_keypoints} ground truth keypoints ({len(predictions.values())-total_keypoints} ignored)")
     return correct_keypoints, total_keypoints
 
-def eval(method):
+def eval(method, scale=1):
 
     mpjpe_overall, nck_overall, totalk_overall = dict(), dict(), dict()
     mpjpe_overall['gt'], mpjpe_overall['pred']  = [], []
@@ -192,9 +195,14 @@ def eval(method):
 
         kp_labels= parse_annotation_meta_json()
 
-        img_name = supervisely_json.split("/")[-1].replace('.json','')
+        img_name_orig = supervisely_json.split("/")[-1].replace('.json','')
+        if scale == 1:
+            img_name = img_name_orig
+        else:
+            img_name = supervisely_json.split("/")[-1].replace('.json','').split('.')[0]
+            img_name = f"{img_name}-{scale}.png"
 
-        predictions_dict, predictions_list = parse_prediction_json(method, img_name, debug=True)
+        predictions_dict, predictions_list = parse_prediction_json(method, img_name, debug=True, scale=scale)
         predictions_dict, predictions_list = reorder_keypoints_from_mappings(mapping_ann[method], predictions_dict)
         ground_truths_dict, ground_truths_list, person_dimensions_dict = parse_annotation_json(supervisely_json, kp_labels)
 
@@ -269,7 +277,7 @@ def eval(method):
 
         # write to image
         logger.debug(f"supervisely/{img_name}")
-        image = cv2.imread(f"supervisely/{img_name}")
+        image = cv2.imread(f"supervisely/{img_name_orig}")
 
         visualize_points(image, predictions_list, ground_truths_list, person_dimensions_dict, img_name)
 
@@ -281,4 +289,4 @@ def eval(method):
     logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])} ({len(mpjpe_overall['pred'])} images)")
     logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.2f}")
 
-eval(method)
+eval(method, scale=0.5)

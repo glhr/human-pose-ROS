@@ -129,6 +129,7 @@ def got_rgb(msg):
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 pose_pub = rospy.Publisher('openpifpaf_pose', PoseEstimation, queue_size=1)
 poseimg_pub = rospy.Publisher('openpifpaf_img', Image, queue_size=1)
+angle_pub = rospy.Publisher('person_angle', Marker, queue_size=1)
 depth_sub = rospy.Subscriber(DEPTH_CAMERA_TOPIC, Image, got_depth)
 rgb_sub = rospy.Subscriber(RGB_CAMERA_TOPIC, Image, got_rgb)
 rospy.init_node('openpifpaf')
@@ -182,11 +183,14 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
         for i,conn in enumerate(connected_points):
             pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[conn[0]])
             pnt_2 = tuple(pnt/scale for pnt in pnts_openpifpaf[conn[1]])
+            pnt_1 = pnts_openpifpaf[conn[0]]
+            pnt_2 = pnts_openpifpaf[conn[1]]
+
             if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
 
                 if cam:
-                    pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
-                    pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[1])][int(pnt_2[0])]/1000)
+                    pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[0])][int(pnt_1[1])]/1000)
+                    pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[0])][int(pnt_2[1])]/1000)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt2_cam = [i/100 for i in pnt_2]
@@ -269,7 +273,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
         skeleton_msg.centroid = skel_centroid
         skel_pub.publish(centroid_marker)
 
-        angle_from_centroid(skel_centroid)
+        logger.info(angle_from_centroid(skel_centroid))
 
         pose_msg.skeletons.append(skeleton_msg)
 
