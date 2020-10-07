@@ -20,8 +20,7 @@ times = []
 import roslib
 import rospy
 from rospy_message_converter import message_converter
-import tf
-from tf.transformations import quaternion_from_euler, quaternion_multiply, euler_from_quaternion
+
 
 
 from std_msgs.msg import String, Float32
@@ -132,7 +131,7 @@ def got_rgb(msg):
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 pose_pub = rospy.Publisher('openpifpaf_pose', PoseEstimation, queue_size=1)
 poseimg_pub = rospy.Publisher('openpifpaf_img', Image, queue_size=1)
-angle_pub = rospy.Publisher('person_angle', Float32, queue_size=1)
+# angle_pub = rospy.Publisher('person_angle', Float32, queue_size=1)
 depth_sub = rospy.Subscriber(DEPTH_CAMERA_TOPIC, Image, got_depth)
 rgb_sub = rospy.Subscriber(RGB_CAMERA_TOPIC, Image, got_rgb)
 rospy.init_node('openpifpaf')
@@ -169,24 +168,6 @@ def skeleton_from_keypoints(skel_dict):
     pp.pprint(skel)
     return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel)
 
-def cam_to_world(cam_pose, cam_frame="/wrist_camera_color_optical_frame"):
-    """Convert from camera_frame to world_frame
-
-    Keyword arguments:
-    cam_pose   -- 
-    cam_frame  -- The frame id of the camera
-    """
-    cam_point = np.array([cam_pose[0], cam_pose[1], cam_pose[2]])
-
-    tf_listener = tf.TransformListener()
-    tf_listener.waitForTransform('/world', cam_frame, rospy.Time(), rospy.Duration(4))
-    (trans, rot) = tf_listener.lookupTransform('/world', cam_frame, rospy.Time())
-
-    world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
-    obj_vector = np.concatenate((cam_point, np.ones(1))).reshape((4, 1))
-    world_point = np.dot(world_to_cam, obj_vector)
-
-    return world_point
 
 def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     predictions = [ann.json_data() for ann in predictions[0]]
@@ -220,8 +201,6 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
                     pnt1_cam.append(1)
                     pnt2_cam.append(1)
 
-                pnt1_cam = cam_to_world(pnt1_cam)
-                pnt2_cam = cam_to_world(pnt2_cam)
 
                 skel_dict[pairs[conn[0]]] = pnt1_cam
                 skel_dict[pairs[conn[1]]] = pnt2_cam
@@ -302,7 +281,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
         angle = angle_from_centroid(skel_centroid)
         angles[person_id] = 0
         logger.info(angle)
-        angle_pub.publish(angle)
+        # angle_pub.publish(angle)
 
         pose_msg.skeletons.append(skeleton_msg)
 
