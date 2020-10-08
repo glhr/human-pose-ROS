@@ -41,13 +41,18 @@ def points_cb(msg):
             pose_tf.skeletons.append(msg_tf)
             # print(list(msg_dict_tf.values()))
             valid_points = [v for v in msg_dict_tf.values() if len(v)]
+
             centroids[skeleton_i] = get_points_centroid(list(valid_points))
             logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
             distances[skeleton_i] = centroids[skeleton_i][-1]
 
+            msg_tf.centroid = centroids[skeleton_i]
+
+
         logger.info("{} person(s) found".format(len(msg.skeletons)))
         if len(msg.skeletons):
             closest_skeleton_i = min(distances, key=distances.get)
+            pose_tf.tracked_person_id = closest_skeleton_i
             angle = angle_from_centroid(centroids[closest_skeleton_i])
             logger.debug("--> Angle of closest person {}: {}".format(closest_skeleton_i, angle))
             angle_pub.publish(angle)
