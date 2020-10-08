@@ -306,6 +306,12 @@ def pixel_to_camera(pixel, depth):
     x,y = pixel
     result = rs.rs2_deproject_pixel_to_point(_intrinsics, [x,y], depth)
     # return rs.rs2_deproject_pixel_to_point(depth_intrin, pixel, 1.0)
+    x = result[0]
+    depth = result[2]
+    z_squared = depth**2 - x**2
+    z = np.sqrt(z_squared)
+    result[2] = z
+
     return result
 
 # rosrun tf static_transform_publisher 0 0 0 0 0 0 1 map my_frame 10
