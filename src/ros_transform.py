@@ -16,7 +16,10 @@ pp = get_printer()
 def points_cb(msg):
 
     pose_tf = PoseEstimation()
-    for skeleton in msg.skeletons:
+    distances = dict()
+    centroids = dict()
+
+    for skeleton_i, skeleton in enumerate(msg.skeletons):
         msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
         msg_dict_tf = dict()
         for i,v in msg_dict.items():
@@ -27,15 +30,21 @@ def points_cb(msg):
 
         msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
         pose_tf.skeletons.append(msg_tf)
-        print(list(msg_dict_tf.values()))
+        # print(list(msg_dict_tf.values()))
         valid_points = [v for v in msg_dict_tf.values() if len(v)]
-        skel_centroid = get_points_centroid(list(valid_points))
-        logger.debug("Centroid: {}".format(skel_centroid))
-        angle = angle_from_centroid(skel_centroid)
-        print(angle)
-        angle_pub.publish(angle)
+        centroids[skeleton_i] = get_points_centroid(list(valid_points))
+        logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
+        distances[skeleton_i] = centroids[skeleton_i][-1]
 
-    pose_pub.publish(pose_tf)
+    logger.info("{} person(s) found".format(len(msg.skeletons)))
+    if len(msg.skeletons):
+        closest_skeleton_i = min(distances, key=distances.get)
+        angle = angle_from_centroid(centroids[closest_skeleton_i])
+        logger.debug("--> Angle of closest person {}: {}".format(closest_skeleton_i, angle))
+        angle_pub.publish(angle)
+        pose_pub.publish(pose_tf)
+    else:
+        angle_pub.publish(0.0)
 
 
 
