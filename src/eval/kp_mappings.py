@@ -61,3 +61,24 @@ mapping_ann["pytorch_Realtime_Multi-Person_Pose_Estimation"] = {
   16: 16,
   17: 17
 }
+
+mapping_ann["fastpose-drnoodle"] = {
+  0: 0,
+  1: 17,
+  2: 2,
+  3: 4,
+  4: 6,
+  5: 1,
+  6: 3,
+  7: 5,
+  8: 8,
+  9: 10,
+  10: 12,
+  11: 7,
+  12: 9,
+  13: 11,
+  14: 17,
+  15: 17,
+  16: 17,
+  17: 17
+}
