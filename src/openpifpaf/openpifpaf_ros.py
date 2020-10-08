@@ -21,8 +21,6 @@ import roslib
 import rospy
 from rospy_message_converter import message_converter
 
-
-
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Point
@@ -128,7 +126,6 @@ def got_rgb(msg):
     global rgb_image
     rgb_image = image_to_numpy(msg)
 
-skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 pose_pub = rospy.Publisher('openpifpaf_pose', PoseEstimation, queue_size=1)
 poseimg_pub = rospy.Publisher('openpifpaf_img', Image, queue_size=1)
 # angle_pub = rospy.Publisher('person_angle', Float32, queue_size=1)
@@ -136,16 +133,8 @@ depth_sub = rospy.Subscriber(DEPTH_CAMERA_TOPIC, Image, got_depth)
 rgb_sub = rospy.Subscriber(RGB_CAMERA_TOPIC, Image, got_rgb)
 rospy.init_node('openpifpaf')
 
-colors = dict()
-for k in range(10):
-  colors[k] = tuple(np.random.randint(256, size=3)/256)
 
-connected_points = [
-(0,2), (2,4), (4,6), (6,8), (8,10),
-(0,1), (1,3), (3,5), (5,7), (7,9),
-(5,11), (11,13), (13,15),
-(6,12), (12,14), (14,16),
-(11,12), (5,6)]
+
 
 def get_points_centroid(arr):
     length = len(arr)
@@ -163,10 +152,9 @@ def angle_from_centroid(centroid):
     return angle
 
 def skeleton_from_keypoints(skel_dict):
-    skel = Skeleton()
     skel = skel_dict
     pp.pprint(skel)
-    return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel)
+    return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel_dict)
 
 
 def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
@@ -184,103 +172,27 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         skel_dict = dict()
 
-        for i,conn in enumerate(connected_points):
-            pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[conn[0]])
-            pnt_2 = tuple(pnt/scale for pnt in pnts_openpifpaf[conn[1]])
-            pnt_1 = pnts_openpifpaf[conn[0]]
-            pnt_2 = pnts_openpifpaf[conn[1]]
+        for i,pnt in enumerate(pnts_openpifpaf):
+            pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[i])
+            pnt_1 = pnts_openpifpaf[i]
 
-            if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_2[0] > 0 and pnt_2[1] > 0:
-
+            if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
                     pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
-                    pnt2_cam = pixel_to_camera(pnt_2, depth_image[int(pnt_2[1])][int(pnt_2[0])]/1000)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
-                    pnt2_cam = [i/100 for i in pnt_2]
                     pnt1_cam.append(1)
-                    pnt2_cam.append(1)
 
+                skel_dict[pairs[i]] = pnt1_cam
 
-                skel_dict[pairs[conn[0]]] = pnt1_cam
-                skel_dict[pairs[conn[1]]] = pnt2_cam
-
-                now = rospy.get_rostime()
-                line_marker = Marker()
-                line_marker.header.frame_id = "/wrist_camera_link" if cam else "/map"
-                line_marker.type = line_marker.LINE_STRIP
-                line_marker.action = line_marker.ADD
-                line_marker.scale.x = 0.02
-                line_marker.color.a = 1.0
-                line_marker.color.r, line_marker.color.g, line_marker.color.b = colors[person_id]
-                line_marker.pose.orientation.w = 1.0
-                line_marker.pose.position.x = 0
-                line_marker.pose.position.y = 0
-                line_marker.pose.position.z = 0
-                line_marker.id = person_id*100 + i*2+1
-                line_marker.lifetime = rospy.Duration(time*4/1000)
-                line_marker.header.stamp = now
-                line_marker.points = []
-                # first point
-                first_line_point = Point()
-                first_line_point.x = pnt1_cam[0]
-                first_line_point.y = pnt1_cam[1]
-                first_line_point.z = pnt1_cam[2]
-                line_marker.points.append(first_line_point)
-                # second point
-                second_line_point = Point()
-                second_line_point.x = pnt2_cam[0]
-                second_line_point.y = pnt2_cam[1]
-                second_line_point.z = pnt2_cam[2]
-                line_marker.points.append(second_line_point)
-
-                pp.pprint(line_marker.points)
-                skel_pub.publish(line_marker)
-
-                pnt_marker = Marker()
-                pnt_marker.header.frame_id = "/wrist_camera_link" if cam else "/map"
-                pnt_marker.type = pnt_marker.SPHERE
-                pnt_marker.action = pnt_marker.ADD
-                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
-                pnt_marker.color.a = 1.0
-                pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
-                pnt_marker.pose.orientation.w = 1.0
-                pnt_marker.pose.position.x = pnt1_cam[0]
-                pnt_marker.pose.position.y = pnt1_cam[1]
-                pnt_marker.pose.position.z = pnt1_cam[2]
-                # logger.debug(pnt_marker.pose.position)
-                pnt_marker.id = person_id*100 + i*2
-                pnt_marker.lifetime = rospy.Duration(time*4/1000)
-                pnt_marker.header.stamp = now
-                skel_pub.publish(pnt_marker)
-                pnt_marker.pose.position.x = pnt2_cam[0]
-                pnt_marker.pose.position.y = pnt2_cam[1]
-                pnt_marker.pose.position.z = pnt2_cam[2]
-                skel_pub.publish(pnt_marker)
 
         skeleton_msg = skeleton_from_keypoints(skel_dict)
         skel_centroid = get_points_centroid(list(skel_dict.values()))
         logger.info(f"Centroid: {skel_centroid}")
-        centroid_marker = Marker()
-        centroid_marker.header.frame_id = "/wrist_camera_link" if cam else "/map"
-        centroid_marker.type = centroid_marker.SPHERE
-        centroid_marker.action = centroid_marker.ADD
-        centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
-        centroid_marker.color.a = 1.0
-        centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (1.0,0.0,0.0)
-        centroid_marker.pose.orientation.w = 1.0
-        centroid_marker.pose.position.x = skel_centroid[0]
-        centroid_marker.pose.position.y = skel_centroid[1]
-        centroid_marker.pose.position.z = skel_centroid[2]
-        centroid_marker.id = person_id
-        centroid_marker.lifetime = rospy.Duration(time*4/1000)
-        centroid_marker.header.stamp = now
-        skeleton_msg.centroid = skel_centroid
-        skel_pub.publish(centroid_marker)
 
-        angle = angle_from_centroid(skel_centroid)
-        angles[person_id] = 0
-        logger.info(angle)
+        # angle = angle_from_centroid(skel_centroid)
+        # angles[person_id] = 0
+        # logger.info(angle)
         # angle_pub.publish(angle)
 
         pose_msg.skeletons.append(skeleton_msg)
