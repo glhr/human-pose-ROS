@@ -27,9 +27,17 @@ colors = dict()
 for k in range(10):
   colors[k] = tuple(np.random.randint(256, size=3)/256)
 
+import parser
+parser = argparse.ArgumentParser(description='Visualization options')
+parser.add_argument('--lifetime',
+                 default=1,
+                 help='Marker lifetime')
+
+args = parser.parse_args()
+
 def pose_cb(msg):
 
-    for skeleton_i, skeleton in enumerate(msg.skeletons):
+    for n, skeleton in enumerate(msg.skeletons):
         skeleton_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
         for i,conn in enumerate(connected_points):
             label_1 = list(skeleton_dict.keys())[conn[0]]
@@ -38,6 +46,8 @@ def pose_cb(msg):
             pnt_1 = skeleton_dict[label_1]
             pnt_2 = skeleton_dict[label_2]
             now = rospy.get_rostime()
+
+            skeleton_i = skeleton.id if skeleton.id else n
 
             line_marker = Marker()
             line_marker.header.frame_id = FRAME_ID
@@ -49,7 +59,7 @@ def pose_cb(msg):
             line_marker.pose.orientation.w = 1.0
             line_marker.pose.position.x, line_marker.pose.position.y, line_marker.pose.position.z = 0, 0, 0
             line_marker.id = (skeleton_i+1)*1000 + i*2+1
-            line_marker.lifetime = rospy.Duration(1)
+            line_marker.lifetime = rospy.Duration(float(args.lifetime))
             line_marker.header.stamp = now
             line_marker.points = []
 
@@ -74,7 +84,7 @@ def pose_cb(msg):
             pnt_marker.color.a = 1.0
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0
-            pnt_marker.lifetime = rospy.Duration(1)
+            pnt_marker.lifetime = rospy.Duration(float(args.lifetime))
             pnt_marker.header.stamp = now
 
             if len(pnt_1):
@@ -103,7 +113,7 @@ def pose_cb(msg):
             centroid_marker.pose.position.y = skel_centroid[1]
             centroid_marker.pose.position.z = skel_centroid[2]
             centroid_marker.id = skeleton_i
-            centroid_marker.lifetime = rospy.Duration(1)
+            centroid_marker.lifetime = rospy.Duration(float(args.lifetime))
             centroid_marker.header.stamp = now
             skel_pub.publish(centroid_marker)
 
