@@ -13,7 +13,7 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "pytorch-pose-hg-3d"
+method = "fastpose-drnoodle"
 
 THRESHOLD = 1/15
 
@@ -214,7 +214,8 @@ def eval(method, scale=1):
             for person_pred, keypoints_pred in predictions_dict.items():
                 distances_to_pred[person_pred] = distance_between_skeletons(keypoints_ref, keypoints_pred)
                 print(f"Person {person_ref} -> {person_pred}: {distances_to_pred[person_pred]}")
-            person_mappings[person_ref] = min(distances_to_pred, key=distances_to_pred.get)
+            if len(distances_to_pred):
+                person_mappings[person_ref] = min(distances_to_pred, key=distances_to_pred.get)
         logger.info(person_mappings)
 
         # calculate MPJPE
