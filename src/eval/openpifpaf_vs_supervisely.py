@@ -13,7 +13,7 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "fastpose-drnoodle"
+method = "fastpose-zexinchen"
 
 THRESHOLD = 1/15
 
@@ -290,4 +290,4 @@ def eval(method, scale=1):
     logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])} ({len(mpjpe_overall['pred'])} images)")
     logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.2f}")
 
-eval(method, scale=0.5)
+eval(method, scale=1)
