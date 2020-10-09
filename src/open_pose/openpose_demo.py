@@ -71,7 +71,7 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg", scale=1):
         # Display Image
         json_out = []
         print("Body keypoints: \n" + str(datum.poseKeypoints))
-        for person in datum.poseKeypoints:
+        for person in list(datum.poseKeypoints):
             keypoints = []
             for kp in person:
                 keypoints.extend([float(p) for p in kp])
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
         times = []
         for test_image in glob.glob(f"{args.input_dir}/*.png"):
-            time = run_openpose(test_image, scale=0.5)
+            time = run_openpose(test_image, scale=1)
             times.append(time)
 
         print(np.mean(times))
