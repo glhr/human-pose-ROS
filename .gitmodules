@@ -16,9 +16,6 @@
 [submodule "src/pytorch-pose-hg-3d"]
 	path = src/pytorch-pose-hg-3d
 	url = https://github.com/glhr/pytorch-pose-hg-3d
-[submodule "src/pose-3d-pytorch-ros"]
-	path = src/pose-3d-pytorch-ros
-	url = https://github.com/fabro66/pose-3d-pytorch-ros
 [submodule "src/fastpose-1"]
 	path = src/fastpose-1
 	url = https://github.com/glhr/fastpose-1
