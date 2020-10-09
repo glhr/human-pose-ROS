@@ -13,9 +13,18 @@ from vision_utils.logger import get_logger
 from eval.kp_mappings import mapping_ann
 logger = get_logger()
 
-method = "fastpose-zexinchen"
-
 THRESHOLD = 1/15
+
+import parser
+parser = argparse.ArgumentParser(description='Evaluation options')
+parser.add_argument('--method',
+                    default="openpifpaf",
+                    help='Pose estimation method to evaluate')
+parser.add_argument('--scale',
+                    default=1,
+                    help='Image scaling factor for inference (currently 1 or 0.5)')
+
+args = parser.parse_args()
 
 def parse_annotation_meta_json():
     kp_labels = dict()
@@ -112,7 +121,7 @@ def parse_annotation_json(supervisely_json, kp_labels, debug=True):
 
     return ground_truths_dict, ground_truths_list, person_dimensions_dict
 
-def visualize_points(image, predictions, ground_truths, person_dimensions, img_name, debug=False):
+def visualize_points(image, predictions, ground_truths, person_dimensions, img_name, debug=False, method=args.method):
     colors = dict()
     for k in range(18):
       colors[k] = tuple(np.random.randint(256, size=3))
@@ -290,4 +299,6 @@ def eval(method, scale=1):
     logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])} ({len(mpjpe_overall['pred'])} images)")
     logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.2f}")
 
-eval(method, scale=1)
+
+
+eval(args.method, scale=float(args.scale))

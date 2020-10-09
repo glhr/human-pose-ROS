@@ -12,6 +12,9 @@ from vision_utils.img import image_to_numpy, save_image, bgr_to_rgb
 from vision_utils.file import get_filename_from_path, get_working_directory
 from vision_utils.timing import get_timestamp
 from vision_utils.timing import CodeTimer
+from vision_utils.logger import get_logger
+logger = get_logger()
+import json
 
 def run_openpose(img_path="/home/slave/Downloads/trump.jpg", scale=1):
     img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
@@ -65,9 +68,19 @@ def run_openpose(img_path="/home/slave/Downloads/trump.jpg", scale=1):
             opWrapper.emplaceAndPop([datum])
         print(img_name, timer.took)
 
-
         # Display Image
+        json_out = []
         print("Body keypoints: \n" + str(datum.poseKeypoints))
+        for person in datum.poseKeypoints:
+            keypoints = []
+            for kp in person:
+                keypoints.extend([float(p) for p in kp])
+            logger.debug(keypoints)
+            json_out.append({'keypoints':keypoints})
+        json_out_name = '../eval/openpose/' + img_name + '.predictions.json'
+        with open(json_out_name, 'w') as f:
+            json.dump(json_out, f)
+        logger.info(json_out_name)
         save_image(bgr_to_rgb(datum.cvOutputData), img_name)
         return timer.took
         # cv2.imshow("OpenPose 1.6.0 - Tutorial Python API", datum.cvOutputData)
@@ -106,7 +119,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
         times = []
         for test_image in glob.glob(f"{args.input_dir}/*.png"):
-            time = run_openpose(test_image, scale=1)
+            time = run_openpose(test_image, scale=0.5)
             times.append(time)
 
         print(np.mean(times))
