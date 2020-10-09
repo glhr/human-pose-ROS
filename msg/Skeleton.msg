@@ -16,3 +16,4 @@ float32[] right_knee
 float32[] left_ankle
 float32[] right_ankle
 float32[] centroid
+int8 id
