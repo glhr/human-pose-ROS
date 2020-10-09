@@ -83,6 +83,12 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
+add_executable(ros-realsense src/intel_pose/ros_realsense_track.cpp src/intel_pose/samples.h)
+target_link_libraries(ros-realsense ${catkin_LIBRARIES})
+target_link_libraries(ros-realsense PRIVATE cubemos_skeleton_tracking)
+target_link_libraries(ros-realsense PRIVATE ${OpenCV_LIBS})
+target_link_libraries(ros-realsense PRIVATE ${realsense2_LIBRARY})
+
 add_executable(cpp-realsense src/intel_pose/cpp_realsense.cpp src/intel_pose/samples.h)
 target_link_libraries(cpp-realsense ${catkin_LIBRARIES})
 target_link_libraries(cpp-realsense PRIVATE cubemos_skeleton_tracking)
@@ -93,7 +99,7 @@ add_executable(cpp-webcam src/intel_pose/cpp_webcam.cpp src/intel_pose/samples.h
 target_link_libraries(cpp-webcam ${catkin_LIBRARIES})
 target_link_libraries(cpp-webcam PRIVATE cubemos_skeleton_tracking)
 target_link_libraries(cpp-webcam PRIVATE ${OpenCV_LIBS})
-# target_link_libraries(cpp-realsense ${GTK2_LIBRARIES})
+
 add_executable(cpp-webcam_copy src/intel_pose/cpp_webcam_copy.cpp src/intel_pose/samples.h)
 target_link_libraries(cpp-webcam_copy ${catkin_LIBRARIES})
 target_link_libraries(cpp-webcam_copy PRIVATE cubemos_skeleton_tracking)
@@ -101,6 +107,9 @@ target_link_libraries(cpp-webcam_copy PRIVATE ${OpenCV_LIBS})
 
 
 set_target_properties (cpp-realsense PROPERTIES
+	FOLDER samples
+)
+set_target_properties (ros-realsense PROPERTIES
 	FOLDER samples
 )
 set_target_properties (cpp-webcam_copy PROPERTIES
@@ -121,5 +130,8 @@ install(TARGETS cpp-webcam_copy
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(TARGETS cpp-webcam
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(TARGETS ros-realsense
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
