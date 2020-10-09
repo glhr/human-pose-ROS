@@ -115,13 +115,11 @@ cmPoint get_skeleton_point_3d(int x, int y)
         }
     }
 
+    //calculate median
     size_t n = buffer.size() / 2;
     std::nth_element(buffer.begin(), buffer.begin() + n, buffer.end());
     distance = buffer[n];
-    if (distance > 2000){
-        std::cout << distance << std::endl;
-    }
-    if (distance > 100 && distance < 2500)
+    if (distance > 100 && distance < 3000)
     {
         // float distance = depth_image->image.at<float>(y, x);
 
@@ -297,13 +295,12 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
                 default:
                     break;
                 }
-
                 marker.points.push_back(ros_point);
-                pose_msg.skeletons.push_back(skeleton_msg);
             }
             skeleton_pub.publish(marker);
-            pose_pub.publish(pose_msg);
         }
+        skeleton_msg.id = id;
+        pose_msg.skeletons.push_back(skeleton_msg);
         int body_counter = 0;
         for (const auto &limbKeypointsId : limbKeypointsIds)
         {   
@@ -381,6 +378,7 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
             }
         }
     }
+    pose_pub.publish(pose_msg);
 }
 
 int main(int argc, char **argv)
@@ -392,7 +390,7 @@ int main(int argc, char **argv)
     ros::Subscriber depth_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/aligned_depth_to_color/image_raw", 1, pointcloudCb);
     ros::Publisher skeleton_pub = n.advertise<visualization_msgs::Marker>("spawn_skeleton", 1);
     ros::Publisher line_pub = n.advertise<visualization_msgs::Marker>("spawn_lines", 1);
-    ros::Publisher pose_pub = n.advertise<human_pose_ROS::PoseEstimation>("spawn_skeleton_pose", 1);
+    ros::Publisher pose_pub = n.advertise<human_pose_ROS::PoseEstimation>("realsense_pose", 1);
 
     int num_colors = 100;
     float color_r[num_colors];
