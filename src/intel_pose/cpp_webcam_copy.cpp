@@ -10,6 +10,8 @@
 #include "geometry_msgs/Point.h"
 #include "cv_bridge/cv_bridge.h"
 #include <sensor_msgs/image_encodings.h>
+#include "human_pose_ROS/PoseEstimation.h"
+#include "human_pose_ROS/Skeleton.h"
 #include <numeric>
 #include <algorithm>    // std::max
 
@@ -34,6 +36,9 @@ cv_bridge::CvImagePtr cv_ptr;
 cv_bridge::CvImagePtr cv_ptr1;
 cv_bridge::CvImagePtr depth_image;
 // sensor_msgs::ImageConstPtr ImagePtr;
+
+// Names of keypoints in order of Intel (Cubemos)
+const std::vector<std::string> limbNames = {"nose", "torso", "left_shoulder", "left_elbow", "left_wrist", "right_shoulder", "right_elbow", "right_wrist", "left_hip", "left_knee", "left_ankle", "right_hip", "right_knee", "right_ankle", "left_eye", "right_eye", "left_ear", "right_ear"};
 
 struct cmPoint
 {
@@ -164,15 +169,18 @@ cmPoint get_skeleton_point_3d(int x, int y)
 /*
 Render skeletons and tracking ids on top of the color image
 */
-inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &image, ros::Publisher skeleton_pub, ros::Publisher line_pub, float *r, float *g, float *b)
+inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &image, ros::Publisher skeleton_pub, ros::Publisher line_pub, ros::Publisher pose_pub, float *r, float *g, float *b)
 {
     CV_Assert(image.type() == CV_8UC3);
     const cv::Point2f absentKeypoint(-1.0f, -1.0f);
 
     const std::vector<std::pair<int, int>> limbKeypointsIds = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {1, 11}, {11, 12}, {12, 13}, {0, 1}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
-
+    human_pose_ROS::PoseEstimation pose_msg;
+    
+    // pose_msg.skeletons = {};
     for (int i = 0; i < skeletons_buffer->numSkeletons; i++)
     {
+        human_pose_ROS::Skeleton skeleton_msg;
         CV_Assert(skeletons_buffer->skeletons[i].numKeyPoints == 18);
 
         int id = skeletons_buffer->skeletons[i].id;
@@ -197,8 +205,11 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
         marker.header.stamp = ros::Time::now();
         marker.action = visualization_msgs::Marker::ADD;
         marker.lifetime = ros::Duration(0.2);
-
         marker.pose.orientation.w = 1.0;
+
+        
+        
+
         for (size_t keypointIdx = 0; keypointIdx < skeletons_buffer->skeletons[i].numKeyPoints; keypointIdx++)
         {
 
@@ -214,9 +225,84 @@ inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &ima
                 ros_point.y = point3d.point3d[1];
                 ros_point.z = point3d.point3d[2];
 
+                switch (keypointIdx)
+                {
+                case 0:
+                    skeleton_msg.nose = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+                case 2:
+                    skeleton_msg.left_shoulder = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+                
+                case 3:
+                    skeleton_msg.left_elbow = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 4:
+                    skeleton_msg.left_wrist = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 5:
+                    skeleton_msg.right_shoulder = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 6:
+                    skeleton_msg.right_elbow = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 7:
+                    skeleton_msg.right_wrist = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 8:
+                    skeleton_msg.left_hip = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 9:
+                    skeleton_msg.left_knee = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 10:
+                    skeleton_msg.left_ankle = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 11:
+                    skeleton_msg.right_hip = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 12:
+                    skeleton_msg.right_knee = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 13:
+                    skeleton_msg.right_ankle = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 14:
+                    skeleton_msg.left_eye = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 15:
+                    skeleton_msg.right_eye = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 16:
+                    skeleton_msg.left_ear = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                case 17:
+                    skeleton_msg.right_ear = {point3d.point3d[0], point3d.point3d[1], point3d.point3d[2]};
+                    break;
+
+                default:
+                    break;
+                }
+
                 marker.points.push_back(ros_point);
+                pose_msg.skeletons.push_back(skeleton_msg);
             }
             skeleton_pub.publish(marker);
+            pose_pub.publish(pose_msg);
         }
         int body_counter = 0;
         for (const auto &limbKeypointsId : limbKeypointsIds)
@@ -306,6 +392,7 @@ int main(int argc, char **argv)
     ros::Subscriber depth_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/aligned_depth_to_color/image_raw", 1, pointcloudCb);
     ros::Publisher skeleton_pub = n.advertise<visualization_msgs::Marker>("spawn_skeleton", 1);
     ros::Publisher line_pub = n.advertise<visualization_msgs::Marker>("spawn_lines", 1);
+    ros::Publisher pose_pub = n.advertise<human_pose_ROS::PoseEstimation>("spawn_skeleton_pose", 1);
 
     int num_colors = 100;
     float color_r[num_colors];
@@ -419,7 +506,7 @@ int main(int argc, char **argv)
                     // Assign tracking ids to the skeletons in the present frame
                     cm_skel_update_tracking_id(handle, skeletonsLast.get(), skeletonsPresent.get());
                     // Render skeleton overlays with tracking ids
-                    renderSkeletons(skeletonsPresent.get(), cv_ptr1->image, skeleton_pub, line_pub, color_r, color_g, color_b);
+                    renderSkeletons(skeletonsPresent.get(), cv_ptr1->image, skeleton_pub, line_pub, pose_pub, color_r, color_g, color_b);
                     // Set the present frame as last one to track the next frame
                     skeletonsLast.swap(skeletonsPresent);
                     // Free memory of the latest frame
