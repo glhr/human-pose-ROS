@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import rospy
 import numpy as np
 from human_pose_ROS.msg import Skeleton, PoseEstimation
@@ -27,7 +28,7 @@ colors = dict()
 for k in range(10):
   colors[k] = tuple(np.random.randint(256, size=3)/256)
 
-import parser
+import argparse
 parser = argparse.ArgumentParser(description='Visualization options')
 parser.add_argument('--lifetime',
                  default=1,
