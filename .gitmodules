@@ -19,3 +19,6 @@
 [submodule "src/fastpose-1"]
 	path = src/fastpose-1
 	url = https://github.com/glhr/fastpose-1
+[submodule "src/pose_utils/rospy_message_converter"]
+	path = src/pose_utils/rospy_message_converter
+	url = https://github.com/uos/rospy_message_converter
