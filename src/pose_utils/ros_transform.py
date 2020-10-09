@@ -10,6 +10,7 @@ from std_msgs.msg import Float32
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import CodeTimer
 import vg
+import argparse
 
 logger = get_logger()
 pp = get_printer()
@@ -30,8 +31,10 @@ def points_cb(msg):
 
         for skeleton_i, skeleton in enumerate(msg.skeletons):
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
+            msg_dict.pop("id",None)
             msg_dict_tf = dict()
             for i,v in msg_dict.items():
+                
                 if len(v):
                     msg_dict_tf[i] = cam_to_world(v)
                 else:
@@ -43,10 +46,12 @@ def points_cb(msg):
             valid_points = [v for v in msg_dict_tf.values() if len(v)]
 
             centroids[skeleton_i] = get_points_centroid(list(valid_points))
-            logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
-            distances[skeleton_i] = centroids[skeleton_i][-1]
+            if centroids[skeleton_i] is not None:
+                logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
+                distances[skeleton_i] = centroids[skeleton_i][-1]
 
-            msg_tf.centroid = centroids[skeleton_i]
+                msg_tf.centroid = centroids[skeleton_i] 
+            msg_tf.id = skeleton.id
 
 
         logger.info("{} person(s) found".format(len(msg.skeletons)))
@@ -82,10 +87,13 @@ def cam_to_world(cam_point):
 def get_points_centroid(arr):
     length = len(arr)
     arr = np.array(arr)
-    sum_x = np.sum(arr[:, 0])
-    sum_y = np.sum(arr[:, 1])
-    sum_z = np.sum(arr[:, 2])
-    return sum_x/length, sum_y/length, sum_z/length
+    if length:
+        sum_x = np.sum(arr[:, 0])
+        sum_y = np.sum(arr[:, 1])
+        sum_z = np.sum(arr[:, 2])
+        return sum_x/length, sum_y/length, sum_z/length
+    else:
+        return None
 
 def angle_from_centroid(centroid, ref_vector=[0,1,0], normal_vector=[0,0,-1]):
     v0 = np.array(ref_vector)
@@ -97,7 +105,15 @@ def angle_from_centroid(centroid, ref_vector=[0,1,0], normal_vector=[0,0,-1]):
 
 rospy.init_node("point_transform")
 
-pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
+parser = argparse.ArgumentParser(description='arg for which human pose estimation to use (realsense or open)')
+parser.add_argument('--realsense', dest='realsense', action='store_true')
+args = parser.parse_args()
+
+if args.realsense:
+    pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
+else:
+    pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
+
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 angle_pub = rospy.Publisher('person_angle', Float32, queue_size=1)
 
