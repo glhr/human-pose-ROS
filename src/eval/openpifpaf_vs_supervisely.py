@@ -47,7 +47,7 @@ def parse_prediction_json(method, img_name, debug=False, scale=1):
     predictions_list = dict()
     predictions_dict = dict()
     if debug: print(f"\n\n---------------- PREDICTIONS ----------------")
-    # parse predicted keypoints
+    # parse predicted keypoints'
     for obj_i,obj in enumerate(data_predictions):
         predictions_dict[obj_i] = dict()
         if debug: print(f"--- Person {obj_i} ---")
@@ -187,9 +187,7 @@ def nck_between_skeletons(predictions, ground_truths, person_dimensions):
         else:
             print(f"  {pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:4.0f},{pnt_pair[1][1]:4.0f}\t\t{error:.2f}")
 
-    total_keypoints = sum(-1.0 not in value for value in predictions.values())
-    print(f"--> {correct_keypoints} correct keypoints / {total_keypoints} ground truth keypoints ({len(predictions.values())-total_keypoints} ignored)")
-    return correct_keypoints, total_keypoints
+    return correct_keypoints
 
 def eval(method, scale=1):
 
@@ -240,10 +238,15 @@ def eval(method, scale=1):
         # calculate PCK
         correct_keypoints_per_img = 0
         total_keypoints_per_img = 0
-        for person_ref, person_pred in person_mappings.items():
-            correct_keypoints, total_keypoints = nck_between_skeletons(predictions_dict[person_pred], ground_truths_dict[person_ref], person_dimensions_dict[person_ref])
-            correct_keypoints_per_img += correct_keypoints
+        for person_id, person in ground_truths_dict.items():
+            total_keypoints = len(person)
             total_keypoints_per_img += total_keypoints
+        if not len(predictions_dict):
+            correct_keypoints = 0
+        else:
+            for person_ref, person_pred in person_mappings.items():
+                correct_keypoints = nck_between_skeletons(predictions_dict[person_pred], ground_truths_dict[person_ref], person_dimensions_dict[person_ref])
+                correct_keypoints_per_img += correct_keypoints
         logger.info(f"NCK: {correct_keypoints_per_img}/{total_keypoints_per_img}")
         nck_overall['gt'] += correct_keypoints_per_img
         totalk_overall['gt'] += total_keypoints_per_img
@@ -275,10 +278,12 @@ def eval(method, scale=1):
             # calculate PCK
             correct_keypoints_per_img = 0
             total_keypoints_per_img = 0
-            for person_pred, person_ref in person_mappings.items():
-                correct_keypoints, total_keypoints = nck_between_skeletons(predictions_dict[person_pred], ground_truths_dict[person_ref], person_dimensions_dict[person_ref])
-                correct_keypoints_per_img += correct_keypoints
+            for person_id, person in predictions_dict.items():
+                total_keypoints = sum(-1 not in value for value in person.values())
                 total_keypoints_per_img += total_keypoints
+            for person_pred, person_ref in person_mappings.items():
+                correct_keypoints = nck_between_skeletons(predictions_dict[person_pred], ground_truths_dict[person_ref], person_dimensions_dict[person_ref])
+                correct_keypoints_per_img += correct_keypoints
             logger.info(f"NCK: {correct_keypoints_per_img}/{total_keypoints_per_img}")
             nck_overall['pred'] += correct_keypoints_per_img
             totalk_overall['pred'] += total_keypoints_per_img
