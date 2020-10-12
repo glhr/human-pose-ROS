@@ -9,8 +9,6 @@ from pprint import pprint
 import glob
 
 import json
-from vision_utils.logger import get_logger
-logger=get_logger()
 
 keypoint_ids = [
     (1, 2),
@@ -117,6 +115,7 @@ if __name__ == "__main__":
         api.load_model(CM_TargetComputeDevice.CM_CPU, model_path)
         scale = float(args.scale)
         #perform inference
+        scale = float(args.scale)
         for test_image in glob.glob("/home/slave/Downloads/pose_test_input/*.png"):
             img_name = f'{test_image.split("/")[-1].split(".")[-2]}-{scale}.{test_image.split(".")[-1]}' if scale<1 else test_image.split("/")[-1]
             img = cv2.imread(test_image)
@@ -133,16 +132,15 @@ if __name__ == "__main__":
                 keypoints = []
                 for i,kp in enumerate(person.joints):
                     if kp.x == -1.0 and kp.y == -1.0:
-                        kp.x = 0.0
-                        kp.y = 0.0
-                    keypoints.extend([kp.x, kp.y, person.confidences[i]])
+                        keypoints.extend([0.0, 0.0, 0])
+                    else:
+                        keypoints.extend([kp.x, kp.y, person.confidences[i]])
                 json_out.append({'keypoints':keypoints})
             print(json_out)
 
             json_out_name = '../eval/realsense_sdk/' + img_name + '.predictions.json'
             with open(json_out_name, 'w') as f:
                 json.dump(json_out, f)
-            logger.info(json_out_name)
 
             cv2.imwrite(img_name, img)
 
