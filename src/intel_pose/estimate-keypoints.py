@@ -8,6 +8,10 @@ import platform
 from pprint import pprint
 import glob
 
+import json
+from vision_utils.logger import get_logger
+logger=get_logger()
+
 keypoint_ids = [
     (1, 2),
     (1, 5),
@@ -59,7 +63,7 @@ def check_license_and_variables_exist():
         raise Exception(
             "The environment Variable \"CUBEMOS_SKEL_SDK\" is not set. "
             "Please check the troubleshooting section in the Getting "
-            "Started Guide to resolve this issue." 
+            "Started Guide to resolve this issue."
         )
 
 
@@ -116,10 +120,23 @@ if __name__ == "__main__":
             render_result(skeletons, img, 0.5)
             print("Detected skeletons: ", len(skeletons))
 
+            json_out = []
+            for person in skeletons:
+                keypoints = []
+                for i,kp in enumerate(person.joints):
+                    keypoints.extend([kp.x, kp.y, person.confidences[i]])
+                json_out.append({'keypoints':keypoints})
+            print(json_out)
+
+            json_out_name = '../eval/realsense_sdk/' + img_name + '.predictions.json'
+            with open(json_out_name, 'w') as f:
+                json.dump(json_out, f)
+            logger.info(json_out_name)
+
             cv2.imwrite(img_name, img)
 
 
-            
+
     except Exception as ex:
         print("Exception occured: \"{}\"".format(ex))
 # Main content ends
