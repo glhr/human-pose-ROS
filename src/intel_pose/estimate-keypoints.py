@@ -92,7 +92,13 @@ def render_result(skeletons, img, confidence_threshold):
             )
 
 
+import argparse
+parser = argparse.ArgumentParser(description='Evaluation options')
+parser.add_argument('--scale',
+                    default=1,
+                    help='Image scaling factor for inference (currently 1 or 0.5)')
 
+args = parser.parse_args()
 
 
 # Main content begins
@@ -110,10 +116,11 @@ if __name__ == "__main__":
         )
         api.load_model(CM_TargetComputeDevice.CM_CPU, model_path)
         #perform inference
-        scale = 1
         for test_image in glob.glob("/home/slave/Downloads/pose_test_input/*.png"):
             img_name = f'{test_image.split("/")[-1].split(".")[-2]}-{scale}.{test_image.split(".")[-1]}' if scale<1 else test_image.split("/")[-1]
             img = cv2.imread(test_image)
+            dim = (int(image.shape[1] * scale), int(image.shape[0] * scale))
+            img = cv2.resize(img, dim)
             skeletons = api.estimate_keypoints(img, 192)
             print(skeletons)
 
