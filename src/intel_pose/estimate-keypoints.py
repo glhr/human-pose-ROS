@@ -115,11 +115,12 @@ if __name__ == "__main__":
             sdk_path, "models", "skeleton-tracking", "fp32", "skeleton-tracking.cubemos"
         )
         api.load_model(CM_TargetComputeDevice.CM_CPU, model_path)
+        scale = float(args.scale)
         #perform inference
         for test_image in glob.glob("/home/slave/Downloads/pose_test_input/*.png"):
             img_name = f'{test_image.split("/")[-1].split(".")[-2]}-{scale}.{test_image.split(".")[-1]}' if scale<1 else test_image.split("/")[-1]
             img = cv2.imread(test_image)
-            dim = (int(image.shape[1] * scale), int(image.shape[0] * scale))
+            dim = (int(img.shape[1] * scale), int(img.shape[0] * scale))
             img = cv2.resize(img, dim)
             skeletons = api.estimate_keypoints(img, 192)
             print(skeletons)
@@ -131,6 +132,9 @@ if __name__ == "__main__":
             for person in skeletons:
                 keypoints = []
                 for i,kp in enumerate(person.joints):
+                    if kp.x == -1.0 and kp.y == -1.0:
+                        kp.x = 0.0
+                        kp.y = 0.0
                     keypoints.extend([kp.x, kp.y, person.confidences[i]])
                 json_out.append({'keypoints':keypoints})
             print(json_out)
