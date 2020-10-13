@@ -32,7 +32,7 @@ def points_cb(msg):
         for skeleton_i, skeleton in enumerate(msg.skeletons):
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
             msg_dict.pop("id",None)
-            msg_dict = {k: v for k, v in msg_dict.items() if k[-1] > 0}
+            msg_dict = {k: v for k, v in msg_dict.items() if v[-1] > 0}
             msg_dict_tf = dict()
             for i,v in msg_dict.items():
                 if len(v):
