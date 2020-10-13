@@ -55,12 +55,18 @@ def get_points_centroid(arr):
     sum_z = np.sum(arr[:, 2])
     return sum_x/length, sum_y/length, sum_z/length
 
-def angle_from_centroid(centroid):
-    v0 = np.array([0,0,1])
+def angle_from_centroid(centroid, ref_vector, normal_vector):
+    v0 = np.array(ref_vector)
     vcentroid = np.array(centroid)
-    angle = vg.signed_angle(v0, vcentroid, look=np.array([1,1,0]))
+    angle = vg.signed_angle(v0, vcentroid, look=np.array(normal_vector))
     logger.debug("Centroid angle: {}".format(angle))
     return angle
 
 def distance_between_points(p1,p2):
     return float(vg.euclidean_distance(np.array(p1), np.array(p2)))
+
+def vector_from_2_points(p1,p2):
+    dist_v = np.subtract(p2,p1)
+    norm = np.linalg.norm(dist_v)
+    direction = dist_v/norm
+    return direction

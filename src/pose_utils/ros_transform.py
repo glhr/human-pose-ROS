@@ -9,7 +9,7 @@ from rospy_message_converter import message_converter
 from std_msgs.msg import Float32
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import CodeTimer
-from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points
+from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points, vector_from_2_points
 import vg
 import argparse
 
@@ -17,6 +17,7 @@ logger = get_logger()
 pp = get_printer()
 
 CAM_FRAME = "/wrist_camera_depth_optical_frame"
+camera_point = [-0.0334744,-0.20912,1.85799]
 
 def points_cb(msg):
     with CodeTimer() as timer:
@@ -46,7 +47,6 @@ def points_cb(msg):
             if centroids[skeleton_i] is not None:
                 logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
                 distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
-
                 msg_tf.centroid = centroids[skeleton_i]
             msg_tf.id = skeleton.id
 
@@ -55,12 +55,18 @@ def points_cb(msg):
         if len(msg.skeletons):
             closest_skeleton_i = min(distances, key=distances.get)
             pose_tf.tracked_person_id = closest_skeleton_i
-            angle = angle_from_centroid(centroids[closest_skeleton_i])
-            logger.debug("--> Angle of closest person {}: {}".format(closest_skeleton_i, angle))
-            angle_pub.publish(angle)
+            pan_angle = angle_from_centroid(centroids[closest_skeleton_i], ref_vector=[0,1,0], normal_vector=[0,0,-1])
+
+            centroid_v = vector_from_2_points(camera_point,centroids[closest_skeleton_i])
+            ref_v = vector_from_2_points(camera_point,np.add(camera_point,[0,1,0]))
+            tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
+            logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
+            pan_pub.publish(pan_angle)
+            tilt_pub.publish(tilt_angle)
             pose_pub.publish(pose_tf)
         else:
-            angle_pub.publish(0.0)
+            pan_pub.publish(0.0)
+            tilt_pub.publish(0.0)
     logger.info("Callback took {}ms".format(timer.took))
 
 
@@ -76,7 +82,8 @@ else:
     pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
-angle_pub = rospy.Publisher('person_angle', Float32, queue_size=1)
+pan_pub = rospy.Publisher('ref_pan_angle', Float32, queue_size=1)
+tilt_pub = rospy.Publisher('ref_tilt_angle', Float32, queue_size=1)
 
 tf_listener = tf.TransformListener()
 
