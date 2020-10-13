@@ -32,13 +32,10 @@ def points_cb(msg):
         for skeleton_i, skeleton in enumerate(msg.skeletons):
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
             msg_dict.pop("id",None)
+            msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
             for i,v in msg_dict.items():
-
-                if len(v):
-                    msg_dict_tf[i] = cam_to_world(v, world_to_cam)
-                else:
-                    msg_dict_tf[i] = []
+                msg_dict_tf[i] = cam_to_world(v, world_to_cam)
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
             pose_tf.skeletons.append(msg_tf)
