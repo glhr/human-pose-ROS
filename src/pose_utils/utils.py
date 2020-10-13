@@ -1,9 +1,14 @@
 #! /usr/bin/env python3
-import pyrealsense2 as rs
+
 import numpy as np
 import vg
 from vision_utils.logger import get_logger, get_printer
 logger = get_logger()
+
+try:
+    import pyrealsense2 as rs
+except ImportError:
+    logger.warning("Can't find pyrealsense2")
 
 def cam_to_world(cam_point, world_to_cam):
     """Convert from camera_frame to world_frame
