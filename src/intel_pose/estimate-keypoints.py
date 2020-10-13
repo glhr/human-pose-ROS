@@ -7,8 +7,14 @@ import os
 import platform
 from pprint import pprint
 import glob
+import numpy as np
 
 import json
+from vision_utils.logger import get_logger
+logger = get_logger()
+
+from vision_utils.timing import CodeTimer
+
 
 keypoint_ids = [
     (1, 2),
@@ -101,51 +107,55 @@ args = parser.parse_args()
 
 # Main content begins
 if __name__ == "__main__":
-    try:
 
-        check_license_and_variables_exist()
-        #Get the path of the native libraries and ressource files
-        sdk_path = os.environ["CUBEMOS_SKEL_SDK"]
 
-        #initialize the api with a valid license key in default_license_dir()
-        api = Api(default_license_dir())
-        model_path = os.path.join(
-            sdk_path, "models", "skeleton-tracking", "fp32", "skeleton-tracking.cubemos"
-        )
-        api.load_model(CM_TargetComputeDevice.CM_CPU, model_path)
-        scale = float(args.scale)
-        #perform inference
-        scale = float(args.scale)
-        for test_image in glob.glob("/home/slave/Downloads/pose_test_input/*.png"):
-            img_name = f'{test_image.split("/")[-1].split(".")[-2]}-{scale}.{test_image.split(".")[-1]}' if scale<1 else test_image.split("/")[-1]
-            img = cv2.imread(test_image)
-            dim = (int(img.shape[1] * scale), int(img.shape[0] * scale))
-            img = cv2.resize(img, dim)
+    check_license_and_variables_exist()
+    #Get the path of the native libraries and ressource files
+    sdk_path = os.environ["CUBEMOS_SKEL_SDK"]
+
+    #initialize the api with a valid license key in default_license_dir()
+    api = Api(default_license_dir())
+    model_path = os.path.join(
+        sdk_path, "models", "skeleton-tracking", "fp32", "skeleton-tracking.cubemos"
+    )
+    api.load_model(CM_TargetComputeDevice.CM_CPU, model_path)
+    scale = float(args.scale)
+    #perform inference
+    scale = float(args.scale)
+    times = []
+    for test_image in glob.glob("/home/slave/Downloads/pose_test_input/*.png"):
+        img_name = f'{test_image.split("/")[-1].split(".")[-2]}-{scale}.{test_image.split(".")[-1]}' if scale<1 else test_image.split("/")[-1]
+        img = cv2.imread(test_image)
+        dim = (int(img.shape[1] * scale), int(img.shape[0] * scale))
+        img = cv2.resize(img, dim)
+        with CodeTimer() as timer:
             skeletons = api.estimate_keypoints(img, 192)
-            print(skeletons)
+            
+        time = timer.took
+        times.append(time)
+        print(skeletons)
 
-            render_result(skeletons, img, 0.5)
-            print("Detected skeletons: ", len(skeletons))
+        render_result(skeletons, img, 0.5)
+        print("Detected skeletons: ", len(skeletons))
 
-            json_out = []
-            for person in skeletons:
-                keypoints = []
-                for i,kp in enumerate(person.joints):
-                    if kp.x == -1.0 and kp.y == -1.0:
-                        keypoints.extend([0.0, 0.0, 0])
-                    else:
-                        keypoints.extend([kp.x, kp.y, person.confidences[i]])
-                json_out.append({'keypoints':keypoints})
-            print(json_out)
+        json_out = []
+        for person in skeletons:
+            keypoints = []
+            for i,kp in enumerate(person.joints):
+                if kp.x == -1.0 and kp.y == -1.0:
+                    keypoints.extend([0.0, 0.0, 0])
+                else:
+                    keypoints.extend([kp.x, kp.y, person.confidences[i]])
+            json_out.append({'keypoints':keypoints})
+        print(json_out)
 
-            json_out_name = '../eval/realsense_sdk/' + img_name + '.predictions.json'
-            with open(json_out_name, 'w') as f:
-                json.dump(json_out, f)
+        json_out_name = '../eval/realsense_sdk/' + img_name + '.predictions.json'
+        with open(json_out_name, 'w') as f:
+            json.dump(json_out, f)
 
-            cv2.imwrite(img_name, img)
+        cv2.imwrite(img_name, img)
+    
+    print("time: ", np.mean(times), "ms on average")
 
 
-
-    except Exception as ex:
-        print("Exception occured: \"{}\"".format(ex))
 # Main content ends
