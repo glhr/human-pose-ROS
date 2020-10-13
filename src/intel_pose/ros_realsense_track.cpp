@@ -35,6 +35,7 @@ cv::Scalar const jointColor = cv::Scalar(222, 55, 22);
 cv_bridge::CvImagePtr cv_ptr;
 cv_bridge::CvImagePtr cv_ptr1;
 cv_bridge::CvImagePtr depth_image;
+cv_bridge::CvImage depth_image_predicted;
 // sensor_msgs::ImageConstPtr ImagePtr;
 
 // Names of keypoints in order of Intel (Cubemos)
@@ -89,7 +90,7 @@ cmPoint get_skeleton_point_3d(int x, int y)
 {
     // Get the distance at the given pixel
     int center[2] = {x, y};
-    int size = 10;
+    int size = 5;
     std::vector<float> buffer;
     float distance = 0;
 
@@ -105,7 +106,7 @@ cmPoint get_skeleton_point_3d(int x, int y)
         {
             try
             {
-                distance = depth_image->image.at<float>(j, i);
+                distance = depth_image_predicted.image.at<float>(j, i);
                 buffer.push_back(distance);
             }
             catch (const std::exception &e)
@@ -119,7 +120,7 @@ cmPoint get_skeleton_point_3d(int x, int y)
     size_t n = buffer.size() / 2;
     std::nth_element(buffer.begin(), buffer.begin() + n, buffer.end());
     distance = buffer[n];
-    if (distance > 100 && distance < 3000)
+    if (distance > 100 && distance < 4000)
     {
         // float distance = depth_image->image.at<float>(y, x);
 
@@ -485,6 +486,7 @@ int main(int argc, char **argv)
                 (int)cv_ptr1->image.step[0], CM_HWC};
 
             // Run Skeleton Tracking and display the results
+            depth_image_predicted = *depth_image;
             retCode = cm_skel_estimate_keypoints_start_async(handle, skeletRequestHandle, &imagePresent, nHeight);
             retCode = cm_skel_wait_for_keypoints(handle, skeletRequestHandle, skeletonsPresent.get(), nTimeoutMs);
             // track the skeletons in case of successful skeleton estimation
@@ -502,8 +504,6 @@ int main(int argc, char **argv)
                     cm_skel_release_buffer(skeletonsPresent.get());
                 }
             }
-            cv_ptr1.reset();
-            depth_image.reset();
         }
         ros::spinOnce();
     }
