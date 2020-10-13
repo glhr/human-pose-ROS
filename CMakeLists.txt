@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(human_pose_ROS LANGUAGES CXX)
 
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS rospy roscpp message_generation message_runtime geometry_msgs cv_bridge)
 find_package(CUBEMOS_SKELETON_TRACKING REQUIRED PATHS /opt/cubemos/skeleton_tracking/lib/cmake/CUBEMOS_SKELETON_TRACKING)
+find_package( PCL REQUIRED )
+include_directories(  ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIRS} )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 
 set(OpenCV_DIR "/opt/cubemos/skeleton_tracking/samples/dep/opencv/lib/cmake/opencv4")
@@ -84,7 +88,7 @@ catkin_package(
 )
 
 add_executable(ros-realsense src/intel_pose/ros_realsense_track.cpp src/intel_pose/samples.h)
-target_link_libraries(ros-realsense ${catkin_LIBRARIES})
+target_link_libraries(ros-realsense ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 target_link_libraries(ros-realsense PRIVATE cubemos_skeleton_tracking)
 target_link_libraries(ros-realsense PRIVATE ${OpenCV_LIBS})
 target_link_libraries(ros-realsense PRIVATE ${realsense2_LIBRARY})
