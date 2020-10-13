@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber camera_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/color/image_raw", 1, imageCb);
     ros::Subscriber depth_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/aligned_depth_to_color/image_raw", 1, pointcloudCb);
-    ros::Subscriber pointcloud_sub = n.subscribe<sensor_msgs::PointCloud2>("/wrist_camera/camera/depth_registered/points", 1, realpointCloudCb);
+    // ros::Subscriber pointcloud_sub = n.subscribe<sensor_msgs::PointCloud2>("/wrist_camera/camera/depth_registered/points", 1, realpointCloudCb);
 
     ros::Publisher skeleton_pub = n.advertise<visualization_msgs::Marker>("spawn_skeleton", 1);
     ros::Publisher line_pub = n.advertise<visualization_msgs::Marker>("spawn_lines", 1);
