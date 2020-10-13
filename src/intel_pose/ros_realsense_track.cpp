@@ -36,6 +36,8 @@ cv_bridge::CvImagePtr cv_ptr;
 cv_bridge::CvImagePtr cv_ptr1;
 cv_bridge::CvImagePtr depth_image;
 cv_bridge::CvImage depth_image_predicted;
+
+sensor_msgs::PointCloud2 my_pcl;
 // sensor_msgs::ImageConstPtr ImagePtr;
 
 // Names of keypoints in order of Intel (Cubemos)
@@ -61,6 +63,41 @@ cmPoint get_skeleton_point_3d(int x, int y);
 CUBEMOS_SKEL_Buffer_Ptr create_skel_buffer();
 inline void renderSkeletons(const CM_SKEL_Buffer *skeletons_buffer, cv::Mat &image, ros::Publisher skeleton_pub, float *r, float *g, float *b);
 int run(int argc, char *argv[]);
+
+void realpointCloudCb(const sensor_msgs::PointCloud2ConstPtr& cloud){
+
+    my_pcl = *cloud;
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    // pcl::fromROSMsg(*cloud,*PC);
+
+    int v = 360;
+    int u = 660;
+    long arrayPosition = v * my_pcl.row_step + u * my_pcl.point_step;
+
+    int arrayPosX = arrayPosition + my_pcl.fields[0].offset; // X has an offset of 0
+    int arrayPosY = arrayPosition + my_pcl.fields[1].offset; // Y has an offset of 4
+    int arrayPosZ = arrayPosition + my_pcl.fields[2].offset; // Z has an offset of 8
+
+    float X = 0.0;
+    float Y = 0.0;
+    float Z = 0.0;
+
+    memcpy(&X, &my_pcl.data[arrayPosX], sizeof(float));
+    memcpy(&Y, &my_pcl.data[arrayPosY], sizeof(float));
+    memcpy(&Z, &my_pcl.data[arrayPosZ], sizeof(float));
+
+    p.x = X;
+    p.y = Y;
+    p.z = Z;
+
+    auto t2 = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
+
+    std::cout << "Time: " << duration << std::endl;
+
+}
 
 void pointcloudCb(const sensor_msgs::ImageConstPtr &msg)
 {
@@ -389,6 +426,8 @@ int main(int argc, char **argv)
 
     ros::Subscriber camera_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/color/image_raw", 1, imageCb);
     ros::Subscriber depth_sub = n.subscribe<sensor_msgs::Image>("/wrist_camera/camera/aligned_depth_to_color/image_raw", 1, pointcloudCb);
+    ros::Subscriber pointcloud_sub = n.subscribe<sensor_msgs::PointCloud2>("/wrist_camera/camera/depth_registered/points", 1, realpointCloudCb);
+
     ros::Publisher skeleton_pub = n.advertise<visualization_msgs::Marker>("spawn_skeleton", 1);
     ros::Publisher line_pub = n.advertise<visualization_msgs::Marker>("spawn_lines", 1);
     ros::Publisher pose_pub = n.advertise<human_pose_ROS::PoseEstimation>("realsense_pose", 1);
