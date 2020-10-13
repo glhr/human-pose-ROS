@@ -58,6 +58,7 @@ preprocess = openpifpaf.transforms.Compose([
 
 
 def predict(img_path, scale=1, json_output=None, save=True):
+
     if isinstance(img_path, str):
         pil_im = PIL.Image.open(img_path)
         img_name = img_path.split("/")[-1]
@@ -93,12 +94,13 @@ def predict(img_path, scale=1, json_output=None, save=True):
 
     logger.info(f"{img_name} took {timer.took}ms")
 
-    for predictions in predictions_list:
-      with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
-        keypoint_painter.annotations(ax, predictions)
+    if save:
+        for predictions in predictions_list:
+          with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
+            keypoint_painter.annotations(ax, predictions)
 
 
-    return predictions_list, load_image(f"out/{img_name}")[:,:,:3], timer.took
+    return predictions_list, load_image(f"out/{img_name}")[:,:,:3] if save else None, timer.took
 
 
 
@@ -119,6 +121,7 @@ RGB_CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
 DEPTH_CAMERA_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/image_raw'
 DEPTH_INFO_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/camera_info'
 depth_image = []
+depth_predict = []
 rgb_image = []
 def got_depth(msg):
     global depth_image
@@ -157,11 +160,15 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         for i,pnt in enumerate(pnts_openpifpaf):
             pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[i])
-            pnt_1 = pnts_openpifpaf[i]
+            # pnt_1 = pnts_openpifpaf[i]
 
             if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
-                    pnt1_cam = pixel_to_camera(pnt_1, depth_image[int(pnt_1[1])][int(pnt_1[0])]/1000)
+                    if pnt_1[1] > 719 or pnt_1[0] > 1279:
+                        logger.warning(pnt_1)
+                    y = min(719, int(pnt_1[1]))
+                    x = min(1279, int(pnt_1[0]))
+                    pnt1_cam = pixel_to_camera(cameraInfo, (x,y), depth_predict[y][x]/1000)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt1_cam.append(1)
@@ -180,7 +187,8 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         pose_msg.skeletons.append(skeleton_msg)
 
-    poseimg_pub.publish(numpy_to_image(im))
+    if im is not None:
+        poseimg_pub.publish(numpy_to_image(im))
     pose_pub.publish(pose_msg)
 
 if args.cam:
@@ -200,8 +208,9 @@ while not rospy.is_shutdown():
         # depth_imagemsg = rospy.wait_for_message(DEPTH_CAMERA_TOPIC, Image, timeout=2)
         # image = image_to_numpy(imagemsg)
         if len(depth_image):
-            predictions, im, time = predict(rgb_image, scale=1)
-            openpifpaf_viz(predictions, im, time, cam=True, scale=1)
+            depth_predict = depth_image
+            predictions, im, time = predict(rgb_image, scale=0.5, save=False)
+            openpifpaf_viz(predictions, im, time, cam=True, scale=0.5)
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
 # while True:
