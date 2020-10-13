@@ -2,8 +2,25 @@
 import pyrealsense2 as rs
 import numpy as np
 import vg
+from vision_utils.logger import get_logger, get_printer
+logger = get_logger()
 
-def pixel_to_camera(pixel, depth):
+def cam_to_world(cam_point, world_to_cam):
+    """Convert from camera_frame to world_frame
+
+    Keyword arguments:
+    cam_pose   -- PoseStamped from camera view
+    cam_frame  -- The frame id of the camera
+    """
+    # cam_point = np.array([cam_pose[0], cam_pose[1], cam_pose[2]])
+
+    obj_vector = np.concatenate((cam_point, np.ones(1))).reshape((4, 1))
+    world_point = np.dot(world_to_cam, obj_vector)
+
+    world_point = [p[0] for p in world_point]
+    return world_point[0:3]
+
+def pixel_to_camera(cameraInfo, pixel, depth):
     _intrinsics = rs.intrinsics()
     _intrinsics.width = cameraInfo.width
     _intrinsics.height = cameraInfo.height
@@ -37,5 +54,8 @@ def angle_from_centroid(centroid):
     v0 = np.array([0,0,1])
     vcentroid = np.array(centroid)
     angle = vg.signed_angle(v0, vcentroid, look=np.array([1,1,0]))
-    logger.debug(f"Centroid angle: {angle}")
+    logger.debug("Centroid angle: {}".format(angle))
     return angle
+
+def distance_between_points(p1,p2):
+    return float(vg.euclidean_distance(np.array(p1), np.array(p2)))

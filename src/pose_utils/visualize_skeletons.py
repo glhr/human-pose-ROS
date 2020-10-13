@@ -25,7 +25,7 @@ connected_points = [
 (11,12), (5,6)]
 
 colors = dict()
-for k in range(10):
+for k in range(100):
   colors[k] = tuple(np.random.randint(256, size=3)/256)
 
 import argparse

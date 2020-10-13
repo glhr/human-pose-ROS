@@ -9,6 +9,7 @@ from rospy_message_converter import message_converter
 from std_msgs.msg import Float32
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import CodeTimer
+from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points
 import vg
 import argparse
 
@@ -18,7 +19,6 @@ pp = get_printer()
 CAM_FRAME = "/wrist_camera_depth_optical_frame"
 
 def points_cb(msg):
-    global trans, rot, world_to_cam
     with CodeTimer() as timer:
         tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
         (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
@@ -34,9 +34,9 @@ def points_cb(msg):
             msg_dict.pop("id",None)
             msg_dict_tf = dict()
             for i,v in msg_dict.items():
-                
+
                 if len(v):
-                    msg_dict_tf[i] = cam_to_world(v)
+                    msg_dict_tf[i] = cam_to_world(v, world_to_cam)
                 else:
                     msg_dict_tf[i] = []
 
@@ -48,9 +48,9 @@ def points_cb(msg):
             centroids[skeleton_i] = get_points_centroid(list(valid_points))
             if centroids[skeleton_i] is not None:
                 logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
-                distances[skeleton_i] = centroids[skeleton_i][-1]
+                distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
 
-                msg_tf.centroid = centroids[skeleton_i] 
+                msg_tf.centroid = centroids[skeleton_i]
             msg_tf.id = skeleton.id
 
 
@@ -65,42 +65,6 @@ def points_cb(msg):
         else:
             angle_pub.publish(0.0)
     logger.info("Callback took {}ms".format(timer.took))
-
-
-
-
-def cam_to_world(cam_point):
-    """Convert from camera_frame to world_frame
-
-    Keyword arguments:
-    cam_pose   -- PoseStamped from camera view
-    cam_frame  -- The frame id of the camera
-    """
-    # cam_point = np.array([cam_pose[0], cam_pose[1], cam_pose[2]])
-
-    obj_vector = np.concatenate((cam_point, np.ones(1))).reshape((4, 1))
-    world_point = np.dot(world_to_cam, obj_vector)
-
-    world_point = [p[0] for p in world_point]
-    return world_point[0:3]
-
-def get_points_centroid(arr):
-    length = len(arr)
-    arr = np.array(arr)
-    if length:
-        sum_x = np.sum(arr[:, 0])
-        sum_y = np.sum(arr[:, 1])
-        sum_z = np.sum(arr[:, 2])
-        return sum_x/length, sum_y/length, sum_z/length
-    else:
-        return None
-
-def angle_from_centroid(centroid, ref_vector=[0,1,0], normal_vector=[0,0,-1]):
-    v0 = np.array(ref_vector)
-    vcentroid = np.array(centroid)
-    angle = vg.signed_angle(v0, vcentroid, look=np.array(normal_vector))
-    logger.debug("Centroid angle: {}".format(angle))
-    return angle
 
 
 rospy.init_node("point_transform")
