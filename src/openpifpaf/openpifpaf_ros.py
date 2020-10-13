@@ -56,6 +56,9 @@ preprocess = openpifpaf.transforms.Compose([
     openpifpaf.transforms.EVAL_TRANSFORM,
 ])
 
+depth_image = []
+depth_predict = []
+rgb_image = []
 
 def predict(img_path, scale=1, json_output=None, save=True):
 
@@ -65,11 +68,15 @@ def predict(img_path, scale=1, json_output=None, save=True):
         img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
     else:
         pil_im = PIL.Image.fromarray(img_path)
+        pil_im_depth = PIL.Image.fromarray(depth_predict)
         img_name = f'wrist_camera_{get_timestamp()}.png'
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)
+    dim = (int(i*scale) for i in pil_im_depth.size)
+    pil_im_depth = pil_im_depth.resize(dim)
 
     im = np.asarray(pil_im)
+    im_depth = np.asarray(pil_im_depth)
 
     predictions_list = []
 
@@ -96,19 +103,25 @@ def predict(img_path, scale=1, json_output=None, save=True):
 
     if save:
         for predictions in predictions_list:
-          with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
-            keypoint_painter.annotations(ax, predictions)
+          # with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
+          #   keypoint_painter.annotations(ax, predictions)
+            save_path_depth = f"out/depth-{img_name}"
+            save_path_rgb = f"out/rgb-{img_name}"
+            with openpifpaf.show.image_canvas(im_depth, save_path_depth if save else None, show=False) as ax:
+                keypoint_painter.annotations(ax, predictions)
+            with openpifpaf.show.image_canvas(im, save_path_rgb if save else None, show=False) as ax:
+                keypoint_painter.annotations(ax, predictions)
+            logger.warning("Saved to {} and {}".format(save_path_depth, save_path_rgb))
 
-
-    return predictions_list, load_image(f"out/{img_name}")[:,:,:3] if save else None, timer.took
-
-
+    return predictions_list, load_image(save_path_depth)[:,:,:3] if save else None, timer.took
 
 parser = argparse.ArgumentParser(description='Directory of PNG images to use for inference.')
 parser.add_argument('--input_dir',
                     default="/home/slave/Pictures/pose/pose test input",
                     help='directory of PNG images to run fastpose on')
 parser.add_argument('--cam', dest='cam', action='store_true')
+parser.add_argument('--save', dest='save', action='store_true')
+parser.add_argument('--scale', default=0.5, dest='scale')
 
 args = parser.parse_args()
 
@@ -120,9 +133,7 @@ pp.pprint(pairs)
 RGB_CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
 DEPTH_CAMERA_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/image_raw'
 DEPTH_INFO_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/camera_info'
-depth_image = []
-depth_predict = []
-rgb_image = []
+
 def got_depth(msg):
     global depth_image
     depth_image = image_to_numpy(msg)
@@ -201,7 +212,7 @@ while not rospy.is_shutdown():
     if not args.cam:
         img_path = imgs[randint(0,len(imgs)-1)]
         # img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
-        predictions, im, time = predict(img_path, scale=0.5)
+        predictions, im, time = predict(img_path, scale=float(args.scale))
         openpifpaf_viz(predictions, im, time, cam=False)
     else:
         # imagemsg = rospy.wait_for_message(RGB_CAMERA_TOPIC, Image, timeout=2)
@@ -209,8 +220,8 @@ while not rospy.is_shutdown():
         # image = image_to_numpy(imagemsg)
         if len(depth_image):
             depth_predict = depth_image
-            predictions, im, time = predict(rgb_image, scale=0.5, save=False)
-            openpifpaf_viz(predictions, im, time, cam=True, scale=0.5)
+            predictions, im, time = predict(rgb_image, scale=float(args.scale), save=args.save)
+            openpifpaf_viz(predictions, im, time, cam=True, scale=float(args.scale))
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
 # while True:
