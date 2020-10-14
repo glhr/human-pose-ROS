@@ -87,15 +87,15 @@ void realpointCloudCb(const sensor_msgs::PointCloud2ConstPtr& cloud){
     memcpy(&Y, &my_pcl.data[arrayPosY], sizeof(float));
     memcpy(&Z, &my_pcl.data[arrayPosZ], sizeof(float));
 
-    p.x = X;
-    p.y = Y;
-    p.z = Z;
+    // p.x = X;
+    // p.y = Y;
+    // p.z = Z;
 
     auto t2 = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
 
-    std::cout << "Time: " << duration << std::endl;
+    // std::cout << "Time: " << duration << std::endl;
 
 }
 
