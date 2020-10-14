@@ -33,6 +33,9 @@ parser = argparse.ArgumentParser(description='Visualization options')
 parser.add_argument('--lifetime',
                  default=1,
                  help='Marker lifetime')
+parser.add_argument('--filter',
+                 action='store_true',
+                 help='Use filtered poses')
 
 args, unknown = parser.parse_known_args()
 
@@ -120,6 +123,12 @@ def pose_cb(msg):
 
 rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
-pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
+
+if args.filter: # use filtered pose if available
+    logger.warning("Using /openpifpaf_pose_filtered")
+    pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, pose_cb)
+else:
+    logger.warning("Using /openpifpaf_pose_transformed")
+    pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
 
 rospy.spin()
