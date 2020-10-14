@@ -123,7 +123,7 @@ parser.add_argument('--cam', dest='cam', action='store_true')
 parser.add_argument('--save', dest='save', action='store_true')
 parser.add_argument('--scale', default=0.5, dest='scale')
 
-args, unknown = parser.parse_known_args()
+args = parser.parse_args()
 
 img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
 

@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--cam" required="true" output="screen"/>
-  <node name="ros_transform" pkg="human_pose_ROS" type="ros_transform.py" required="true" output="screen"/>
-  <node name="visualize_skeletons" pkg="human_pose_ROS" type="visualize_skeletons.py" required="true" output="screen"/>
-
-
-</launch>

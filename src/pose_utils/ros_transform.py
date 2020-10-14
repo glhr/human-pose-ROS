@@ -74,7 +74,7 @@ rospy.init_node("point_transform")
 
 parser = argparse.ArgumentParser(description='arg for which human pose estimation to use (realsense or open)')
 parser.add_argument('--realsense', dest='realsense', action='store_true')
-args, unknown = parser.parse_known_args()
+args = parser.parse_args()
 
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)

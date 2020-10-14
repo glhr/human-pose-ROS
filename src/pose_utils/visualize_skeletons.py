@@ -34,7 +34,7 @@ parser.add_argument('--lifetime',
                  default=1,
                  help='Marker lifetime')
 
-args, unknown = parser.parse_known_args()
+args = parser.parse_args()
 
 def pose_cb(msg):
 
