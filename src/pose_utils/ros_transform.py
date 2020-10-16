@@ -65,8 +65,8 @@ def points_cb(msg):
             tilt_pub.publish(tilt_angle)
             pose_pub.publish(pose_tf)
         else:
-            pan_pub.publish(0.0)
-            tilt_pub.publish(0.0)
+            pan_pub.publish(200)
+            tilt_pub.publish(200)
     logger.info("Callback took {}ms".format(timer.took))
 
 
