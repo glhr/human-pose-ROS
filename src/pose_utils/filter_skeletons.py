@@ -17,24 +17,25 @@ def skel_callback(msg):
     for skeleton_i, skeleton in enumerate(msg.skeletons):
         skel_filtered = dict()
         msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
-        if not history.get(skeleton.id,0):
-            history[skeleton.id] = dict()
+        if not history.get(skeleton_i,0):
+            history[skeleton_i] = dict()
         msg_dict.pop("id",None)
         for joint,kp in msg_dict.items():
             if len(kp):
-                if not history[skeleton.id].get(joint,0):
-                    history[skeleton.id][joint] = [kp]
+                if not history[skeleton_i].get(joint,0):
+                    history[skeleton_i][joint] = [kp]
                 else:
-                    history[skeleton.id][joint].append(kp)
-                if len(history[skeleton.id][joint]) > window_length:
-                    history[skeleton.id][joint] = history[skeleton.id][joint][-window_length:]
-                average_x = filter([i[0] for i in history[skeleton.id][joint]])
-                average_y = filter([i[1] for i in history[skeleton.id][joint]])
-                average_z = filter([i[2] for i in history[skeleton.id][joint]])
+                    history[skeleton_i][joint].append(kp)
+                if len(history[skeleton_i][joint]) > window_length:
+                    history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
+                average_x = filter([i[0] for i in history[skeleton_i][joint]])
+                average_y = filter([i[1] for i in history[skeleton_i][joint]])
+                average_z = filter([i[2] for i in history[skeleton_i][joint]])
                 if joint=='centroid':
                     rospy.loginfo('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
                 skel_filtered[joint] = (average_x, average_y, average_z)
-    pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
+        skel_filtered["id"] = skeleton_i
+        pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
     pose_filtered_pub.publish(pose_filtered)
 
 rospy.init_node('average_skeletons')

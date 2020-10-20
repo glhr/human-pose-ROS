@@ -39,7 +39,7 @@ def points_cb(msg):
                 msg_dict_tf[i] = cam_to_world(v, world_to_cam)
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
-            pose_tf.skeletons.append(msg_tf)
+
             # print(list(msg_dict_tf.values()))
             valid_points = [v for v in msg_dict_tf.values() if len(v)]
 
@@ -49,6 +49,7 @@ def points_cb(msg):
                 distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
                 msg_tf.centroid = centroids[skeleton_i]
             msg_tf.id = skeleton.id
+            pose_tf.skeletons.append(msg_tf)
 
 
         logger.info("{} person(s) found".format(len(msg.skeletons)))
