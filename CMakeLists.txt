@@ -23,6 +23,4 @@ generate_messages(
 	geometry_msgs  # Or other packages containing msgs
 )
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/intel_pose/CMakeLists.txt)
-
-
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/intel_pose/CMakeLists.txt OPTIONAL)
