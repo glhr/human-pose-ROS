@@ -20,6 +20,10 @@ times = []
 import roslib
 import rospy
 from rospy_message_converter import message_converter
+from scipy.ndimage import gaussian_filter
+from skimage.restoration import (denoise_tv_chambolle, denoise_bilateral,
+                                 denoise_wavelet, estimate_sigma)
+from skimage import data, img_as_float
 
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import Image, CameraInfo
@@ -60,23 +64,29 @@ depth_image = []
 depth_predict = []
 rgb_image = []
 
-def predict(img_path, scale=1, json_output=None, save=True):
+def predict(img_path, scale=1, json_output=None):
 
     if isinstance(img_path, str):
         pil_im = PIL.Image.open(img_path)
         img_name = img_path.split("/")[-1]
         img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
     else:
-        pil_im = PIL.Image.fromarray(img_path)
-        pil_im_depth = PIL.Image.fromarray(depth_predict)
-        img_name = f'wrist_camera_{get_timestamp()}.png'
+        pil_im = PIL.Image.fromarray(np.array(img_path))
+        if args.cam:
+            pil_im_depth = PIL.Image.fromarray(depth_predict)
+        img_name = f'base_camera_{get_timestamp()}.png'
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)
-    dim = (int(i*scale) for i in pil_im_depth.size)
-    pil_im_depth = pil_im_depth.resize(dim)
+    if args.cam:
+        dim = (int(i*scale) for i in pil_im_depth.size)
+        pil_im_depth = pil_im_depth.convert('F')
+        pil_im_depth = pil_im_depth.resize(dim)
+        im_depth = np.asarray(pil_im_depth)
+        im_depth = gaussian_filter(im_depth, sigma=2)
+        # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
+        poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
 
     im = np.asarray(pil_im)
-    im_depth = np.asarray(pil_im_depth)
 
     predictions_list = []
 
@@ -101,38 +111,46 @@ def predict(img_path, scale=1, json_output=None, save=True):
 
     logger.info(f"{img_name} took {timer.took}ms")
 
-    if save:
-        for predictions in predictions_list:
-          # with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
-          #   keypoint_painter.annotations(ax, predictions)
-            save_path_depth = f"out/depth-{img_name}"
-            save_path_rgb = f"out/rgb-{img_name}"
-            with openpifpaf.show.image_canvas(im_depth, save_path_depth if save else None, show=False) as ax:
-                keypoint_painter.annotations(ax, predictions)
-            with openpifpaf.show.image_canvas(im, save_path_rgb if save else None, show=False) as ax:
-                keypoint_painter.annotations(ax, predictions)
-            logger.warning("Saved to {} and {}".format(save_path_depth, save_path_rgb))
+    if args.save:
+        save_path_depth = f"out/depth-{img_name}"
+        save_path_rgb = f"out/rgb-{img_name}"
+        save_path = save_path_depth if args.cam else save_path_rgb
+        im = im_depth if args.cam else im
+        logger.warning("Saving to {}".format(save_path))
+        try:
+            for predictions in predictions_list:
+              # with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
+              #   keypoint_painter.annotations(ax, predictions)
+                with openpifpaf.show.image_canvas(im, save_path, show=False) as ax:
+                    keypoint_painter.annotations(ax, predictions)
+                image = load_image(save_path)[:,:,:3]
+        except Exception as e:
+            image = None
 
-    return predictions_list, load_image(save_path_depth)[:,:,:3] if save else None, timer.took
+        return predictions_list, image, timer.took
+
+    return predictions_list, None, timer.took
+
 
 parser = argparse.ArgumentParser(description='Directory of PNG images to use for inference.')
 parser.add_argument('--input_dir',
                     default="/home/slave/Pictures/pose/pose test input",
                     help='directory of PNG images to run fastpose on')
-parser.add_argument('--cam', dest='cam', action='store_true')
+parser.add_argument('--cam', dest='cam', action='store_true', default=False)
+parser.add_argument('--webcam', dest='webcam', action='store_true')
 parser.add_argument('--save', dest='save', action='store_true')
 parser.add_argument('--scale', default=0.5, dest='scale')
 
 args, unknown = parser.parse_known_args()
 
-img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
+img_path = "/home/robotlab/pose test input/base_cam_1600951547.png"
 
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
 pp.pprint(pairs)
 
-RGB_CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
-DEPTH_CAMERA_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/image_raw'
-DEPTH_INFO_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/camera_info'
+RGB_CAMERA_TOPIC = '/base_camera/camera/color/image_raw'
+DEPTH_CAMERA_TOPIC = '/base_camera/camera/aligned_depth_to_color/image_raw'
+DEPTH_INFO_TOPIC = '/base_camera/camera/aligned_depth_to_color/camera_info'
 
 def got_depth(msg):
     global depth_image
@@ -199,7 +217,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
         pose_msg.skeletons.append(skeleton_msg)
 
     if im is not None:
-        poseimg_pub.publish(numpy_to_image(im))
+        poseimg_pub.publish(numpy_to_image(im, encoding="rgb8"))
     pose_pub.publish(pose_msg)
 
 if args.cam:
@@ -208,10 +226,19 @@ if args.cam:
 
 # rosrun tf static_transform_publisher 0 0 0 0 0 0 1 map my_frame 10
 imgs = list(glob.glob(f"{args.input_dir}/*.png"))
+if args.webcam:
+    import cv2
+    cap = cv2.VideoCapture(0)
+
 while not rospy.is_shutdown():
-    if not args.cam:
+    if args.webcam:
+        ret, img = cap.read()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        predictions, im, time = predict(img, scale=float(args.scale))
+        openpifpaf_viz(predictions, im, time, cam=False)
+    elif not args.cam:
         img_path = imgs[randint(0,len(imgs)-1)]
-        # img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
+        # img_path = "/home/robotlab/pose test input/base_cam_1600951547.png"
         predictions, im, time = predict(img_path, scale=float(args.scale))
         openpifpaf_viz(predictions, im, time, cam=False)
     else:
@@ -220,7 +247,7 @@ while not rospy.is_shutdown():
         # image = image_to_numpy(imagemsg)
         if len(depth_image):
             depth_predict = depth_image
-            predictions, im, time = predict(rgb_image, scale=float(args.scale), save=args.save)
+            predictions, im, time = predict(rgb_image, scale=float(args.scale))
             openpifpaf_viz(predictions, im, time, cam=True, scale=float(args.scale))
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
