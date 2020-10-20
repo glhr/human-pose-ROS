@@ -19,12 +19,14 @@ pp = get_printer()
 CAM_FRAME = "/wrist_camera_depth_optical_frame"
 camera_point = [-0.0334744,-0.20912,1.85799]
 
+
+
 def points_cb(msg):
     with CodeTimer() as timer:
-        tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
-        (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
-        world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
-
+        if not args.norobot:
+            tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
+            (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
+            world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
 
         pose_tf = PoseEstimation()
         distances = dict()
@@ -35,8 +37,11 @@ def points_cb(msg):
             msg_dict.pop("id",None)
             msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
-            for i,v in msg_dict.items():
-                msg_dict_tf[i] = cam_to_world(v, world_to_cam)
+            if not args.norobot:
+                for i,v in msg_dict.items():
+                    msg_dict_tf[i] = cam_to_world(v, world_to_cam)
+            else:
+                msg_dict_tf = msg_dict
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
 
@@ -75,6 +80,7 @@ rospy.init_node("point_transform")
 
 parser = argparse.ArgumentParser(description='arg for which human pose estimation to use (realsense or open)')
 parser.add_argument('--realsense', dest='realsense', action='store_true')
+parser.add_argument('--norobot', dest='norobot', action='store_true')
 args, unknown = parser.parse_known_args()
 
 if args.realsense:
