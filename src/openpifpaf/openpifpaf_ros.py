@@ -74,7 +74,7 @@ def predict(img_path, scale=1, json_output=None):
         pil_im = PIL.Image.fromarray(np.array(img_path))
         if args.cam:
             pil_im_depth = PIL.Image.fromarray(depth_predict)
-        img_name = f'base_camera_{get_timestamp()}.png'
+        img_name = f'wrist_camera_{get_timestamp()}.png'
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)
     if args.cam:
@@ -143,14 +143,14 @@ parser.add_argument('--scale', default=0.5, dest='scale')
 
 args, unknown = parser.parse_known_args()
 
-img_path = "/home/robotlab/pose test input/base_cam_1600951547.png"
+img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
 
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
 pp.pprint(pairs)
 
-RGB_CAMERA_TOPIC = '/base_camera/camera/color/image_raw'
-DEPTH_CAMERA_TOPIC = '/base_camera/camera/aligned_depth_to_color/image_raw'
-DEPTH_INFO_TOPIC = '/base_camera/camera/aligned_depth_to_color/camera_info'
+RGB_CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
+DEPTH_CAMERA_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/image_raw'
+DEPTH_INFO_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/camera_info'
 
 def got_depth(msg):
     global depth_image

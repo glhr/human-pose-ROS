@@ -18,7 +18,7 @@ pp = get_printer()
 
 CAM_FRAME = "/wrist_camera_depth_optical_frame"
 camera_point = [-0.0334744,-0.20912,1.85799]
-
+ref_v = [0,1,0]
 
 
 def points_cb(msg):
@@ -64,7 +64,6 @@ def points_cb(msg):
             pan_angle = angle_from_centroid(centroids[closest_skeleton_i], ref_vector=[0,1,0], normal_vector=[0,0,-1])
 
             centroid_v = vector_from_2_points(camera_point,centroids[closest_skeleton_i])
-            ref_v = vector_from_2_points(camera_point,np.add(camera_point,[0,1,0]))
             tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
             logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
             pan_pub.publish(pan_angle)
