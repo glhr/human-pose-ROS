@@ -30,6 +30,7 @@ cube_marker.header.frame_id = "/world"
 cube_marker.type = cube_marker.CUBE
 cube_marker.action = cube_marker.ADD
 cube_marker.scale.x, cube_marker.scale.y, cube_marker.scale.z = 0.001, 2.5, 2.5
+# cube_marker.scale.x, cube_marker.scale.y, cube_marker.scale.z = 2.5, 2.5, 0.001
 cube_marker.color.a = 0.3
 cube_marker.color.r, cube_marker.color.g, cube_marker.color.b = (0.0,0.0,0.0)
 cube_marker.pose.position.x = cube[0]
