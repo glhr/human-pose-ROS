@@ -83,7 +83,7 @@ def predict(img_path, scale=1, json_output=None):
         pil_im_depth = pil_im_depth.convert('F')
         pil_im_depth = pil_im_depth.resize(dim)
         im_depth = np.asarray(pil_im_depth)
-        im_depth = gaussian_filter(im_depth, sigma=2)
+        # im_depth = gaussian_filter(im_depth, sigma=2)
         # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
         poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
 
@@ -176,6 +176,8 @@ def skeleton_from_keypoints(skel_dict):
     pp.pprint(skel)
     return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel_dict)
 
+depth_history = dict()
+
 
 def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     predictions = [ann.json_data() for ann in predictions[0]]
@@ -188,6 +190,8 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     angles = dict()
     for person_id, person in enumerate(predictions):
 
+        if not depth_history.get(person_id,0):
+            depth_history[person_id] = dict()
         pnts_openpifpaf = person['keypoints']
         pnts_openpifpaf = list(zip(pnts_openpifpaf[0::3], pnts_openpifpaf[1::3]))
         #d = dict(zip(keys, values))
@@ -201,16 +205,21 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
             if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
-                    if pnt_1[1] >= im_h or pnt_1[0] >= im_w:
+                    if pnt_1[1] >= im_h-10 or pnt_1[0] >= im_w-10:
                         if args.debug: logger.error(pnt_1)
-                    y = min(im_h-5, int(pnt_1[1]))
-                    x = min(im_w-5, int(pnt_1[0]))
-                    pnt1_cam = pixel_to_camera(cameraInfo, (x,y), depth_predict[y][x]/1000)
+                        continue
+                    y = min(im_h-1, int(pnt_1[1]))
+                    x = min(im_w-1, int(pnt_1[0]))
+                    pnt1_cam = pixel_to_camera(cameraInfo, (x,y), depth_predict[y if y<im_h-1 else im_h-10][x if y<im_w-1 else im_w-10]/1000)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt1_cam.append(1)
 
-                skel_dict[pairs[i]] = pnt1_cam
+                if pnt1_cam[2] > 0.1 and (not depth_history[person_id].get(i,0) or abs(depth_history[person_id][i][2] - pnt1_cam[2])<1):
+                    skel_dict[pairs[i]] = pnt1_cam
+
+                    if not depth_history[person_id].get(i,0):
+                        depth_history[person_id][i] = pnt1_cam
 
 
         skeleton_msg = skeleton_from_keypoints(skel_dict)

@@ -4,6 +4,8 @@ from std_msgs.msg import Int32
 from human_pose_ROS.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 import numpy as np
+from vision_utils.logger import get_logger, get_printer
+logger = get_logger()
 
 history = dict()
 window_length = 20
@@ -28,11 +30,11 @@ def skel_callback(msg):
                     history[skeleton_i][joint].append(kp)
                 if len(history[skeleton_i][joint]) > window_length:
                     history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
-                average_x = filter([i[0] for i in history[skeleton_i][joint]])
-                average_y = filter([i[1] for i in history[skeleton_i][joint]])
+                average_x = filter([i[0] for i in history[skeleton_i][joint]][-3:])
+                average_y = filter([i[1] for i in history[skeleton_i][joint]][-3:])
                 average_z = np.median([i[2] for i in history[skeleton_i][joint]])
                 if joint=='centroid':
-                    rospy.loginfo('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
+                    logger.info('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
                 skel_filtered[joint] = (average_x, average_y, average_z)
         skel_filtered["id"] = skeleton_i
         pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
