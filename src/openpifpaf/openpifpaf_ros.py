@@ -110,14 +110,14 @@ def predict(img_path, scale=1, json_output=None):
                 with open(json_out_name, 'w') as f:
                     json.dump([ann.json_data() for ann in predictions], f)
 
-    logger.info(f"{img_name} took {timer.took}ms")
+    if args.debug: logger.info(f"{img_name} took {timer.took}ms")
 
     if args.save:
         save_path_depth = f"out/depth-{img_name}"
         save_path_rgb = f"out/rgb-{img_name}"
         save_path = save_path_depth if args.cam else save_path_rgb
         im = im_depth if args.cam else im
-        logger.warning("Saving to {}".format(save_path))
+        if args.debug: logger.warning("Saving to {}".format(save_path))
         try:
             for predictions in predictions_list:
               # with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
@@ -142,6 +142,9 @@ parser.add_argument('--webcam', dest='webcam', action='store_true')
 parser.add_argument('--save', dest='save', action='store_true')
 parser.add_argument('--scale', default=0.5, dest='scale')
 parser.add_argument('--realsense', default='wrist')
+parser.add_argument('--debug',
+                 action='store_true',
+                 help='Print openpifpaf debug')
 
 args, unknown = parser.parse_known_args()
 
@@ -199,7 +202,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
             if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
                     if pnt_1[1] >= im_h or pnt_1[0] >= im_w:
-                        logger.error(pnt_1)
+                        if args.debug: logger.error(pnt_1)
                     y = min(im_h-5, int(pnt_1[1]))
                     x = min(im_w-5, int(pnt_1[0]))
                     pnt1_cam = pixel_to_camera(cameraInfo, (x,y), depth_predict[y][x]/1000)
@@ -212,7 +215,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         skeleton_msg = skeleton_from_keypoints(skel_dict)
         skel_centroid = get_points_centroid(list(skel_dict.values()))
-        logger.info(f"Centroid: {skel_centroid}")
+        if args.debug: logger.info(f"Centroid: {skel_centroid}")
 
         # angle = angle_from_centroid(skel_centroid)
         # angles[person_id] = 0

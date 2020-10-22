@@ -24,6 +24,14 @@ connected_points = [
 (6,12), (12,14), (14,16),
 (11,12), (5,6)]
 
+# excluding ears and feet
+connected_points = [
+(0,2), (2,6), (6,8), (8,10),
+(0,1), (1,5), (5,7), (7,9),
+(5,11), (11,13),
+(6,12), (12,14),
+(11,12), (5,6)]
+
 colors = dict()
 for k in range(100):
   colors[k] = tuple(np.random.randint(256, size=3)/256)
@@ -36,6 +44,9 @@ parser.add_argument('--lifetime',
 parser.add_argument('--filter',
                  action='store_true',
                  help='Use filtered poses')
+parser.add_argument('--debug',
+                 action='store_true',
+                 help='Print visualization debug')
 
 args, unknown = parser.parse_known_args()
 
@@ -46,7 +57,7 @@ def pose_cb(msg):
         for i,conn in enumerate(connected_points):
             label_1 = list(skeleton_dict.keys())[conn[0]]
             label_2 = list(skeleton_dict.keys())[conn[1]]
-            logger.debug(f"{label_1} --> {label_2}")
+            if args.debug: logger.debug(f"{label_1} --> {label_2}")
             pnt_1 = skeleton_dict[label_1]
             pnt_2 = skeleton_dict[label_2]
             now = rospy.get_rostime()
@@ -77,7 +88,7 @@ def pose_cb(msg):
                 second_line_point.x, second_line_point.y, second_line_point.z = pnt_2
                 line_marker.points.append(second_line_point)
 
-                pp.pprint(line_marker.points)
+                if args.debug: pp.pprint(line_marker.points)
                 skel_pub.publish(line_marker)
 
             pnt_marker = Marker()
@@ -124,11 +135,7 @@ def pose_cb(msg):
 rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 
-if args.filter: # use filtered pose if available
-    logger.warning("Using /openpifpaf_pose_filtered")
-    pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, pose_cb)
-else:
-    logger.warning("Using /openpifpaf_pose_transformed")
-    pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
+logger.warning("Using /openpifpaf_pose_transformed")
+pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
 
 rospy.spin()

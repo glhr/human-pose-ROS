@@ -60,7 +60,7 @@ def angle_from_centroid(centroid, ref_vector, normal_vector):
     v0 = np.array(ref_vector)
     vcentroid = np.array(centroid)
     angle = vg.signed_angle(v0, vcentroid, look=np.array(normal_vector))
-    logger.debug("Centroid angle: {}".format(angle))
+    # logger.debug("Centroid angle: {}".format(angle))
     return angle
 
 def distance_between_points(p1,p2):

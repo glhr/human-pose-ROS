@@ -50,14 +50,12 @@ def points_cb(msg):
 
             centroids[skeleton_i] = get_points_centroid(list(valid_points))
             if centroids[skeleton_i] is not None:
-                logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
+                if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
                 distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
                 msg_tf.centroid = centroids[skeleton_i]
             msg_tf.id = skeleton.id
             pose_tf.skeletons.append(msg_tf)
 
-
-        logger.info("{} person(s) found".format(len(msg.skeletons)))
         if len(msg.skeletons):
             closest_skeleton_i = min(distances, key=distances.get)
             pose_tf.tracked_person_id = closest_skeleton_i
@@ -65,14 +63,14 @@ def points_cb(msg):
 
             centroid_v = vector_from_2_points(camera_point,centroids[closest_skeleton_i])
             tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
-            logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
+            if args.debug: logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
             pan_pub.publish(pan_angle)
             tilt_pub.publish(tilt_angle)
             pose_pub.publish(pose_tf)
         else:
             pan_pub.publish(200)
             tilt_pub.publish(200)
-    logger.info("Callback took {}ms".format(timer.took))
+    logger.info("{} person(s) found, callback took {}ms".format(len(msg.skeletons), timer.took))
 
 
 rospy.init_node("point_transform")
@@ -80,12 +78,15 @@ rospy.init_node("point_transform")
 parser = argparse.ArgumentParser(description='arg for which human pose estimation to use (realsense or open)')
 parser.add_argument('--realsense', dest='realsense', action='store_true')
 parser.add_argument('--norobot', dest='norobot', action='store_true')
+parser.add_argument('--debug',
+                 action='store_true',
+                 help='Print transform debug')
 args, unknown = parser.parse_known_args()
 
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
 else:
-    pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
+    pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 pan_pub = rospy.Publisher('ref_pan_angle', Float32, queue_size=1)

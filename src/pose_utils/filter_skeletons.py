@@ -6,7 +6,7 @@ from rospy_message_converter import message_converter
 import numpy as np
 
 history = dict()
-window_length = 10
+window_length = 20
 
 filter = np.mean
 
@@ -30,15 +30,17 @@ def skel_callback(msg):
                     history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
                 average_x = filter([i[0] for i in history[skeleton_i][joint]])
                 average_y = filter([i[1] for i in history[skeleton_i][joint]])
-                average_z = filter([i[2] for i in history[skeleton_i][joint]])
+                average_z = np.median([i[2] for i in history[skeleton_i][joint]])
                 if joint=='centroid':
                     rospy.loginfo('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
                 skel_filtered[joint] = (average_x, average_y, average_z)
         skel_filtered["id"] = skeleton_i
         pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
     pose_filtered_pub.publish(pose_filtered)
+    pose_raw_pub.publish(msg)
 
 rospy.init_node('average_skeletons')
-rospy.Subscriber('/openpifpaf_pose_transformed', PoseEstimation, skel_callback)
+rospy.Subscriber('/openpifpaf_pose', PoseEstimation, skel_callback)
 pose_filtered_pub = rospy.Publisher('/openpifpaf_pose_filtered', PoseEstimation, queue_size=1)
+pose_raw_pub = rospy.Publisher('/openpifpaf_pose_raw', PoseEstimation, queue_size=1)
 rospy.spin()
