@@ -215,7 +215,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt1_cam.append(1)
 
-                if pnt1_cam[2] > 0.1 and (not depth_history[person_id].get(i,0) or abs(depth_history[person_id][i][2] - pnt1_cam[2])<1):
+                if pnt1_cam[2] > 0.1 and (not depth_history[person_id].get(i,0) or abs(depth_history[person_id][i][2] - pnt1_cam[2])<0.5):
                     skel_dict[pairs[i]] = pnt1_cam
 
                     if not depth_history[person_id].get(i,0):

@@ -7,7 +7,7 @@ from vision_utils.timing import get_timestamp
 import numpy as np
 
 camera = 'wrist'
-CAMERA_TOPIC_DEPTH = "/wrist_camera/camera/aligned_depth_to_color/image_raw"
+CAMERA_TOPIC_DEPTH = "/base_camera/camera/aligned_depth_to_color/image_raw"
 
 images = dict()
 store_images = True
@@ -32,4 +32,4 @@ store_images = False
 for t,image in images.items():
     image = image_to_numpy(image)
     image = image / np.max(image)
-    save_image(image, f"out/depth_cam_{t}.png")
+    save_image(image, f"depth/depth_cam_{t}.png")

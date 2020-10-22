@@ -51,10 +51,14 @@ def pixel_to_camera(cameraInfo, pixel, depth):
 def get_points_centroid(arr):
     length = len(arr)
     arr = np.array(arr)
-    sum_x = np.sum(arr[:, 0])
-    sum_y = np.sum(arr[:, 1])
-    sum_z = np.sum(arr[:, 2])
-    return sum_x/length, sum_y/length, sum_z/length
+    try:
+        sum_x = np.sum(arr[:, 0])
+        sum_y = np.sum(arr[:, 1])
+        sum_z = np.sum(arr[:, 2])
+        return sum_x/length, sum_y/length, sum_z/length
+    except Exception as e:
+        logger.warning(e)
+        return None
 
 def angle_from_centroid(centroid, ref_vector, normal_vector):
     v0 = np.array(ref_vector)

@@ -8,7 +8,7 @@ from vision_utils.logger import get_logger, get_printer
 logger = get_logger()
 
 history = dict()
-window_length = 20
+window_length = 10
 
 filter = np.mean
 

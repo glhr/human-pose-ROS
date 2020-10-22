@@ -113,24 +113,25 @@ def pose_cb(msg):
                 skel_pub.publish(pnt_marker)
 
             skel_centroid = skeleton_dict['centroid']
-            centroid_marker = Marker()
-            centroid_marker.header.frame_id = FRAME_ID
-            centroid_marker.type = centroid_marker.SPHERE
-            centroid_marker.action = centroid_marker.ADD
-            centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
-            centroid_marker.color.a = 1.0
-            if skeleton_i == msg.tracked_person_id:
-                centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,1.0,0.0)
-            else:
-                centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (1.0,0.0,0.0)
-            centroid_marker.pose.orientation.w = 1.0
-            centroid_marker.pose.position.x = skel_centroid[0]
-            centroid_marker.pose.position.y = skel_centroid[1]
-            centroid_marker.pose.position.z = skel_centroid[2]
-            centroid_marker.id = skeleton_i
-            centroid_marker.lifetime = rospy.Duration(float(args.lifetime))
-            centroid_marker.header.stamp = now
-            skel_pub.publish(centroid_marker)
+            if len(skel_centroid):
+                centroid_marker = Marker()
+                centroid_marker.header.frame_id = FRAME_ID
+                centroid_marker.type = centroid_marker.SPHERE
+                centroid_marker.action = centroid_marker.ADD
+                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
+                centroid_marker.color.a = 1.0
+                if skeleton_i == msg.tracked_person_id:
+                    centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,1.0,0.0)
+                else:
+                    centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (1.0,0.0,0.0)
+                centroid_marker.pose.orientation.w = 1.0
+                centroid_marker.pose.position.x = skel_centroid[0]
+                centroid_marker.pose.position.y = skel_centroid[1]
+                centroid_marker.pose.position.z = skel_centroid[2]
+                centroid_marker.id = skeleton_i
+                centroid_marker.lifetime = rospy.Duration(float(args.lifetime))
+                centroid_marker.header.stamp = now
+                skel_pub.publish(centroid_marker)
 
 rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
