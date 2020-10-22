@@ -3,49 +3,49 @@
  <tabbed_widget parent="main_window" name="Main Window">
   <plotmatrix columns="2" tab_name="raw" rows="4">
    <plot col="0" row="0" style="LinesAndDots">
-    <range top="3.000000" right="107.730342" bottom="-0.229291" left="77.788756"/>
+    <range top="3.000000" right="30.057899" bottom="-0.443273" left="0.121166"/>
     <limitY max="3"/>
     <curve R="214" G="39" B="40" name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="0" row="1" style="LinesAndDots">
-    <range top="3.000000" right="107.730342" bottom="0.000000" left="77.788756"/>
+    <range top="3.000000" right="30.057899" bottom="0.000000" left="0.121166"/>
     <limitY max="3" min="0"/>
     <curve R="26" G="201" B="56" name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.1" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="0" row="2" style="LinesAndDots">
-    <range top="3.000000" right="107.730342" bottom="0.000000" left="77.788756"/>
+    <range top="3.000000" right="30.057899" bottom="0.000000" left="0.121166"/>
     <limitY max="3" min="0"/>
     <curve R="255" G="127" B="14" name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.2" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="0" row="3" style="LinesAndDots">
-    <range top="35.196158" right="107.732996" bottom="-0.858443" left="77.792443"/>
+    <range top="2.514922" right="30.060583" bottom="-0.061340" left="0.064786"/>
     <limitY/>
     <curve R="31" G="119" B="180" name="/skel_velocity/right_wrist.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
-   <plot col="1" row="0" style="Lines">
-    <range top="3.000000" right="107.733537" bottom="-0.201658" left="77.792954"/>
+   <plot col="1" row="0" style="LinesAndDots">
+    <range top="3.000000" right="29.993554" bottom="-0.438993" left="0.000000"/>
     <limitY max="3"/>
     <curve R="241" G="76" B="193" name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="1" row="1" style="Lines">
-    <range top="3.000000" right="107.733537" bottom="0.000000" left="77.792954"/>
+    <range top="3.000000" right="29.993554" bottom="0.000000" left="0.000000"/>
     <limitY max="3" min="0"/>
     <curve R="148" G="103" B="189" name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.1" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="1" row="2" style="Lines">
-    <range top="3.000000" right="107.733537" bottom="0.000000" left="77.792954"/>
+    <range top="3.000000" right="29.993554" bottom="0.000000" left="0.000000"/>
     <limitY max="3" min="0"/>
     <curve R="23" G="190" B="207" name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.2" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="1" row="3" style="Lines">
-    <range top="30.000000" right="107.735731" bottom="0.001868" left="77.736520"/>
+    <range top="30.000000" right="29.996394" bottom="0.000000" left="0.004283"/>
     <limitY max="30"/>
     <curve R="188" G="189" B="34" name="/skel_velocity_filtered/right_wrist.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
@@ -53,25 +53,25 @@
   </plotmatrix>
   <plotmatrix columns="1" tab_name="filtered" rows="4">
    <plot col="0" row="0" style="LinesAndDots">
-    <range top="0.136040" right="0.907804" bottom="0.130299" left="0.012143"/>
+    <range top="0.127664" right="29.993554" bottom="-0.452814" left="0.000000"/>
     <limitY/>
     <curve R="241" G="76" B="193" name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="0" row="1" style="LinesAndDots">
-    <range top="1.744590" right="0.907804" bottom="1.727670" left="0.012143"/>
+    <range top="1.674221" right="29.993554" bottom="1.437882" left="0.000000"/>
     <limitY/>
     <curve R="148" G="103" B="189" name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.1" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="0" row="2" style="LinesAndDots">
-    <range top="1.355648" right="0.907804" bottom="1.353689" left="0.012143"/>
+    <range top="1.541116" right="29.993554" bottom="1.374583" left="0.000000"/>
     <limitY/>
     <curve R="23" G="190" B="207" name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.2" custom_transform="noTransform"/>
     <transform value="noTransform"/>
    </plot>
    <plot col="0" row="3" style="LinesAndDots">
-    <range top="0.141204" right="0.910866" bottom="0.002141" left="0.012343"/>
+    <range top="0.641393" right="29.996394" bottom="-0.015644" left="0.004283"/>
     <limitY/>
     <curve R="188" G="189" B="34" name="/skel_velocity_filtered/right_wrist.0" custom_transform="noTransform"/>
     <transform value="noTransform"/>
@@ -104,7 +104,6 @@
  </Plugins>
  <!-- - - - - - - - - - - - - - - -->
  <previouslyLoaded_Datafiles/>
- <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
  <!-- - - - - - - - - - - - - - - -->
  <customMathEquations/>
  <snippets>

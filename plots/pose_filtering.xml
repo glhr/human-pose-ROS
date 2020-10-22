@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root version="2.3.8">
+ <tabbed_widget parent="main_window" name="Main Window">
+  <plotmatrix rows="4" columns="2" tab_name="raw">
+   <plot style="LinesAndDots" row="0" col="0">
+    <range bottom="-0.194494" right="-2453.891377" top="0.472028" left="-3012.268123"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="1" col="0">
+    <range bottom="-0.122224" right="-2453.891377" top="0.594280" left="-3012.268123"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="2" col="0">
+    <range bottom="0.000000" right="-2453.891377" top="3.000000" left="-3012.268123"/>
+    <limitY max="3" min="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="3" col="0">
+    <range bottom="-0.100000" right="0.000000" top="0.100000" left="0.000000"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="0" col="1">
+    <range bottom="-0.188715" right="-2453.891452" top="0.471370" left="-3012.268171"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="1" col="1">
+    <range bottom="-0.116393" right="-2453.891452" top="0.574240" left="-3012.268171"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="2" col="1">
+    <range bottom="0.000000" right="-2453.891452" top="4.000000" left="-3012.268171"/>
+    <limitY max="4" min="0"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="Lines" row="3" col="1">
+    <range bottom="0.000000" right="0.000000" top="30.000000" left="0.000000"/>
+    <limitY max="30"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix rows="3" columns="2" tab_name="filtered">
+   <plot style="LinesAndDots" row="0" col="0">
+    <range bottom="-0.144414" right="1605.658437" top="-0.080068" left="1596.681707"/>
+    <limitY/>
+    <curve B="40" custom_transform="noTransform" R="214" name="/openpifpaf_pose_raw/skeletons.0/centroid.0" G="39"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="1" col="0">
+    <range bottom="0.182452" right="1605.658437" top="0.322839" left="1596.681707"/>
+    <limitY/>
+    <curve B="56" custom_transform="noTransform" R="26" name="/openpifpaf_pose_raw/skeletons.0/centroid.1" G="201"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="2" col="0">
+    <range bottom="1.320883" right="1605.658437" top="1.725908" left="1596.681707"/>
+    <limitY/>
+    <curve B="14" custom_transform="noTransform" R="255" name="/openpifpaf_pose_raw/skeletons.0/centroid.2" G="127"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="0" col="1">
+    <range bottom="-0.139612" right="1605.657835" top="-0.095683" left="1596.681673"/>
+    <limitY/>
+    <curve B="207" custom_transform="noTransform" R="23" name="/openpifpaf_pose_filtered/skeletons.0/centroid.0" G="190"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="1" col="1">
+    <range bottom="0.186022" right="1605.657835" top="0.298572" left="1596.681673"/>
+    <limitY/>
+    <curve B="34" custom_transform="noTransform" R="188" name="/openpifpaf_pose_filtered/skeletons.0/centroid.1" G="189"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot style="LinesAndDots" row="2" col="1">
+    <range bottom="1.342172" right="1605.657835" top="1.404663" left="1596.681673"/>
+    <limitY/>
+    <curve B="180" custom_transform="noTransform" R="31" name="/openpifpaf_pose_filtered/skeletons.0/centroid.2" G="119"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix rows="2" columns="1" tab_name="plot">
+   <plot style="Lines" row="0" col="0">
+    <range bottom="36.412312" right="-664.091071" top="90.000000" left="-679.088351"/>
+    <limitY max="90"/>
+    <curve B="56" custom_transform="rad_to_deg" R="26" name="/joint_states/ptu_panner/position" G="201"/>
+    <curve B="193" custom_transform="noTransform" R="241" name="/ref_pan_angle/data" G="76"/>
+    <transform value="Custom::noTransform"/>
+   </plot>
+   <plot style="Lines" row="1" col="0">
+    <range bottom="-36.978336" right="-664.091057" top="90.000000" left="-679.088196"/>
+    <limitY max="90"/>
+    <curve B="14" custom_transform="rad_to_deg" R="255" name="/joint_states/ptu_tilter/position" G="127"/>
+    <curve B="189" custom_transform="noTransform" R="148" name="/ref_tilt_angle/data" G="103"/>
+    <transform value="Custom::noTransform"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="1"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad CSV">
+   <default time_axis=""/>
+  </plugin>
+  <plugin ID="DataLoad ROS bags">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="DataLoad ULog"/>
+  <plugin ID="ROS Topic Subscriber">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="ROS /rosout Visualization" status="idle"/>
+  <plugin ID="ROS Topic Re-Publisher" status="idle"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets>
+  <snippet name="1st_derivative" language="JS">
+   <global>var prevX = 0
+var prevY = 0</global>
+   <equation>dx = time - prevX
+dy = value - prevY
+prevX = time
+prevY = value
+
+return dy/dx</equation>
+  </snippet>
+  <snippet name="1st_order_lowpass" language="JS">
+   <global>var prevY = 0
+var alpha = 0.1</global>
+   <equation>prevY = alpha * value + (1.-alpha) * prevY
+
+return prevY</equation>
+  </snippet>
+  <snippet name="2D_velocity" language="JS">
+   <global>var prev_x = 0
+var prev_y = 0
+var prev_t = 0</global>
+   <equation>X = $$your_odometry/position/x$$
+Y = $$your_odometry/position/y$$
+
+var dist = sqrt( (X-prev_x)*(X-prev_x) + (Y-prev_y)*(Y-prev_y) )
+var dT = time - prev_t
+
+prev_x = X
+prev_y = Y
+prev_t = time
+
+return dist / dT</equation>
+  </snippet>
+  <snippet name="average_two_curves" language="JS">
+   <global></global>
+   <equation>a = $$PLOT_A$$
+b = $$PLOT_B$$
+
+return (a+b)/2</equation>
+  </snippet>
+  <snippet name="integral" language="JS">
+   <global>var integral = 0</global>
+   <equation>integral += value
+return integral</equation>
+  </snippet>
+  <snippet name="rad_to_deg" language="JS">
+   <global></global>
+   <equation>return value*180/3.1417</equation>
+  </snippet>
+  <snippet name="remove_offset" language="JS">
+   <global>var is_first = true
+var first_value = 0</global>
+   <equation>if (is_first)
+{
+  is_first = false
+  first_value = value
+}
+
+return value - first_value</equation>
+  </snippet>
+  <snippet name="yaw_from_quaternion" language="JS">
+   <global>// source: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+
+function quaternionToYaw(x, y, z, w)
+{
+  // yaw (z-axis rotation)
+  t1 = 2.0 * (w * z + x * y);
+  t2 = 1.0 - 2.0 * (y * y + z * z);
+  yaw = Math.atan2(t1, t2);
+
+  return yaw
+}</global>
+   <equation>return quaternionToYaw(x, y, z, w);</equation>
+  </snippet>
+ </snippets>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+
