@@ -44,15 +44,11 @@ def points_cb(msg):
                 msg_dict_tf = msg_dict
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
+            print(msg_tf.centroid)
+            centroids[skeleton_i] = msg_tf.centroid
 
-            # print(list(msg_dict_tf.values()))
-            valid_points = [v for v in msg_dict_tf.values() if len(v)]
+            distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
 
-            centroids[skeleton_i] = get_points_centroid(list(valid_points))
-            if centroids[skeleton_i] is not None:
-                if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
-                distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
-                msg_tf.centroid = centroids[skeleton_i]
             msg_tf.id = skeleton.id
             pose_tf.skeletons.append(msg_tf)
 
