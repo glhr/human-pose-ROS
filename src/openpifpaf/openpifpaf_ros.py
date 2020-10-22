@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import io
 import numpy as np
 import openpifpaf
@@ -74,7 +75,7 @@ def predict(img_path, scale=1, json_output=None):
         pil_im = PIL.Image.fromarray(np.array(img_path))
         if args.cam:
             pil_im_depth = PIL.Image.fromarray(depth_predict)
-        img_name = f'wrist_camera_{get_timestamp()}.png'
+        img_name = f'{args.realsense}_camera_{get_timestamp()}.png'
     dim = (int(i*scale) for i in pil_im.size)
     pil_im = pil_im.resize(dim)
     if args.cam:
@@ -125,11 +126,11 @@ def predict(img_path, scale=1, json_output=None):
                     keypoint_painter.annotations(ax, predictions)
                 image = load_image(save_path)[:,:,:3]
         except Exception as e:
-            image = None
+            image = np.zeros_like(im)
 
         return predictions_list, image, timer.took
 
-    return predictions_list, None, timer.took
+    return predictions_list, np.zeros_like(im), timer.took
 
 
 parser = argparse.ArgumentParser(description='Directory of PNG images to use for inference.')
@@ -140,6 +141,7 @@ parser.add_argument('--cam', dest='cam', action='store_true', default=False)
 parser.add_argument('--webcam', dest='webcam', action='store_true')
 parser.add_argument('--save', dest='save', action='store_true')
 parser.add_argument('--scale', default=0.5, dest='scale')
+parser.add_argument('--realsense', default='wrist')
 
 args, unknown = parser.parse_known_args()
 
@@ -148,9 +150,9 @@ img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
 pp.pprint(pairs)
 
-RGB_CAMERA_TOPIC = '/wrist_camera/camera/color/image_raw'
-DEPTH_CAMERA_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/image_raw'
-DEPTH_INFO_TOPIC = '/wrist_camera/camera/aligned_depth_to_color/camera_info'
+RGB_CAMERA_TOPIC = f'/{args.realsense}_camera/camera/color/image_raw'
+DEPTH_CAMERA_TOPIC = f'/{args.realsense}_camera/camera/aligned_depth_to_color/image_raw'
+DEPTH_INFO_TOPIC = f'/{args.realsense}_camera/camera/aligned_depth_to_color/camera_info'
 
 def got_depth(msg):
     global depth_image
@@ -177,6 +179,9 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     pose_msg = PoseEstimation()
     pose_msg.skeletons = []
 
+    im_w = int(im.shape[1]/scale)
+    im_h = int(im.shape[0]/scale)
+
     angles = dict()
     for person_id, person in enumerate(predictions):
 
@@ -193,10 +198,10 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
             if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
-                    if pnt_1[1] > 719 or pnt_1[0] > 1279:
-                        logger.warning(pnt_1)
-                    y = min(719, int(pnt_1[1]))
-                    x = min(1279, int(pnt_1[0]))
+                    if pnt_1[1] >= im_h or pnt_1[0] >= im_w:
+                        logger.error(pnt_1)
+                    y = min(im_h-5, int(pnt_1[1]))
+                    x = min(im_w-5, int(pnt_1[0]))
                     pnt1_cam = pixel_to_camera(cameraInfo, (x,y), depth_predict[y][x]/1000)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
