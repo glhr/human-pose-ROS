@@ -23,7 +23,7 @@ ref_v = [0,1,0]
 
 def points_cb(msg):
     with CodeTimer() as timer:
-        if not args.norobot:
+        if not args.norobot or not args.ar:
             tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
             (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
             world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
@@ -37,7 +37,7 @@ def points_cb(msg):
             msg_dict.pop("id",None)
             msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
-            if not args.norobot:
+            if not args.norobot or not args.ar:
                 for i,v in msg_dict.items():
                     msg_dict_tf[i] = cam_to_world(v, world_to_cam)
             else:
