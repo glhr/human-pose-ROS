@@ -77,10 +77,15 @@ parser.add_argument('--norobot', dest='norobot', action='store_true')
 parser.add_argument('--debug',
                  action='store_true',
                  help='Print transform debug')
+parser.add_argument('--ar',
+                 action='store_true',
+                 help='Use AR dummy marker')
 args, unknown = parser.parse_known_args()
 
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
+elif args.ar:
+    pose_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, points_cb)
 else:
     pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
 
