@@ -39,12 +39,12 @@ def pixel_to_camera(cameraInfo, pixel, depth):
     x,y = pixel
     result = rs.rs2_deproject_pixel_to_point(_intrinsics, [x,y], depth)
     # return rs.rs2_deproject_pixel_to_point(depth_intrin, pixel, 1.0)
-    x = result[0]
-    y = result[1]
-    depth = result[2]
-    z_squared = depth**2 - x**2 - y**2
-    z = np.sqrt(z_squared)
-    result[2] = z
+    # x = result[0]
+    # y = result[1]
+    # depth = result[2]
+    # z_squared = depth**2 - x**2 - y**2
+    # z = np.sqrt(z_squared)
+    # result[2] = z
 
     return result
 
