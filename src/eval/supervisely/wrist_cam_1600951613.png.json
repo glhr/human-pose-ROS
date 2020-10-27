@@ -13,7 +13,7 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T11:32:15.448Z",
-            "updatedAt": "2020-10-06T21:17:11.226Z",
+            "updatedAt": "2020-10-26T16:30:03.758Z",
             "tags": [],
             "classTitle": "pose",
             "instance": "532944582",
@@ -99,105 +99,13 @@
             }
         },
         {
-            "id": 529314680,
-            "classId": 2062248,
-            "description": "",
-            "geometryType": "graph",
-            "labelerLogin": "Janx1913",
-            "createdAt": "2020-09-29T11:33:58.661Z",
-            "updatedAt": "2020-10-06T21:17:08.377Z",
-            "tags": [],
-            "classTitle": "pose",
-            "instance": "532944584",
-            "nodes": {
-                "7aefda10-1d63-4eae-8889-fc851f2f68df": {
-                    "loc": [
-                        798,
-                        157
-                    ]
-                },
-                "064b5738-059d-420b-a454-cf969cb81386": {
-                    "loc": [
-                        804,
-                        187
-                    ]
-                },
-                "2a74aab7-116c-42a3-bc72-157bd2d0aa27": {
-                    "loc": [
-                        803,
-                        257
-                    ]
-                },
-                "dfd88138-edbc-4dda-954d-603cd4bf51d4": {
-                    "loc": [
-                        751,
-                        285
-                    ]
-                },
-                "d35a7910-2fd0-41f8-9df7-c5b3f6f31060": {
-                    "loc": [
-                        793,
-                        311
-                    ]
-                },
-                "a83eca77-a339-4832-91a4-7722f675b20e": {
-                    "loc": [
-                        775,
-                        372
-                    ]
-                },
-                "c82699c2-3164-493c-ba32-be519003fdc8": {
-                    "loc": [
-                        849,
-                        438
-                    ]
-                },
-                "ca3cfb16-53e3-484f-afc8-f79402e2edd2": {
-                    "loc": [
-                        777,
-                        311
-                    ]
-                },
-                "7ceeb0da-052f-4b24-8812-21a705ea0f8a": {
-                    "loc": [
-                        764,
-                        379
-                    ]
-                },
-                "8d076003-623d-4a22-8c59-f22141df00e1": {
-                    "loc": [
-                        778,
-                        478
-                    ]
-                },
-                "9132485b-e118-49f2-a621-4e509167b1fa": {
-                    "loc": [
-                        766,
-                        118
-                    ]
-                },
-                "2f66e09e-30dc-43ee-a26f-6733a7e54864": {
-                    "loc": [
-                        795,
-                        119
-                    ]
-                },
-                "c7a2845b-b73c-4b89-af6d-ceb97b18f16f": {
-                    "loc": [
-                        761,
-                        129
-                    ]
-                }
-            }
-        },
-        {
             "id": 532944582,
             "classId": 2062250,
             "description": "",
             "geometryType": "rectangle",
             "labelerLogin": "ghumbl19@gmail.com",
             "createdAt": "2020-10-06T21:16:47.014Z",
-            "updatedAt": "2020-10-06T21:17:00.896Z",
+            "updatedAt": "2020-10-26T16:30:03.758Z",
             "tags": [],
             "classTitle": "person",
             "instance": "532944582",
@@ -222,7 +130,7 @@
             "geometryType": "rectangle",
             "labelerLogin": "ghumbl19@gmail.com",
             "createdAt": "2020-10-06T21:17:00.754Z",
-            "updatedAt": "2020-10-06T21:17:00.754Z",
+            "updatedAt": "2020-10-26T16:30:03.758Z",
             "tags": [],
             "classTitle": "person",
             "instance": "532944584",
@@ -238,6 +146,98 @@
                     ]
                 ],
                 "interior": []
+            }
+        },
+        {
+            "id": 547859357,
+            "classId": 2062248,
+            "description": "",
+            "geometryType": "graph",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-26T16:30:03.646Z",
+            "updatedAt": "2020-10-26T16:32:07.118Z",
+            "tags": [],
+            "classTitle": "pose",
+            "instance": "532944584",
+            "nodes": {
+                "7aefda10-1d63-4eae-8889-fc851f2f68df": {
+                    "loc": [
+                        784,
+                        166
+                    ]
+                },
+                "064b5738-059d-420b-a454-cf969cb81386": {
+                    "loc": [
+                        799,
+                        181
+                    ]
+                },
+                "2a74aab7-116c-42a3-bc72-157bd2d0aa27": {
+                    "loc": [
+                        795,
+                        262
+                    ]
+                },
+                "dfd88138-edbc-4dda-954d-603cd4bf51d4": {
+                    "loc": [
+                        719,
+                        245
+                    ]
+                },
+                "d35a7910-2fd0-41f8-9df7-c5b3f6f31060": {
+                    "loc": [
+                        796,
+                        292
+                    ]
+                },
+                "a83eca77-a339-4832-91a4-7722f675b20e": {
+                    "loc": [
+                        792,
+                        378
+                    ]
+                },
+                "c82699c2-3164-493c-ba32-be519003fdc8": {
+                    "loc": [
+                        845,
+                        433
+                    ]
+                },
+                "ca3cfb16-53e3-484f-afc8-f79402e2edd2": {
+                    "loc": [
+                        783,
+                        292
+                    ]
+                },
+                "7ceeb0da-052f-4b24-8812-21a705ea0f8a": {
+                    "loc": [
+                        765,
+                        381
+                    ]
+                },
+                "8d076003-623d-4a22-8c59-f22141df00e1": {
+                    "loc": [
+                        778,
+                        473
+                    ]
+                },
+                "663506b9-f3ac-41fd-9a95-8d34b81bc0e5": {
+                    "loc": [
+                        768,
+                        119
+                    ]
+                },
+                "64f83356-3110-453a-9bf4-43ef6f682047": {
+                    "loc": [
+                        794,
+                        120
+                    ]
+                },
+                "c7a2845b-b73c-4b89-af6d-ceb97b18f16f": {
+                    "loc": [
+                        761,
+                        129
+                    ]
+                }
             }
         }
     ]

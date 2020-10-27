@@ -165,12 +165,19 @@ def reorder_keypoints_from_mappings(mapping_ann, predictions):
     logger.info(predictions_sorted)
     return predictions_sorted, predictions_list_sorted
 
-def distance_between_skeletons(keypoints_1, keypoints_2, debug=False):
+def get_num_kp_per_method(method):
+    return sum(value < 18 for value in mapping_ann[method].values())
+
+def distance_between_skeletons(keypoints_1, keypoints_2, debug=False, ignore_missing=False):
     pnt_distances = []
     for pnt_pair in zip(keypoints_1.values(), keypoints_2.values()):
         if debug: print(pnt_pair)
-        if not (-1 in pnt_pair[0] or -1 in pnt_pair[1]):
-            pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
+        if ignore_missing:
+            if not (-1 in pnt_pair[0] or -1 in pnt_pair[1]) and not (0 in pnt_pair[0] or 0 in pnt_pair[1]):
+                pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
+        else:
+            if not (-1 in pnt_pair[0] or -1 in pnt_pair[1]):
+                pnt_distances.append(distance.euclidean(pnt_pair[0], pnt_pair[1]))
     if debug: print("--> Avg. distance", np.mean(pnt_distances))
     avg_distance = np.mean(pnt_distances)
     return avg_distance
@@ -230,7 +237,7 @@ def eval(method, scale=1):
         # calculate MPJPE
         person_distances = []
         for person_ref, person_pred in person_mappings.items():
-            distance = distance_between_skeletons(ground_truths_dict[person_ref], predictions_dict[person_pred])
+            distance = distance_between_skeletons(ground_truths_dict[person_ref], predictions_dict[person_pred], ignore_missing=True)
             person_distances.append(distance)
         mpjpe_per_img = np.mean(person_distances)
         logger.info(f"MPJPE: {mpjpe_per_img}")
@@ -241,7 +248,7 @@ def eval(method, scale=1):
         correct_keypoints_per_img = 0
         total_keypoints_per_img = 0
         for person_id, person in ground_truths_dict.items():
-            total_keypoints = sum(-1 not in value for value in predictions_dict[person_mappings[person_id]].values())
+            total_keypoints = min(get_num_kp_per_method(method), len(person))
             print(total_keypoints)
             total_keypoints_per_img += total_keypoints
         if not len(predictions_dict):
@@ -271,7 +278,7 @@ def eval(method, scale=1):
             # calculate MPJPE
             person_distances = []
             for person_pred, person_ref in person_mappings.items():
-                distance = distance_between_skeletons(ground_truths_dict[person_ref], predictions_dict[person_pred])
+                distance = distance_between_skeletons(ground_truths_dict[person_ref], predictions_dict[person_pred], ignore_missing=True)
                 person_distances.append(distance)
             mpjpe_per_img = np.mean(person_distances)
             logger.info(f"MPJPE: {mpjpe_per_img}")
@@ -301,11 +308,11 @@ def eval(method, scale=1):
 
     logger.info(f"-- Out of ground truth --")
     logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['gt'])} ({len(mpjpe_overall['gt'])} images)")
-    logger.info(f"NCK across images for {method}: {nck_overall['gt']/totalk_overall['gt']:.2f}")
+    logger.info(f"NCK across images for {method}: {nck_overall['gt']/totalk_overall['gt']:.5f}")
 
     logger.info(f"-- Out of predictions --")
     logger.info(f"MPJPE across images for {method}: {np.mean(mpjpe_overall['pred'])} ({len(mpjpe_overall['pred'])} images)")
-    logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.2f}")
+    logger.info(f"NCK across images for {method}: {nck_overall['pred']/totalk_overall['pred']:.5f}")
 
 
 

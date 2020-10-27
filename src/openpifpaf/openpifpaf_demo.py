@@ -69,7 +69,7 @@ def predict(img_path, scale=1, json_output=None):
     print(img_name, timer.took)
 
     for predictions in predictions_list:
-      with openpifpaf.show.image_canvas(im, img_name, show=False) as ax:
+      with openpifpaf.show.image_canvas(im, 'out/'+img_name, show=False) as ax:
         keypoint_painter.annotations(ax, predictions)
 
     return predictions, timer.took

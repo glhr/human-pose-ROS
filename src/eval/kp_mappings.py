@@ -64,7 +64,7 @@ mapping_ann["pytorch_Realtime_Multi-Person_Pose_Estimation"] = {
 
 mapping_ann["fastpose-drnoodle"] = {
   0: 0,
-  1: 17,
+  1: 18,
   2: 2,
   3: 4,
   4: 6,
@@ -77,10 +77,10 @@ mapping_ann["fastpose-drnoodle"] = {
   11: 7,
   12: 9,
   13: 11,
-  14: 17,
-  15: 17,
-  16: 17,
-  17: 17
+  14: 18,
+  15: 18,
+  16: 18,
+  17: 18
 }
 
 mapping_ann["fastpose-zexinchen"] = {
@@ -126,6 +126,27 @@ mapping_ann["openpose"] = {
 }
 
 mapping_ann["realsense_sdk"] = {
+  0: 0,
+  1: 1,
+  2: 2,
+  3: 3,
+  4: 4,
+  5: 5,
+  6: 6,
+  7: 7,
+  8: 8,
+  9: 9,
+  10: 10,
+  11: 11,
+  12: 12,
+  13: 13,
+  14: 14,
+  15: 15,
+  16: 16,
+  17: 17
+}
+
+mapping_ann["random"] = {
   0: 0,
   1: 1,
   2: 2,

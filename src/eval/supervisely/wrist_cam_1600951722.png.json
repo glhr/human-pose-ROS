@@ -13,7 +13,7 @@
             "geometryType": "graph",
             "labelerLogin": "Janx1913",
             "createdAt": "2020-09-29T11:36:46.330Z",
-            "updatedAt": "2020-10-06T17:32:24.472Z",
+            "updatedAt": "2020-10-26T16:32:39.892Z",
             "tags": [],
             "classTitle": "pose",
             "instance": "532852331",
@@ -75,7 +75,7 @@
             "geometryType": "rectangle",
             "labelerLogin": "ghumbl19@gmail.com",
             "createdAt": "2020-10-06T17:31:51.216Z",
-            "updatedAt": "2020-10-06T17:32:24.472Z",
+            "updatedAt": "2020-10-26T16:32:39.892Z",
             "tags": [],
             "classTitle": "person",
             "instance": "532852331",
@@ -100,7 +100,7 @@
             "geometryType": "rectangle",
             "labelerLogin": "ghumbl19@gmail.com",
             "createdAt": "2020-10-06T17:32:24.334Z",
-            "updatedAt": "2020-10-06T17:32:32.566Z",
+            "updatedAt": "2020-10-26T16:32:39.892Z",
             "tags": [],
             "classTitle": "person",
             "points": {
@@ -115,6 +115,43 @@
                     ]
                 ],
                 "interior": []
+            }
+        },
+        {
+            "id": 547859476,
+            "classId": 2062248,
+            "description": "",
+            "geometryType": "graph",
+            "labelerLogin": "ghumbl19@gmail.com",
+            "createdAt": "2020-10-26T16:32:39.794Z",
+            "updatedAt": "2020-10-26T16:35:15.955Z",
+            "tags": [],
+            "classTitle": "pose",
+            "nodes": {
+                "7aefda10-1d63-4eae-8889-fc851f2f68df": {
+                    "loc": [
+                        931,
+                        672
+                    ]
+                },
+                "ac471ac9-a3c6-433d-85e1-2f247bafffc5": {
+                    "loc": [
+                        1006,
+                        719
+                    ]
+                },
+                "064b5738-059d-420b-a454-cf969cb81386": {
+                    "loc": [
+                        892,
+                        610
+                    ]
+                },
+                "2f66e09e-30dc-43ee-a26f-6733a7e54864": {
+                    "loc": [
+                        1076,
+                        646
+                    ]
+                }
             }
         }
     ]
