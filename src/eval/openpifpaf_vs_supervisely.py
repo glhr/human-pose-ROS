@@ -181,7 +181,9 @@ def nck_between_skeletons(predictions, ground_truths, person_dimensions):
     logger.debug(f"Error threshold: {error_threshold}")
     for pnt_pair in zip(predictions.values(), ground_truths.values()):
         error = distance.euclidean(pnt_pair[0], pnt_pair[1])
-        if error < error_threshold:
+        if -1 in pnt_pair[0] or -1 in pnt_pair[1]:
+            pass
+        elif error < error_threshold:
             correct_keypoints += 1
             print(f"* {pnt_pair[0][0]:4.0f},{pnt_pair[0][1]:4.0f}\t{pnt_pair[1][0]:4.0f},{pnt_pair[1][1]:4.0f}\t\t{error:.2f}")
         else:
@@ -239,7 +241,8 @@ def eval(method, scale=1):
         correct_keypoints_per_img = 0
         total_keypoints_per_img = 0
         for person_id, person in ground_truths_dict.items():
-            total_keypoints = len(person)
+            total_keypoints = sum(-1 not in value for value in predictions_dict[person_mappings[person_id]].values())
+            print(total_keypoints)
             total_keypoints_per_img += total_keypoints
         if not len(predictions_dict):
             correct_keypoints = 0

@@ -1,7 +1,7 @@
 mapping_ann = dict()
 mapping_ann["openpifpaf"] = {
   0: 0,
-  1: 17,
+  1: 18,
   2: 6,
   3: 8,
   4: 10,
@@ -21,7 +21,7 @@ mapping_ann["openpifpaf"] = {
 }
 
 mapping_ann["pytorch-pose-hg-3d"] = {
-  0: 17,
+  0: 18,
   1: 8,
   2: 12,
   3: 11,
@@ -35,10 +35,10 @@ mapping_ann["pytorch-pose-hg-3d"] = {
   11: 3,
   12: 4,
   13: 5,
-  14: 0,
-  15: 0,
-  16: 0,
-  17: 0
+  14: 18,
+  15: 18,
+  16: 18,
+  17: 18
 }
 
 mapping_ann["pytorch_Realtime_Multi-Person_Pose_Estimation"] = {
