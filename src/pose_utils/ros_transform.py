@@ -47,7 +47,8 @@ def points_cb(msg):
             print(msg_tf.centroid)
             centroids[skeleton_i] = msg_tf.centroid
 
-            distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
+            if len(centroids[skeleton_i]):
+                distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
 
             msg_tf.id = skeleton.id
             pose_tf.skeletons.append(msg_tf)
