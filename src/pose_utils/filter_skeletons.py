@@ -40,6 +40,8 @@ def skel_callback(msg):
             logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
             msg_dict["centroid"] = centroids[skeleton_i]
             skeleton.centroid = centroids[skeleton_i]
+        else:
+            skeleton.centroid = []
 
         if args.nofilter:
             pose_filtered.skeletons.append(skeleton)
