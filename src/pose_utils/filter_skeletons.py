@@ -16,6 +16,10 @@ filter = np.mean
 
 parser = argparse.ArgumentParser(description='Directory of PNG images to use for inference.')
 parser.add_argument('--nofilter', action='store_true')
+parser.add_argument('--debug',
+                    default=False,
+                 action='store_true',
+                 help='Print transform debug')
 
 args, unknown = parser.parse_known_args()
 
@@ -31,19 +35,21 @@ def skel_callback(msg):
         if not history.get(skeleton_i,0):
             history[skeleton_i] = dict()
         msg_dict.pop("id",None)
+        msg_dict.pop("dummy",None)
 
         # print(list(msg_dict_tf.values()))
+
         valid_points = [v for v in msg_dict.values() if len(v)]
 
         centroids[skeleton_i] = get_points_centroid(list(valid_points))
         if centroids[skeleton_i] is not None:
-            logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
+            if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
             msg_dict["centroid"] = centroids[skeleton_i]
             skeleton.centroid = centroids[skeleton_i]
         else:
             skeleton.centroid = []
 
-        if args.nofilter:
+        if args.nofilter or skeleton.dummy:
             pose_filtered.skeletons.append(skeleton)
             break
         for joint,kp in msg_dict.items():
@@ -63,7 +69,7 @@ def skel_callback(msg):
                     average_y = filter([i[1] for i in history[skeleton_i][joint]][-3:])
                     average_z = np.median([i[2] for i in history[skeleton_i][joint]][-10:])
                 if joint=='centroid':
-                    logger.info('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
+                    if args.debug: logger.info('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
                 skel_filtered[joint] = (average_x, average_y, average_z)
         skel_filtered["id"] = skeleton_i
         pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))

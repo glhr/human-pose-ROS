@@ -70,7 +70,7 @@ def pose_cb(msg):
             line_marker.action = line_marker.ADD
             line_marker.scale.x = 0.02
             line_marker.color.a = 1.0
-            line_marker.color.r, line_marker.color.g, line_marker.color.b = colors[skeleton_i]
+            line_marker.color.r, line_marker.color.g, line_marker.color.b = colors.get(skeleton_i, (0,0,0))
             line_marker.pose.orientation.w = 1.0
             line_marker.pose.position.x, line_marker.pose.position.y, line_marker.pose.position.z = 0, 0, 0
             line_marker.id = (skeleton_i+1)*1000 + i*2+1
@@ -124,6 +124,11 @@ def pose_cb(msg):
                     centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,1.0,0.0)
                 else:
                     centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (1.0,0.0,0.0)
+
+                if skeleton.dummy:
+                    centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.05, 0.05, 0.05
+                    centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,0.0,0.0)
+
                 centroid_marker.pose.orientation.w = 1.0
                 centroid_marker.pose.position.x = skel_centroid[0]
                 centroid_marker.pose.position.y = skel_centroid[1]

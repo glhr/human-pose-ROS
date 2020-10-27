@@ -32,7 +32,7 @@ def ar_cb(msg):
     skel.centroid = [marker_pos.x, marker_pos.y, marker_pos.z]
     pose.skeletons.append(skel)
     pose_pub.publish(pose)
-    print(skel)
+    # print(skel)
 
 
 rospy.init_node("ar_test")

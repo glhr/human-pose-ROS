@@ -65,6 +65,22 @@ depth_image = []
 depth_predict = []
 rgb_image = []
 
+parser = argparse.ArgumentParser(description='Directory of PNG images to use for inference.')
+parser.add_argument('--input_dir',
+                    default="/home/slave/Pictures/pose/pose test input",
+                    help='directory of PNG images to run fastpose on')
+parser.add_argument('--cam', dest='cam', action='store_true', default=False)
+parser.add_argument('--webcam', dest='webcam', action='store_true')
+parser.add_argument('--save', dest='save', action='store_true')
+parser.add_argument('--scale', default=0.5, dest='scale')
+parser.add_argument('--realsense', default='wrist')
+parser.add_argument('--debug',
+                default=False,
+                 action='store_true',
+                 help='Print openpifpaf debug')
+
+args, unknown = parser.parse_known_args()
+
 def predict(img_path, scale=1, json_output=None):
 
     if isinstance(img_path, str):
@@ -133,21 +149,6 @@ def predict(img_path, scale=1, json_output=None):
     return predictions_list, np.zeros_like(im), timer.took
 
 
-parser = argparse.ArgumentParser(description='Directory of PNG images to use for inference.')
-parser.add_argument('--input_dir',
-                    default="/home/slave/Pictures/pose/pose test input",
-                    help='directory of PNG images to run fastpose on')
-parser.add_argument('--cam', dest='cam', action='store_true', default=False)
-parser.add_argument('--webcam', dest='webcam', action='store_true')
-parser.add_argument('--save', dest='save', action='store_true')
-parser.add_argument('--scale', default=0.5, dest='scale')
-parser.add_argument('--realsense', default='wrist')
-parser.add_argument('--debug',
-                 action='store_true',
-                 help='Print openpifpaf debug')
-
-args, unknown = parser.parse_known_args()
-
 img_path = "/home/robotlab/pose test input/wrist_cam_1600951547.png"
 
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
@@ -173,7 +174,7 @@ rospy.init_node('openpifpaf')
 
 def skeleton_from_keypoints(skel_dict):
     skel = skel_dict
-    pp.pprint(skel)
+    if args.debug: pp.pprint(skel)
     return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel_dict)
 
 depth_history = dict()

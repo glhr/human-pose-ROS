@@ -16,9 +16,54 @@ import argparse
 logger = get_logger()
 pp = get_printer()
 
-CAM_FRAME = "/wrist_camera_depth_optical_frame"
+parser = argparse.ArgumentParser()
+parser.add_argument('--realsense', dest='realsense', action='store_true')
+parser.add_argument('--norobot', dest='norobot', action='store_true')
+parser.add_argument('--cam', default='wrist')
+parser.add_argument('--debug',
+                    default=False,
+                 action='store_true',
+                 help='Print transform debug')
+parser.add_argument('--ar',
+                 action='store_true',
+                 help='Use AR dummy marker')
+args, unknown = parser.parse_known_args()
+
+CAM_FRAME = "/{}_camera_depth_optical_frame".format(args.cam)
 camera_point = [-0.0334744,-0.20912,1.85799]
 ref_v = [0,1,0]
+
+
+def ar_cb(msg):
+    with CodeTimer() as timer:
+        pose_tf = PoseEstimation()
+        distances = dict()
+        centroids = dict()
+
+        tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
+        (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
+        world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
+
+        for skeleton_i, skeleton in enumerate(msg.skeletons):
+            msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
+            msg_dict.pop("id",None)
+            msg_dict.pop("dummy",None)
+            msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
+            msg_dict_tf = dict()
+            for i,v in msg_dict.items():
+                msg_dict_tf[i] = cam_to_world(v, world_to_cam)
+
+            msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
+            if args.debug: print(msg_tf.centroid)
+            centroids[skeleton_i] = msg_tf.centroid
+
+            msg_tf.id = -1
+            msg_tf.dummy = True
+            pose_tf.skeletons.append(msg_tf)
+
+            pose_pub.publish(pose_tf)
+    logger.info("{} AR Tracker skeleton found, callback took {}ms".format(len(msg.skeletons), timer.took))
+
 
 
 def points_cb(msg):
@@ -35,6 +80,7 @@ def points_cb(msg):
         for skeleton_i, skeleton in enumerate(msg.skeletons):
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
             msg_dict.pop("id",None)
+            msg_dict.pop("dummy",None)
             msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
             if not args.norobot or not args.ar:
@@ -44,7 +90,7 @@ def points_cb(msg):
                 msg_dict_tf = msg_dict
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
-            print(msg_tf.centroid)
+            if args.debug: print(msg_tf.centroid)
             centroids[skeleton_i] = msg_tf.centroid
 
             if len(centroids[skeleton_i]):
@@ -70,28 +116,17 @@ def points_cb(msg):
         else:
             pan_pub.publish(200)
             tilt_pub.publish(200)
-    logger.info("{} person(s) found, callback took {}ms".format(len(msg.skeletons), timer.took))
+    if args.debug: logger.info("{} person(s) found, callback took {}ms".format(len(msg.skeletons), timer.took))
 
 
 rospy.init_node("point_transform")
 
-parser = argparse.ArgumentParser(description='arg for which human pose estimation to use (realsense or open)')
-parser.add_argument('--realsense', dest='realsense', action='store_true')
-parser.add_argument('--norobot', dest='norobot', action='store_true')
-parser.add_argument('--debug',
-                 action='store_true',
-                 help='Print transform debug')
-parser.add_argument('--ar',
-                 action='store_true',
-                 help='Use AR dummy marker')
-args, unknown = parser.parse_known_args()
+
 
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
-elif args.ar:
-    pose_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, points_cb)
-else:
-    pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
+ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 pan_pub = rospy.Publisher('ref_pan_angle', Float32, queue_size=1)
