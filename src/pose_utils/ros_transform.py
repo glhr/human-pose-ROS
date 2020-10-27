@@ -54,7 +54,10 @@ def points_cb(msg):
             pose_tf.skeletons.append(msg_tf)
 
         if len(msg.skeletons):
-            closest_skeleton_i = min(distances, key=distances.get)
+            if len(distances):
+                closest_skeleton_i = min(distances, key=distances.get)
+            else:
+                closest_skeleton_i = 0
             pose_tf.tracked_person_id = closest_skeleton_i
             pan_angle = angle_from_centroid(centroids[closest_skeleton_i], ref_vector=[0,1,0], normal_vector=[0,0,-1])
 
