@@ -38,18 +38,6 @@ def skel_callback(msg):
         msg_dict.pop("id",None)
         msg_dict.pop("dummy",None)
 
-        # print(list(msg_dict_tf.values()))
-
-        valid_points = [v for v in msg_dict.values() if len(v)]
-
-        if len(valid_points):
-            centroids[skeleton_i] = get_points_centroid(list(valid_points))
-
-            if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
-            msg_dict["centroid"] = centroids[skeleton_i]
-            skeleton.centroid = centroids[skeleton_i]
-        else:
-            skeleton.centroid = []
 
         if args.nofilter or skeleton.dummy:
             pose_filtered.skeletons.append(skeleton)
@@ -62,17 +50,10 @@ def skel_callback(msg):
                     history[skeleton_i][joint].append(kp)
                 if len(history[skeleton_i][joint]) > window_length:
                     history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
-                if joint=='centroid':
-                    average_x = filter([i[0] for i in history[skeleton_i][joint]][-30:])
-                    average_y = filter([i[1] for i in history[skeleton_i][joint]][-30:])
-                    average_z = np.median([i[2] for i in history[skeleton_i][joint]][-30:])
-                else:
-                    average_x = filter([i[0] for i in history[skeleton_i][joint]][-3:])
-                    average_y = filter([i[1] for i in history[skeleton_i][joint]][-3:])
-                    average_z = np.median([i[2] for i in history[skeleton_i][joint]][-10:])
-                if joint=='centroid':
-                    if args.debug: logger.info('Average of {}: {},{},{}'.format(joint, average_x, average_y, average_z))
-                skel_filtered[joint] = (average_x, average_y, average_z)
+                # average_x = filter([i[0] for i in history[skeleton_i][joint]][-3:])
+                # average_y = filter([i[1] for i in history[skeleton_i][joint]][-3:])
+                average_z = np.median([i[2] for i in history[skeleton_i][joint]][-10:])
+                skel_filtered[joint] = (kp[0], kp[1], average_z)
         skel_filtered["id"] = skeleton_i
         pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
     pose_filtered_pub.publish(pose_filtered)

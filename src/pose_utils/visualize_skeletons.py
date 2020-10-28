@@ -120,6 +120,7 @@ def pose_cb(msg):
                 centroid_marker.action = centroid_marker.ADD
                 centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
                 centroid_marker.color.a = 1.0
+                centroid_marker.id = skeleton_i
                 if skeleton_i == msg.tracked_person_id:
                     centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,1.0,0.0)
                 else:
@@ -128,12 +129,13 @@ def pose_cb(msg):
                 if skeleton.dummy:
                     centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.05, 0.05, 0.05
                     centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,0.0,0.0)
+                    centroid_marker.id = 9999999999
 
                 centroid_marker.pose.orientation.w = 1.0
                 centroid_marker.pose.position.x = skel_centroid[0]
                 centroid_marker.pose.position.y = skel_centroid[1]
                 centroid_marker.pose.position.z = skel_centroid[2]
-                centroid_marker.id = skeleton_i
+
                 centroid_marker.lifetime = rospy.Duration(float(args.lifetime))
                 centroid_marker.header.stamp = now
                 skel_pub.publish(centroid_marker)
@@ -142,6 +144,6 @@ rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 
 logger.warning("Using /openpifpaf_pose_transformed")
-pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_full', PoseEstimation, pose_cb)
 
 rospy.spin()

@@ -26,15 +26,26 @@ ar_point = []
 pred_point = []
 pred_updated = False
 
+counter_msg = dict()
+n_frames = 0
+
 def skel_cb(msg):
-    global ar_point, pred_point
-    if msg.skeletons[0].dummy:
+    global ar_point, pred_point, counter_msg, n_frames
+    if len(msg.skeletons) and msg.skeletons[0].dummy:
         ar_point = msg.skeletons[0].centroid
         logger.debug("AR point: {}".format(ar_point))
     else:
-        if len(msg.skeletons[0].right_wrist):
-            pred_point = msg.skeletons[0].right_wrist
-            logger.debug("Pred point: {}".format(pred_point))
+        if len(msg.skeletons):
+            if len(msg.skeletons[0].right_wrist):
+                pred_point = msg.skeletons[0].right_wrist
+                logger.debug("Pred point: {}".format(pred_point))
+            msg_dict = message_converter.convert_ros_message_to_dictionary(msg.skeletons[0])
+            for jnt,p in msg_dict.items():
+                if isinstance(p, list) and len(p):
+                    counter_msg[jnt] = counter_msg.get(jnt,0) + 1
+        n_frames += 1
+    print(counter_msg)
+
 
 def ar_cb(msg):
     # tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
@@ -63,4 +74,6 @@ while not rospy.is_shutdown():
     if len(ar_point) and len(pred_point):
         distance = distance_between_points(ar_point, pred_point)
         ar_distance_pub.publish(distance)
-        rospy.sleep(0.05)
+    print("n_frames: {}".format(n_frames))
+    logger.debug({k:float(v)/n_frames for k,v in counter_msg.items()})
+    rospy.sleep(0.05)
