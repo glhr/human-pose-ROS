@@ -15,10 +15,26 @@ from human_pose_ROS.msg import Skeleton, PoseEstimation
 import vg
 import argparse
 
+from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points, vector_from_2_points
+
 logger = get_logger()
 pp = get_printer()
 
 CAM_FRAME = "/wrist_camera_depth_optical_frame"
+
+ar_point = []
+pred_point = []
+pred_updated = False
+
+def skel_cb(msg):
+    global ar_point, pred_point
+    if msg.skeletons[0].dummy:
+        ar_point = msg.skeletons[0].centroid
+        logger.debug("AR point: {}".format(ar_point))
+    else:
+        if len(msg.skeletons[0].right_wrist):
+            pred_point = msg.skeletons[0].right_wrist
+            logger.debug("Pred point: {}".format(pred_point))
 
 def ar_cb(msg):
     # tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
@@ -39,6 +55,12 @@ rospy.init_node("ar_test")
 
 tf_listener = tf.TransformListener()
 rospy.Subscriber("visualization_marker",Marker,ar_cb)
+rospy.Subscriber("openpifpaf_pose_transformed",PoseEstimation,skel_cb)
 pose_pub = rospy.Publisher("ar_skeleton",PoseEstimation, queue_size=1)
+ar_distance_pub = rospy.Publisher("ar_distance",Float32, queue_size=1)
 
-rospy.spin()
+while not rospy.is_shutdown():
+    if len(ar_point) and len(pred_point):
+        distance = distance_between_points(ar_point, pred_point)
+        ar_distance_pub.publish(distance)
+        rospy.sleep(0.05)

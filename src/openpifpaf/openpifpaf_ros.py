@@ -208,7 +208,6 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
                 if cam:
                     if pnt_1[1] >= im_h-10 or pnt_1[0] >= im_w-10:
                         if args.debug: logger.error(pnt_1)
-                        continue
                     y = min(im_h-1, int(pnt_1[1]))
                     x = min(im_w-1, int(pnt_1[0]))
                     pnt1_cam = pixel_to_camera(cameraInfo, (x,y), depth_predict[y if y<im_h-1 else im_h-10][x if y<im_w-1 else im_w-10]/1000)
@@ -216,11 +215,10 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt1_cam.append(1)
 
-                if pnt1_cam[2] > 0.1 and (not depth_history[person_id].get(i,0) or abs(depth_history[person_id][i][2] - pnt1_cam[2])<1.0):
-                    skel_dict[pairs[i]] = pnt1_cam
+                # if pnt1_cam[2] > 0.1 and (not depth_history[person_id].get(i,0) or abs(depth_history[person_id][i][2] - pnt1_cam[2])<1.0):
+                skel_dict[pairs[i]] = pnt1_cam
 
-                    if not depth_history[person_id].get(i,0):
-                        depth_history[person_id][i] = pnt1_cam
+                    # depth_history[person_id][i] = pnt1_cam
 
 
         skeleton_msg = skeleton_from_keypoints(skel_dict)

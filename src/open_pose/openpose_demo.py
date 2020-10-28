@@ -118,7 +118,7 @@ if __name__ == "__main__":
         args = parser.parse_args()
         times = []
         for test_image in glob.glob(f"{args.input_dir}/*.png"):
-            time = run_openpose(test_image, scale=0.5)
+            time = run_openpose(test_image, scale=1)
             times.append(time)
 
         print(np.mean(times))
