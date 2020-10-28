@@ -95,23 +95,22 @@ def points_cb(msg):
 
             if len(centroids[skeleton_i]):
                 distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
+            else:
+                distances[skeleton_i] = -1
 
             msg_tf.id = skeleton.id
             pose_tf.skeletons.append(msg_tf)
 
         if len(msg.skeletons):
-            try:
-                closest_skeleton_i = min(distances, key=distances.get)
-                pose_tf.tracked_person_id = closest_skeleton_i
-                pan_angle = angle_from_centroid(centroids[closest_skeleton_i], ref_vector=[0,1,0], normal_vector=[0,0,-1])
+            closest_skeleton_i = max(0,min(distances, key=distances.get))
+            pose_tf.tracked_person_id = closest_skeleton_i
+            pan_angle = angle_from_centroid(centroids[closest_skeleton_i], ref_vector=[0,1,0], normal_vector=[0,0,-1])
 
-                centroid_v = vector_from_2_points(camera_point,centroids[closest_skeleton_i])
-                tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
-                if args.debug: logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
-                pan_pub.publish(pan_angle)
-                tilt_pub.publish(tilt_angle)
-            except Exception as e:
-                logger.warning(e)
+            centroid_v = vector_from_2_points(camera_point,centroids[closest_skeleton_i])
+            tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
+            if args.debug: logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
+            pan_pub.publish(pan_angle)
+            tilt_pub.publish(tilt_angle)
             pose_pub.publish(pose_tf)
         else:
             pan_pub.publish(200)

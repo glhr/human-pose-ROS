@@ -28,6 +28,7 @@ def skel_callback(msg):
     pose_filtered = PoseEstimation()
     pose_filtered.tracked_person_id = msg.tracked_person_id
     centroids = dict()
+    if args.debug: logger.info(f"Filter: found {len(msg.skeletons)} skeletons")
 
     for skeleton_i, skeleton in enumerate(msg.skeletons):
         skel_filtered = dict()
@@ -41,8 +42,9 @@ def skel_callback(msg):
 
         valid_points = [v for v in msg_dict.values() if len(v)]
 
-        centroids[skeleton_i] = get_points_centroid(list(valid_points))
-        if centroids[skeleton_i] is not None:
+        if len(valid_points):
+            centroids[skeleton_i] = get_points_centroid(list(valid_points))
+
             if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
             msg_dict["centroid"] = centroids[skeleton_i]
             skeleton.centroid = centroids[skeleton_i]
@@ -51,7 +53,7 @@ def skel_callback(msg):
 
         if args.nofilter or skeleton.dummy:
             pose_filtered.skeletons.append(skeleton)
-            break
+            continue
         for joint,kp in msg_dict.items():
             if len(kp):
                 if not history[skeleton_i].get(joint,0):
@@ -75,6 +77,7 @@ def skel_callback(msg):
         pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
     pose_filtered_pub.publish(pose_filtered)
     pose_raw_pub.publish(msg)
+    if args.debug: logger.info(f"Filter: outputting {len(pose_filtered.skeletons)} skeletons")
 
 rospy.init_node('average_skeletons')
 rospy.Subscriber('/openpifpaf_pose', PoseEstimation, skel_callback)
