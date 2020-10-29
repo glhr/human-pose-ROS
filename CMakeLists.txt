@@ -14,6 +14,7 @@ add_message_files(
   FILES
 	Skeleton.msg
   PoseEstimation.msg
+  Limbs.msg
 )
 
 generate_messages(

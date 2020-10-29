@@ -6,6 +6,7 @@
   <node name="filter_skeletons" pkg="human_pose_ROS" type="filter_skeletons.py" args="--debug" required="true" output="screen"/>
   <node name="visualize_skeletons" pkg="human_pose_ROS" type="visualize_skeletons.py" args="" required="true" output="screen"/>
   <node name="get_centroid" pkg="human_pose_ROS" type="get_centroid.py" args="--debug" required="true" output="screen"/>
+  <node name="get_limbs" pkg="human_pose_ROS" type="get_limbs.py" args="--debug" required="true" output="screen"/>
   <!-- <node name="ar_tracker" pkg="human_pose_ROS" type="ar_tracker.py" args="" required="true" output="screen"/> -->
 
 

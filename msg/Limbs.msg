@@ -1,0 +1,16 @@
+float32 forearm_right
+float32 forearm_left
+float32 upperarm_right
+float32 upperarm_left
+float32 thigh_left
+float32 thigh_right
+float32 calf_left
+float32 calf_right
+float32 noseye_left
+float32 noseye_right
+float32 eyeshoulder_left
+float32 eyeshoulder_right
+float32 torso_left
+float32 torso_right
+float32 torso_top
+float32 torso_bottom
