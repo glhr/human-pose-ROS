@@ -242,7 +242,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
             poseimg_pub.publish(numpy_to_image(im, encoding="32FC1"))
     pose_pub.publish(pose_msg)
 
-if args.cam:
+if not args.webcam:
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
     logger.info("Got camera info")
 

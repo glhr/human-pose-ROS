@@ -36,17 +36,19 @@ DEPTH_INFO_TOPIC = '/{}_camera/camera/aligned_depth_to_color/camera_info'.format
 im_h = 480
 im_w = 848
 
-rospy.init_node("point_transform")
-cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=3)
-logger.info("Got camera info")
+if args.cam in ["wrist","base"]:
+    rospy.init_node("point_transform")
+    cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=3)
+    logger.info("Got camera info")
 
 def ar_cb(msg):
     with CodeTimer() as timer:
         pose_tf = PoseEstimation()
 
-        tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
-        (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
-        world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
+        if args.cam in ["wrist","base"]:
+            tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
+            (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
+            world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
 
         for skeleton_i, skeleton in enumerate(msg.skeletons):
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
@@ -54,9 +56,12 @@ def ar_cb(msg):
             msg_dict.pop("dummy",None)
             msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
-            for i,v in msg_dict.items():
-                pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+            if args.cam in ["wrist","base"]:
+                for i,v in msg_dict.items():
+                    pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                    msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+            else:
+                msg_dict_tf = msg_dict
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
             if args.debug: print(msg_tf.centroid)
