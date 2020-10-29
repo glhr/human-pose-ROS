@@ -95,7 +95,11 @@ def pose_cb(msg):
             pnt_marker.header.frame_id = FRAME_ID
             pnt_marker.type = pnt_marker.SPHERE
             pnt_marker.action = pnt_marker.ADD
-            pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
+            # ass cheek special effet
+            if label_1 in ["right_hip", "left_hip"]:
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
+            else:
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
             pnt_marker.color.a = 1.0
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0

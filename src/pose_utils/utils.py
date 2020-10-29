@@ -10,6 +10,22 @@ try:
 except ImportError:
     logger.warning("Can't find pyrealsense2")
 
+def filter_joint(history, kp, skeleton_i, joint='centroid', window_length=15, filter=np.median):
+    if not history.get(skeleton_i,0):
+        history[skeleton_i] = dict()
+    if len(kp):
+        if not history[skeleton_i].get(joint,0):
+            history[skeleton_i][joint] = [kp]
+        else:
+            history[skeleton_i][joint].append(kp)
+        if len(history[skeleton_i][joint]) > window_length:
+            history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
+        average_x = filter([i[0] for i in history[skeleton_i][joint]][-window_length:])
+        average_y = filter([i[1] for i in history[skeleton_i][joint]][-window_length:])
+        average_z = filter([i[2] for i in history[skeleton_i][joint]][-window_length:])
+        return (average_x, average_y, average_z)
+    else: return []
+
 def cam_to_world(cam_point, world_to_cam):
     """Convert from camera_frame to world_frame
 

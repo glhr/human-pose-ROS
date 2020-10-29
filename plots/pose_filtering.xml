@@ -1,197 +1,197 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root version="2.3.8">
  <tabbed_widget name="Main Window" parent="main_window">
-  <plotmatrix rows="4" columns="2" tab_name="raw">
-   <plot style="LinesAndDots" col="0" row="0">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+  <plotmatrix tab_name="raw" rows="4" columns="2">
+   <plot row="0" style="LinesAndDots" col="0">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="0" row="1">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="1" style="LinesAndDots" col="0">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="0" row="2">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="2" style="LinesAndDots" col="0">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY max="3" min="0"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="0" row="3">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="3" style="LinesAndDots" col="0">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="1" row="0">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="0" style="LinesAndDots" col="1">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="1" row="1">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="1" style="LinesAndDots" col="1">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="2">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="2" style="Lines" col="1">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY max="4" min="0"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="3">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="3" style="Lines" col="1">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY max="30"/>
     <transform value="noTransform"/>
    </plot>
   </plotmatrix>
-  <plotmatrix rows="3" columns="2" tab_name="filtered">
-   <plot style="LinesAndDots" col="0" row="0">
-    <range top="0.100000" left="0.000000" bottom="-0.100000" right="0.000000"/>
+  <plotmatrix tab_name="filtered" rows="3" columns="2">
+   <plot row="0" style="LinesAndDots" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_raw/skeletons.0/centroid.0" B="40" G="39" R="214" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_raw/skeletons.0/centroid.0" G="39" B="40" custom_transform="noTransform" R="214"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="0" row="1">
-    <range top="0.100000" left="0.000000" bottom="-0.100000" right="0.000000"/>
+   <plot row="1" style="LinesAndDots" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_raw/skeletons.0/centroid.1" B="56" G="201" R="26" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_raw/skeletons.0/centroid.1" G="201" B="56" custom_transform="noTransform" R="26"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="0" row="2">
-    <range top="0.100000" left="0.000000" bottom="-0.100000" right="0.000000"/>
+   <plot row="2" style="LinesAndDots" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_raw/skeletons.0/centroid.2" B="14" G="127" R="255" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_raw/skeletons.0/centroid.2" G="127" B="14" custom_transform="noTransform" R="255"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="1" row="0">
-    <range top="0.100000" left="0.000000" bottom="-0.100000" right="0.000000"/>
+   <plot row="0" style="LinesAndDots" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_filtered/skeletons.0/centroid.0" B="207" G="190" R="23" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_filtered/skeletons.0/centroid.0" G="190" B="207" custom_transform="noTransform" R="23"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="1" row="1">
-    <range top="0.100000" left="0.000000" bottom="-0.100000" right="0.000000"/>
+   <plot row="1" style="LinesAndDots" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_filtered/skeletons.0/centroid.1" B="34" G="189" R="188" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_filtered/skeletons.0/centroid.1" G="189" B="34" custom_transform="noTransform" R="188"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="LinesAndDots" col="1" row="2">
-    <range top="0.100000" left="0.000000" bottom="-0.100000" right="0.000000"/>
+   <plot row="2" style="LinesAndDots" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_filtered/skeletons.0/centroid.2" B="180" G="119" R="31" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_filtered/skeletons.0/centroid.2" G="119" B="180" custom_transform="noTransform" R="31"/>
     <transform value="noTransform"/>
    </plot>
   </plotmatrix>
-  <plotmatrix rows="2" columns="2" tab_name="ptu">
-   <plot style="Lines" col="0" row="0">
-    <range top="90.000000" left="970.434546" bottom="0.000000" right="1000.411786"/>
+  <plotmatrix tab_name="ptu" rows="2" columns="2">
+   <plot row="0" style="Lines" col="0">
+    <range top="90.000000" bottom="0.000000" right="0.000000" left="0.000000"/>
     <limitY max="90"/>
-    <curve name="/joint_states/ptu_panner/position" B="207" G="190" R="23" custom_transform="rad_to_deg"/>
+    <curve name="/joint_states/ptu_panner/position" G="190" B="207" custom_transform="rad_to_deg" R="23"/>
     <transform value="Custom::noTransform"/>
    </plot>
-   <plot style="Lines" col="0" row="1">
-    <range top="90.000000" left="970.434546" bottom="0.000000" right="1000.411786"/>
+   <plot row="1" style="Lines" col="0">
+    <range top="90.000000" bottom="0.000000" right="0.000000" left="0.000000"/>
     <limitY max="90"/>
-    <curve name="/joint_states/ptu_tilter/position" B="180" G="119" R="31" custom_transform="rad_to_deg"/>
+    <curve name="/joint_states/ptu_tilter/position" G="119" B="180" custom_transform="rad_to_deg" R="31"/>
     <transform value="Custom::noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="0">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="0" style="Lines" col="1">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="1">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="1" style="Lines" col="1">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
   </plotmatrix>
-  <plotmatrix rows="2" columns="2" tab_name="ar">
-   <plot style="Lines" col="0" row="0">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+  <plotmatrix tab_name="ar" rows="2" columns="2">
+   <plot row="0" style="Lines" col="0">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="0" row="1">
-    <range top="1.000000" left="-4057.355263" bottom="0.000000" right="-4056.355263"/>
+   <plot row="1" style="Lines" col="0">
+    <range top="1.000000" bottom="0.000000" right="-1603964028.954390" left="-1603964029.954390"/>
     <limitY/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="0">
-    <range top="0.100000" left="-0.141099" bottom="-0.100000" right="0.141099"/>
+   <plot row="0" style="Lines" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.153050" left="-0.153050"/>
     <limitY/>
-    <curve name="/ar_pose_marker/markers.0/pose/pose/position/[x;z]" B="34" G="189" curve_y="/ar_pose_marker/markers.0/pose/pose/position/z" R="188" curve_x="/ar_pose_marker/markers.0/pose/pose/position/x" custom_transform="XYPlot"/>
+    <curve curve_y="/ar_pose_marker/markers.0/pose/pose/position/z" name="/ar_pose_marker/markers.0/pose/pose/position/[x;z]" G="189" B="34" custom_transform="XYPlot" R="188" curve_x="/ar_pose_marker/markers.0/pose/pose/position/x"/>
     <transform value="XYPlot"/>
    </plot>
-   <plot style="Lines" col="1" row="1">
-    <range top="0.100000" left="-0.141099" bottom="-0.100000" right="0.141099"/>
+   <plot row="1" style="Lines" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.153050" left="-0.153050"/>
     <limitY/>
-    <curve name="/ar_pose_marker/markers.0/pose/pose/position/[x;y]" B="180" G="119" curve_y="/ar_pose_marker/markers.0/pose/pose/position/y" R="31" curve_x="/ar_pose_marker/markers.0/pose/pose/position/x" custom_transform="XYPlot"/>
+    <curve curve_y="/ar_pose_marker/markers.0/pose/pose/position/y" name="/ar_pose_marker/markers.0/pose/pose/position/[x;y]" G="119" B="180" custom_transform="XYPlot" R="31" curve_x="/ar_pose_marker/markers.0/pose/pose/position/x"/>
     <transform value="XYPlot"/>
    </plot>
   </plotmatrix>
-  <plotmatrix rows="2" columns="2" tab_name="angle in world">
-   <plot style="Lines" col="0" row="0">
-    <range top="1.461962" left="0.001595" bottom="1.199033" right="29.992935"/>
+  <plotmatrix tab_name="angle in world" rows="2" columns="2">
+   <plot row="0" style="Lines" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_transformed/skeletons.0/centroid.2" B="34" G="189" R="188" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_transformed/skeletons.0/centroid.2" G="189" B="34" custom_transform="noTransform" R="188"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="0" row="1">
-    <range top="-10.911929" left="0.000170" bottom="-19.616058" right="29.989624"/>
+   <plot row="1" style="Lines" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/ref_tilt_angle/data" B="14" G="127" R="255" custom_transform="noTransform"/>
+    <curve name="/ref_tilt_angle/data" G="127" B="14" custom_transform="noTransform" R="255"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="0">
-    <range top="0.350061" left="0.001595" bottom="-0.000119" right="29.992935"/>
+   <plot row="0" style="Lines" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/openpifpaf_pose_transformed/skeletons.0/centroid.0" B="207" G="190" R="23" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_transformed/skeletons.0/centroid.0" G="190" B="207" custom_transform="noTransform" R="23"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="1" row="1">
-    <range top="11.221191" left="0.000000" bottom="-0.003786" right="29.989510"/>
+   <plot row="1" style="Lines" col="1">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
     <limitY/>
-    <curve name="/ref_pan_angle/data" B="56" G="201" R="26" custom_transform="noTransform"/>
-    <transform value="noTransform"/>
-   </plot>
-  </plotmatrix>
-  <plotmatrix rows="4" columns="1" tab_name="vel">
-   <plot style="LinesAndDots" col="0" row="0">
-    <range top="0.380876" left="0.001595" bottom="-0.672887" right="29.992935"/>
-    <limitY/>
-    <curve name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.0" B="40" G="39" R="214" custom_transform="noTransform"/>
-    <transform value="noTransform"/>
-   </plot>
-   <plot style="LinesAndDots" col="0" row="1">
-    <range top="2.763749" left="0.001595" bottom="1.301680" right="29.992935"/>
-    <limitY/>
-    <curve name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.1" B="56" G="201" R="26" custom_transform="noTransform"/>
-    <transform value="noTransform"/>
-   </plot>
-   <plot style="LinesAndDots" col="0" row="2">
-    <range top="2.217469" left="0.001595" bottom="0.844547" right="29.992935"/>
-    <limitY/>
-    <curve name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.2" B="14" G="127" R="255" custom_transform="noTransform"/>
-    <transform value="noTransform"/>
-   </plot>
-   <plot style="LinesAndDots" col="0" row="3">
-    <range top="10.000000" left="0.002190" bottom="0.023417" right="29.993358"/>
-    <limitY max="10"/>
-    <curve name="/skel_velocity_filtered/right_wrist.0" B="193" G="76" R="241" custom_transform="noTransform"/>
+    <curve name="/ref_pan_angle/data" G="201" B="56" custom_transform="noTransform" R="26"/>
     <transform value="noTransform"/>
    </plot>
   </plotmatrix>
-  <plotmatrix rows="2" columns="1" tab_name="plot">
-   <plot style="Lines" col="0" row="0">
-    <range top="11.221191" left="0.000000" bottom="-0.003786" right="29.989510"/>
+  <plotmatrix tab_name="vel" rows="4" columns="1">
+   <plot row="0" style="LinesAndDots" col="0">
+    <range top="1.048085" bottom="0.661514" right="23.375614" left="0.000000"/>
     <limitY/>
-    <curve name="/ref_pan_angle/data" B="56" G="201" R="26" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.0" G="190" B="207" custom_transform="noTransform" R="23"/>
     <transform value="noTransform"/>
    </plot>
-   <plot style="Lines" col="0" row="1">
-    <range top="-10.911929" left="0.000170" bottom="-19.616058" right="29.989624"/>
+   <plot row="1" style="LinesAndDots" col="0">
+    <range top="-0.692841" bottom="-1.080746" right="23.375614" left="0.000000"/>
     <limitY/>
-    <curve name="/ref_tilt_angle/data" B="14" G="127" R="255" custom_transform="noTransform"/>
+    <curve name="/openpifpaf_pose_transformed/skeletons.0/right_wrist.1" G="189" B="34" custom_transform="noTransform" R="188"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="2" style="LinesAndDots" col="0">
+    <range top="1.441787" bottom="0.862713" right="23.374665" left="0.000000"/>
+    <limitY/>
+    <curve name="/openpifpaf_pose_filtered/skeletons.0/right_wrist.2" G="76" B="193" custom_transform="noTransform" R="241"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="3" style="Lines" col="0">
+    <range top="1.653656" bottom="-0.040333" right="23.377717" left="0.003337"/>
+    <limitY/>
+    <curve name="/skel_velocity_filtered/right_wrist.0" G="76" B="193" custom_transform="noTransform" R="241"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix tab_name="plot" rows="2" columns="1">
+   <plot row="0" style="Lines" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
+    <limitY/>
+    <curve name="/ref_pan_angle/data" G="201" B="56" custom_transform="noTransform" R="26"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot row="1" style="Lines" col="0">
+    <range top="0.100000" bottom="-0.100000" right="0.000000" left="0.000000"/>
+    <limitY/>
+    <curve name="/ref_tilt_angle/data" G="127" B="14" custom_transform="noTransform" R="255"/>
     <transform value="noTransform"/>
    </plot>
   </plotmatrix>
@@ -222,6 +222,7 @@
  </Plugins>
  <!-- - - - - - - - - - - - - - - -->
  <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
  <!-- - - - - - - - - - - - - - - -->
  <customMathEquations/>
  <snippets>

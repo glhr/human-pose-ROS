@@ -2,7 +2,6 @@
 
 import rospy
 import numpy as np
-from human_pose_ROS.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 from std_msgs.msg import Float32
 from vision_utils.logger import get_logger, get_printer
@@ -13,7 +12,7 @@ from human_pose_ROS.msg import Skeleton, PoseEstimation
 import vg
 import argparse
 
-from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points, vector_from_2_points
+from pose_utils.utils import *
 
 logger = get_logger()
 pp = get_printer()
@@ -29,24 +28,8 @@ camera_point = [-0.0334744,-0.20912,1.85799]
 ref_v = [0,1,0]
 history = dict()
 
-def filter_centroid(kp, skeleton_i):
-    global history
-    joint = 'centroid'
-    window_length = 15
-    if len(kp):
-        if not history[skeleton_i].get(joint,0):
-            history[skeleton_i][joint] = [kp]
-        else:
-            history[skeleton_i][joint].append(kp)
-        if len(history[skeleton_i][joint]) > window_length:
-            history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
-        average_x = np.median([i[0] for i in history[skeleton_i][joint]][-window_length:])
-        average_y = np.median([i[1] for i in history[skeleton_i][joint]][-window_length:])
-        average_z = np.median([i[2] for i in history[skeleton_i][joint]][-window_length:])
-        return (average_x, average_y, average_z)
-    else: return []
-
 def skel_cb(msg):
+    global history
 
     centroids = dict()
     distances = dict()
@@ -55,8 +38,7 @@ def skel_cb(msg):
     for skeleton_i, skeleton in enumerate(msg.skeletons):
         skel_filtered = dict()
         msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
-        if not history.get(skeleton_i,0):
-            history[skeleton_i] = dict()
+
         msg_dict.pop("id",None)
         msg_dict.pop("dummy",None)
 
@@ -66,7 +48,7 @@ def skel_cb(msg):
 
         if len(valid_points):
             centroids[skeleton_i] = get_points_centroid(list(valid_points))
-            centroids[skeleton_i] = filter_centroid(centroids[skeleton_i],skeleton_i)
+            centroids[skeleton_i] = filter_joint(history,centroids[skeleton_i],skeleton_i)
 
             if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
             skeleton.centroid = centroids[skeleton_i]
