@@ -37,6 +37,10 @@ from pose_utils.utils import pixel_to_camera, get_points_centroid, angle_from_ce
 from vision_utils.img import image_to_numpy, numpy_to_image, load_image
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import get_timestamp
+
+import pathlib
+filepath = pathlib.Path(__file__).parent.absolute()
+
 logger = get_logger()
 pp = get_printer()
 
@@ -101,7 +105,7 @@ def predict(img_path, scale=1, json_output=None):
         im_depth = np.asarray(pil_im_depth)
         # im_depth = gaussian_filter(im_depth, sigma=2)
         # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
-        poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
+        # poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
 
     im = np.asarray(pil_im)
 
@@ -129,8 +133,8 @@ def predict(img_path, scale=1, json_output=None):
     if args.debug: logger.info(f"{img_name} took {timer.took}ms")
 
     if args.save:
-        save_path_depth = f"out/depth-{img_name}"
-        save_path_rgb = f"out/rgb-{img_name}"
+        save_path_depth = f"{filepath}/out_depth/depth-{img_name}"
+        save_path_rgb = f"{filepath}/out_rgb/rgb-{img_name}"
         save_path = save_path_depth if args.cam else save_path_rgb
         im = im_depth if args.cam else im
         if args.debug: logger.warning("Saving to {}".format(save_path))
@@ -232,7 +236,10 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
         pose_msg.skeletons.append(skeleton_msg)
 
     if im is not None:
-        poseimg_pub.publish(numpy_to_image(im, encoding="rgb8"))
+        try:
+            poseimg_pub.publish(numpy_to_image(im, encoding="rgb8"))
+        except TypeError:
+            poseimg_pub.publish(numpy_to_image(im, encoding="32FC1"))
     pose_pub.publish(pose_msg)
 
 if args.cam:

@@ -29,10 +29,28 @@ camera_point = [-0.0334744,-0.20912,1.85799]
 ref_v = [0,1,0]
 history = dict()
 
+def filter_centroid(kp, skeleton_i):
+    global history
+    joint = 'centroid'
+    window_length = 15
+    if len(kp):
+        if not history[skeleton_i].get(joint,0):
+            history[skeleton_i][joint] = [kp]
+        else:
+            history[skeleton_i][joint].append(kp)
+        if len(history[skeleton_i][joint]) > window_length:
+            history[skeleton_i][joint] = history[skeleton_i][joint][-window_length:]
+        average_x = np.median([i[0] for i in history[skeleton_i][joint]][-window_length:])
+        average_y = np.median([i[1] for i in history[skeleton_i][joint]][-window_length:])
+        average_z = np.median([i[2] for i in history[skeleton_i][joint]][-window_length:])
+        return (average_x, average_y, average_z)
+    else: return []
+
 def skel_cb(msg):
 
     centroids = dict()
     distances = dict()
+
 
     for skeleton_i, skeleton in enumerate(msg.skeletons):
         skel_filtered = dict()
@@ -48,11 +66,11 @@ def skel_cb(msg):
 
         if len(valid_points):
             centroids[skeleton_i] = get_points_centroid(list(valid_points))
+            centroids[skeleton_i] = filter_centroid(centroids[skeleton_i],skeleton_i)
 
             if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
-            msg_dict["centroid"] = centroids[skeleton_i]
             skeleton.centroid = centroids[skeleton_i]
-            centroids[skeleton_i] = skeleton.centroid
+
             if len(centroids[skeleton_i]):
                 distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
             else:
