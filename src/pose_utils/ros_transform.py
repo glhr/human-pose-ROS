@@ -36,8 +36,9 @@ DEPTH_INFO_TOPIC = '/{}_camera/camera/aligned_depth_to_color/camera_info'.format
 im_h = 480
 im_w = 848
 
+rospy.init_node("point_transform")
+
 if args.cam in ["wrist","base"]:
-    rospy.init_node("point_transform")
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=3)
     logger.info("Got camera info")
 
@@ -118,7 +119,7 @@ pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_c
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 
-
-tf_listener = tf.TransformListener()
+if args.cam in ["wrist","base"]:
+    tf_listener = tf.TransformListener()
 
 rospy.spin()
