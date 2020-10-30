@@ -148,6 +148,6 @@ rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 
 logger.warning("Using /openpifpaf_pose_transformed")
-pose_sub = rospy.Subscriber('openpifpaf_pose_full', PoseEstimation, pose_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
 
 rospy.spin()
