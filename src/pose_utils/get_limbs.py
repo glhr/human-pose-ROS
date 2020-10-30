@@ -42,13 +42,13 @@ thresholds = {
     'forearm': 0.35,
     'upperarm': 0.4,
     'calf': 0.55,
-    'thigh': 0.55,
+    'thigh': 0.6,
     'noseye': 0.1,
     'eyeshoulder': 0.4,
     'torso': 0.5
 }
 
-apply_constraints = ['forearm','upperarm','calf', 'noseye']
+apply_constraints = ['forearm','upperarm','calf', 'noseye','thigh']
 
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
 pp.pprint(pairs)
