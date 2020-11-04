@@ -64,8 +64,10 @@ def points_cb(msg):
     msg_dict_tf = dict()
     pnts = []
     for i,v in msg_dict.items():
-        if len(v):
+        if len(v) and args.cam in ["wrist","base"]:
             pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+        elif len(v):
+            pnt1_cam = v
         else:
             pnt1_cam = [0,0,0]
         msg_dict_tf[i] = pnt1_cam
