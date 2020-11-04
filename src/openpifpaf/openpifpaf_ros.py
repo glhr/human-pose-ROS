@@ -145,6 +145,7 @@ def predict(img_path, scale=1, json_output=None):
                 with openpifpaf.show.image_canvas(im, save_path, show=False) as ax:
                     keypoint_painter.annotations(ax, predictions)
                 image = load_image(save_path)[:,:,:3]
+                save_pub.publish(save_path)
         except Exception as e:
             image = np.zeros_like(im)
 
@@ -170,6 +171,7 @@ def got_rgb(msg):
     rgb_image = image_to_numpy(msg)
 
 pose_pub = rospy.Publisher('openpifpaf_pose', PoseEstimation, queue_size=1)
+save_pub = rospy.Publisher('openpifpaf_savepath', String, queue_size=1)
 poseimg_pub = rospy.Publisher('openpifpaf_img', Image, queue_size=1)
 # angle_pub = rospy.Publisher('person_angle', Float32, queue_size=1)
 depth_sub = rospy.Subscriber(DEPTH_CAMERA_TOPIC, Image, got_depth)

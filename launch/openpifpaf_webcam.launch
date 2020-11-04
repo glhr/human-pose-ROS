@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--webcam --scale 0.2" required="true" output="screen"/>
+  <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--webcam --scale 0.2 --save --debug" required="true" output="screen"/>
   <node name="ros_transform" pkg="human_pose_ROS" type="ros_transform.py" args="--norobot --cam webcam" required="true" output="screen"/>
   <node name="filter_skeletons" pkg="human_pose_ROS" type="filter_skeletons.py" required="true" output="screen"/>
   <node name="visualize_skeletons" pkg="human_pose_ROS" type="visualize_skeletons.py" args="" required="true" output="screen"/>
