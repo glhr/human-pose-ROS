@@ -47,7 +47,11 @@ im_w = 848
 num_frames = 0
 num_images = 0
 
-frames = []
+saving = False
+
+frames = {}
+
+joint_coords = []
 images = []
 
 FRAMES_PER_SEQ = args.seqlength
@@ -61,13 +65,21 @@ if args.cam in ["wrist","base"]:
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo)
     logger.info("Got camera info")
 
-def save_frames(n):
+
+def save_everything():
+    for k,v in frames.items():
+        images = v["images"]
+        save_images(images, k)
+        pnts = v["pnts"]
+        save_frames(pnts,k)
+
+def save_frames(pnts_list, n):
     with open(Path.joinpath(project_path,f"action_data/{args.person}-{args.action}-{args.example}-{n}.txt"), "w") as text_file:
-        lines = list(','.join(pnts) for pnts in frames)
+        lines = list(','.join(pnts) for pnts in pnts_list)
         lines = '\n'.join(lines)
         print(f"{lines}", file=text_file)
 
-def save_images(n):
+def save_images(images, n):
     # with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_frames}.gif"), mode='I') as writer:
     #     for path in images:
     #         image = imageio.imread(path)
@@ -80,46 +92,68 @@ def save_images(n):
 
 def img_cb(msg):
     global images, num_images
-    # path = msg.data
-    num_images += 1
-    images.append(image_to_numpy(msg))
+    if not saving:
+        # path = msg.data
+        num_images += 1
+        images.append(image_to_numpy(msg))
+
 
 
 def points_cb(msg):
     global num_frames, num_images, images, frames
 
-    num_frames += 1
-    if len(msg.skeletons):
-        skeleton = msg.skeletons[0]
-        msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
-        msg_dict = {k: v for k, v in msg_dict.items() if isinstance(v, list) and k.split("_")[-1] in save_points}
-        msg_dict_tf = dict()
-        pnts = []
-        for i,v in msg_dict.items():
-            if len(v) and args.cam in ["wrist","base"]:
-                pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-            elif len(v):
-                pnt1_cam = v
-            else:
-                pnt1_cam = [0,0,0]
-            msg_dict_tf[i] = pnt1_cam
-            pnts.extend(pnt1_cam)
+    if not saving:
+        num_frames += 1
+        if len(msg.skeletons):
+            skeleton = msg.skeletons[0]
+            msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
+            msg_dict = {k: v for k, v in msg_dict.items() if isinstance(v, list) and k.split("_")[-1] in save_points}
+            msg_dict_tf = dict()
+            pnts = []
+            for i,v in msg_dict.items():
+                if len(v) and args.cam in ["wrist","base"]:
+                    pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                elif len(v):
+                    pnt1_cam = v
+                else:
+                    pnt1_cam = [0,0,0]
+                msg_dict_tf[i] = pnt1_cam
+                pnts.extend(pnt1_cam)
 
-        frames.append([str(i) for i in pnts])
+            joint_coords.append([str(i) for i in pnts])
 
-        logger.info(num_frames)
+            logger.info(num_frames)
 
 pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
 # img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
 poseimg_sub = rospy.Subscriber('openpifpaf_img', Image, img_cb)
 
+import signal, sys
 
-while not rospy.is_shutdown():
-    if len(frames)>FRAMES_PER_SEQ:
-        frames = frames[-FRAMES_PER_SEQ:]
-        save_frames(n=num_frames)
-        frames = []
+
+def signal_handler(sig, frame):
+    global saving
+    saving = True
+    logger.warning("Saving everything")
+    save_everything()
+    sys.exit(1)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+sequence_number = 0
+
+while not saving:
+    if len(joint_coords)>FRAMES_PER_SEQ:
+        sequence_number += 1
+
+        joint_coords = joint_coords[-FRAMES_PER_SEQ:]
         images = images[-FRAMES_PER_SEQ:]
-        save_images(n=num_frames)
+
+        frames[sequence_number] = dict()
+        frames[sequence_number]['pnts'] = joint_coords
+        frames[sequence_number]['images'] = images
+
+        joint_coords = []
         images = []
-        logger.debug("Saving")
+
+        logger.debug(f"Sequence {sequence_number}")
