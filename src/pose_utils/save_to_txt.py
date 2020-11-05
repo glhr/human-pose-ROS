@@ -38,6 +38,7 @@ im_h = 480
 im_w = 848
 
 num_frames = 0
+num_images = 0
 
 frames = []
 images = []
@@ -61,33 +62,22 @@ def save_images():
     #         image = imageio.imread(path)
     #         writer.append_data(image)
 
-    with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_frames}.gif"), mode='I') as writer:
+    with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_images}.gif"), mode='I') as writer:
         for image in images:
             writer.append_data(image)
 
 
 def img_cb(msg):
-    global images
+    global images, num_images
     # path = msg.data
+    num_images += 1
     images.append(image_to_numpy(msg))
 
 
-
 def points_cb(msg):
-    global num_frames, images, frames
+    global num_frames, num_images, images, frames
 
-    if len(frames)>FRAMES_PER_SEQ:
-        frames = frames[-FRAMES_PER_SEQ:]
-        save_frames()
-        frames = []
-        logger.debug("Saving frames")
-
-    if len(images)>FRAMES_PER_SEQ:
-        images = images[-FRAMES_PER_SEQ:]
-        save_images()
-        images = []
-        logger.debug("Saving images")
-
+    num_frames += 1
     if len(msg.skeletons):
         skeleton = msg.skeletons[0]
         msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
@@ -106,13 +96,19 @@ def points_cb(msg):
 
         frames.append([str(i) for i in pnts])
 
-        num_frames += 1
         logger.info(num_frames)
-
 
 pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
 # img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
 poseimg_sub = rospy.Subscriber('openpifpaf_img', Image, img_cb)
 
 
-rospy.spin()
+while not rospy.is_shutdown():
+    if len(frames)>FRAMES_PER_SEQ:
+        frames = frames[-FRAMES_PER_SEQ:]
+        save_frames()
+        frames = []
+        images = images[-FRAMES_PER_SEQ:]
+        save_images()
+        images = []
+        logger.debug("Saving")
