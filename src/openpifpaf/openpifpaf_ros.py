@@ -85,6 +85,10 @@ parser.add_argument('--debug',
 
 args, unknown = parser.parse_known_args()
 
+aspect_ratio = 480/848
+
+valid_scales = {0.25,0.5,0.75}
+
 def predict(img_path, scale=1, json_output=None):
 
     if isinstance(img_path, str):
@@ -97,14 +101,18 @@ def predict(img_path, scale=1, json_output=None):
             pil_im_depth = PIL.Image.fromarray(depth_predict)
         img_name = f'{args.realsense}_camera_{get_timestamp()}.png'
 
-    if scale < 1:
-        dim = (int(i*scale) for i in pil_im.size)
+    if scale < 1 and scale in valid_scales:
+        dim = (round(i*scale) for i in pil_im.size)
         pil_im = pil_im.resize(dim)
+    elif scale < 1:
+        logger.warning("Scale should be in {valid_scales}, not resizing")
     if args.cam:
-        if scale < 1:
-            dim = (int(i*scale) for i in pil_im_depth.size)
+        if scale < 1 and scale in valid_scales:
+            dim = (round(i*scale) for i in pil_im_depth.size)
             pil_im_depth = pil_im_depth.convert('F')
             pil_im_depth = pil_im_depth.resize(dim)
+        elif scale < 1:
+            logger.warning("Scale should be in {valid_scales}, not resizing")
         im_depth = np.asarray(pil_im_depth)
         # im_depth = gaussian_filter(im_depth, sigma=2)
         # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
