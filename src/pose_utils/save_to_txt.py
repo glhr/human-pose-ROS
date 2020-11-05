@@ -8,6 +8,7 @@ from std_msgs.msg import Float32, String
 from sensor_msgs.msg import Image, CameraInfo
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import CodeTimer
+from vision_utils.img import image_to_numpy
 from pose_utils.utils import *
 import vg
 import argparse
@@ -41,6 +42,8 @@ num_frames = 0
 frames = []
 images = []
 
+FRAMES_PER_SEQ = 30
+
 if args.cam in ["wrist","base"]:
     logger.info("Waiting for camera info :)")
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo)
@@ -53,31 +56,37 @@ def save_frames():
         print(f"{lines}", file=text_file)
 
 def save_images():
+    # with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_frames}.gif"), mode='I') as writer:
+    #     for path in images:
+    #         image = imageio.imread(path)
+    #         writer.append_data(image)
+
     with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_frames}.gif"), mode='I') as writer:
-        for path in images:
-            image = imageio.imread(path)
+        for image in images:
             writer.append_data(image)
 
 
 def img_cb(msg):
     global images
-    path = msg.data
-    images.append(path)
+    # path = msg.data
+    images.append(image_to_numpy(msg))
 
 
 
 def points_cb(msg):
     global num_frames, images, frames
 
-    if len(frames)>10:
-        frames = frames[-10:]
+    if len(frames)>FRAMES_PER_SEQ:
+        frames = frames[-FRAMES_PER_SEQ:]
         save_frames()
         frames = []
+        logger.debug("Saving frames")
 
-    if len(images)>10:
-        images = images[-10:]
+    if len(images)>FRAMES_PER_SEQ:
+        images = images[-FRAMES_PER_SEQ:]
         save_images()
         images = []
+        logger.debug("Saving images")
 
     if len(msg.skeletons):
         skeleton = msg.skeletons[0]
@@ -102,7 +111,8 @@ def points_cb(msg):
 
 
 pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
-img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
+# img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
+poseimg_sub = rospy.Subscriber('openpifpaf_img', Image, img_cb)
 
 
 rospy.spin()

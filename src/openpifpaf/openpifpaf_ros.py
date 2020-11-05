@@ -143,6 +143,12 @@ def predict(img_path, scale=1, json_output=None):
 
     if args.debug: logger.info(f"{img_name} took {timer.took}ms")
 
+    if im is not None:
+        try:
+            poseimg_pub.publish(numpy_to_image(im, encoding="rgb8"))
+        except TypeError:
+            poseimg_pub.publish(numpy_to_image(im, encoding="32FC1"))
+
     if args.save:
         save_path_depth = f"{filepath}/out_depth/depth-{img_name}"
         save_path_rgb = f"{filepath}/out_rgb/rgb-{img_name}"
@@ -248,11 +254,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         pose_msg.skeletons.append(skeleton_msg)
 
-    if im is not None:
-        try:
-            poseimg_pub.publish(numpy_to_image(im, encoding="rgb8"))
-        except TypeError:
-            poseimg_pub.publish(numpy_to_image(im, encoding="32FC1"))
+
     pose_pub.publish(pose_msg)
 
 if not args.webcam:
