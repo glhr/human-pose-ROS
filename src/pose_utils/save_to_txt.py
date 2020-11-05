@@ -23,8 +23,15 @@ pp = get_printer()
 parser = argparse.ArgumentParser()
 parser.add_argument('--debug',
                     default=True,
-                 action='store_true',
-                 help='Print transform debug')
+                 action='store_true')
+parser.add_argument('--person',
+                    default='gala')
+parser.add_argument('--action',
+                    default='waving')
+parser.add_argument('--example',
+                    default=1)
+parser.add_argument('--seqlength',
+                    default=20)
 parser.add_argument('--cam', default='wrist')
 args, unknown = parser.parse_known_args()
 
@@ -43,26 +50,30 @@ num_images = 0
 frames = []
 images = []
 
-FRAMES_PER_SEQ = 30
+FRAMES_PER_SEQ = args.seqlength
+
+import os
+if not os.path.exists(Path.joinpath(project_path,f"action_data")):
+    os.makedirs(Path.joinpath(project_path,f"action_data"))
 
 if args.cam in ["wrist","base"]:
     logger.info("Waiting for camera info :)")
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo)
     logger.info("Got camera info")
 
-def save_frames():
-    with open(Path.joinpath(project_path,f"txt/{num_frames}.txt"), "w") as text_file:
+def save_frames(n):
+    with open(Path.joinpath(project_path,f"action_data/{args.person}-{args.action}-{args.example}-{n}.txt"), "w") as text_file:
         lines = list(','.join(pnts) for pnts in frames)
         lines = '\n'.join(lines)
         print(f"{lines}", file=text_file)
 
-def save_images():
+def save_images(n):
     # with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_frames}.gif"), mode='I') as writer:
     #     for path in images:
     #         image = imageio.imread(path)
     #         writer.append_data(image)
 
-    with imageio.get_writer(Path.joinpath(project_path,f"txt/{num_images}.gif"), mode='I') as writer:
+    with imageio.get_writer(Path.joinpath(project_path,f"action_data/{args.person}-{args.action}-{args.example}-{n}.gif"), mode='I') as writer:
         for image in images:
             writer.append_data(image)
 
@@ -106,9 +117,9 @@ poseimg_sub = rospy.Subscriber('openpifpaf_img', Image, img_cb)
 while not rospy.is_shutdown():
     if len(frames)>FRAMES_PER_SEQ:
         frames = frames[-FRAMES_PER_SEQ:]
-        save_frames()
+        save_frames(n=num_frames)
         frames = []
         images = images[-FRAMES_PER_SEQ:]
-        save_images()
+        save_images(n=num_frames)
         images = []
         logger.debug("Saving")
