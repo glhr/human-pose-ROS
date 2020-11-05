@@ -96,12 +96,15 @@ def predict(img_path, scale=1, json_output=None):
         if args.cam:
             pil_im_depth = PIL.Image.fromarray(depth_predict)
         img_name = f'{args.realsense}_camera_{get_timestamp()}.png'
-    dim = (int(i*scale) for i in pil_im.size)
-    pil_im = pil_im.resize(dim)
+
+    if scale < 1:
+        dim = (int(i*scale) for i in pil_im.size)
+        pil_im = pil_im.resize(dim)
     if args.cam:
-        dim = (int(i*scale) for i in pil_im_depth.size)
-        pil_im_depth = pil_im_depth.convert('F')
-        pil_im_depth = pil_im_depth.resize(dim)
+        if scale < 1:
+            dim = (int(i*scale) for i in pil_im_depth.size)
+            pil_im_depth = pil_im_depth.convert('F')
+            pil_im_depth = pil_im_depth.resize(dim)
         im_depth = np.asarray(pil_im_depth)
         # im_depth = gaussian_filter(im_depth, sigma=2)
         # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
