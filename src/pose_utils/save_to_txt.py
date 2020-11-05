@@ -133,10 +133,11 @@ import signal, sys
 
 def signal_handler(sig, frame):
     global saving
-    saving = True
-    logger.warning("Saving everything")
-    save_everything()
-    sys.exit(1)
+    if not saving:
+        saving = True
+        logger.warning("Saving everything")
+        save_everything()
+        sys.exit(1)
 
 signal.signal(signal.SIGINT, signal_handler)
 
