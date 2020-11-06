@@ -2,6 +2,7 @@
 
 import numpy as np
 import vg
+import math
 from vision_utils.logger import get_logger, get_printer
 logger = get_logger()
 
@@ -85,6 +86,9 @@ def angle_from_centroid(centroid, ref_vector, normal_vector):
 
 def distance_between_points(p1,p2):
     return float(vg.euclidean_distance(np.array(p1), np.array(p2)))
+
+def better_distance_between_points(p1,p2):
+    return float(np.linalg.norm(np.array(p1)-np.array(p2)))
 
 def vector_from_2_points(p1,p2):
     dist_v = np.subtract(p2,p1)
