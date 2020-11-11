@@ -47,6 +47,9 @@ parser.add_argument('--filter',
 parser.add_argument('--debug',
                  action='store_true',
                  help='Print visualization debug')
+parser.add_argument('--kalman',
+                 action='store_true',
+                 help='use kalman filter for visualization')
 
 args, unknown = parser.parse_known_args()
 
@@ -148,6 +151,8 @@ rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 
 logger.warning("Using /openpifpaf_pose_transformed")
-pose_sub = rospy.Subscriber('openpifpaf_pose_full', PoseEstimation, pose_cb)
-
+if args.kalman:
+    pose_sub = rospy.Subscriber('openpifpaf_pose_full_kalman', PoseEstimation, pose_cb)
+else:
+    pose_sub = rospy.Subscriber('openpifpaf_pose_full', PoseEstimation, pose_cb)
 rospy.spin()
