@@ -108,14 +108,10 @@ def points_cb(msg):
     if args.debug: logger.info("{} person(s) found, callback took {}ms".format(len(msg.skeletons), timer.took))
 
 
-
-
-
-
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
 ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
-pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 

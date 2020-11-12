@@ -78,7 +78,7 @@ def skel_cb(msg):
 
 rospy.init_node("get_centroid")
 
-rospy.Subscriber("openpifpaf_pose_constrained_limbs",PoseEstimation,skel_cb)
+rospy.Subscriber("openpifpaf_pose_transformed",PoseEstimation,skel_cb)
 pose_pub = rospy.Publisher("openpifpaf_pose_full",PoseEstimation, queue_size=1)
 pan_pub = rospy.Publisher('ref_pan_angle', Float32, queue_size=1)
 tilt_pub = rospy.Publisher('ref_tilt_angle', Float32, queue_size=1)

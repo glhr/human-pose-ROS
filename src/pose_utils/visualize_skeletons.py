@@ -15,7 +15,7 @@ logger=get_logger()
 pp = get_printer()
 
 cam = True
-FRAME_ID = "/world"
+FRAME_ID = "/wrist_camera_color_optical_frame"
 
 connected_points = [
 (0,2), (2,4), (4,6), (6,8), (8,10),
