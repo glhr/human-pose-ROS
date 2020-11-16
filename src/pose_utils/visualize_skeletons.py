@@ -57,6 +57,7 @@ parser.add_argument('--marker_frame',default='/wrist_camera_color_optical_frame'
 args, unknown = parser.parse_known_args()
 
 FRAME_ID = args.marker_frame
+MAX_UNCERTAINTY = 0.5
 
 topic_hash = abs(int(str(hash(args.topic))[:9]))
 logger.warning(topic_hash)
@@ -113,7 +114,7 @@ def pose_cb(msg):
             #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
             # else:
 
-            pnt_marker.color.a = 1.0
+            pnt_marker.color.a = 0.3
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0
             pnt_marker.lifetime = rospy.Duration(float(args.lifetime))
@@ -124,12 +125,16 @@ def pose_cb(msg):
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
                 # logger.debug(pnt_marker.pose.position)
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2
-                skel_pub.publish(pnt_marker)
+
+                if max(uncertainty_1) < MAX_UNCERTAINTY:
+                    skel_pub.publish(pnt_marker)
             if len(pnt_2):
                 pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_2
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
-                skel_pub.publish(pnt_marker)
+
+                if max(uncertainty_2) < MAX_UNCERTAINTY:
+                    skel_pub.publish(pnt_marker)
 
             skel_centroid = skeleton_dict['centroid']
             uncertainty_centroid = skel_centroid[3:6]
@@ -138,6 +143,7 @@ def pose_cb(msg):
                 centroid_marker.header.frame_id = FRAME_ID
                 centroid_marker.type = centroid_marker.SPHERE
                 centroid_marker.action = centroid_marker.ADD
+
                 centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = uncertainty_centroid
                 centroid_marker.color.a = 1.0
                 centroid_marker.id = topic_hash+skeleton_i
