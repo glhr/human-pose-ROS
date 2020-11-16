@@ -94,10 +94,14 @@ def points_cb(msg):
             msg_dict_tf = dict()
             if args.cam in ["wrist","base"] and (not args.norobot or not args.ar):
                 for i,v in msg_dict.items():
-                    pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                    msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+                    # pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                    msg_dict_tf[i] = cam_to_world(v[0:3], world_to_cam)
             else:
                 msg_dict_tf = msg_dict
+
+            for i,v in msg_dict.items():
+                msg_dict_tf[i].extend(v[3:6])
+                print(msg_dict_tf[i])
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
 
@@ -111,7 +115,7 @@ def points_cb(msg):
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
 ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
-pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_kalman', PoseEstimation, points_cb)
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 
