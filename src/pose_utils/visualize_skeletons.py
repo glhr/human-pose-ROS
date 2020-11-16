@@ -69,8 +69,10 @@ def pose_cb(msg):
             label_1 = list(skeleton_dict.keys())[conn[0]]
             label_2 = list(skeleton_dict.keys())[conn[1]]
             if args.debug: logger.debug(f"{label_1} --> {label_2}")
-            pnt_1 = skeleton_dict[label_1]
-            pnt_2 = skeleton_dict[label_2]
+            pnt_1 = skeleton_dict[label_1][:3]
+            pnt_2 = skeleton_dict[label_2][:3]
+            uncertainty_1 = skeleton_dict[label_1][3:6]
+            uncertainty_2 = skeleton_dict[label_2][3:6]
             now = rospy.get_rostime()
 
             skeleton_i = skeleton.id if skeleton.id else n
@@ -110,7 +112,7 @@ def pose_cb(msg):
             # if label_1 in ["right_hip", "left_hip"]:
             #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
             # else:
-            pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
+
             pnt_marker.color.a = 1.0
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0
@@ -118,22 +120,25 @@ def pose_cb(msg):
             pnt_marker.header.stamp = now
 
             if len(pnt_1):
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_1
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
                 # logger.debug(pnt_marker.pose.position)
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2
                 skel_pub.publish(pnt_marker)
             if len(pnt_2):
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_2
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
                 skel_pub.publish(pnt_marker)
 
             skel_centroid = skeleton_dict['centroid']
+            uncertainty_centroid = skel_centroid[3:6]
             if len(skel_centroid):
                 centroid_marker = Marker()
                 centroid_marker.header.frame_id = FRAME_ID
                 centroid_marker.type = centroid_marker.SPHERE
                 centroid_marker.action = centroid_marker.ADD
-                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
+                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = uncertainty_centroid
                 centroid_marker.color.a = 1.0
                 centroid_marker.id = topic_hash+skeleton_i
                 if skeleton_i == msg.tracked_person_id:
