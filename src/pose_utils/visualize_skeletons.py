@@ -15,7 +15,7 @@ logger=get_logger()
 pp = get_printer()
 
 cam = True
-FRAME_ID = "/wrist_camera_color_optical_frame"
+
 
 connected_points = [
 (0,2), (2,4), (4,6), (6,8), (8,10),
@@ -50,8 +50,16 @@ parser.add_argument('--debug',
 parser.add_argument('--kalman',
                  action='store_true',
                  help='use kalman filter for visualization')
+parser.add_argument('--topic',
+                    default='openpifpaf_pose_transformed')
+parser.add_argument('--marker_frame',default='/wrist_camera_color_optical_frame')
 
 args, unknown = parser.parse_known_args()
+
+FRAME_ID = args.marker_frame
+
+topic_hash = abs(int(str(hash(args.topic))[:9]))
+logger.warning(topic_hash)
 
 def pose_cb(msg):
 
@@ -76,7 +84,7 @@ def pose_cb(msg):
             line_marker.color.r, line_marker.color.g, line_marker.color.b = colors.get(skeleton_i, (0,0,0))
             line_marker.pose.orientation.w = 1.0
             line_marker.pose.position.x, line_marker.pose.position.y, line_marker.pose.position.z = 0, 0, 0
-            line_marker.id = (skeleton_i+1)*1000 + i*2+1
+            line_marker.id = topic_hash+(skeleton_i+1)*1000 + i*2+1
             line_marker.lifetime = rospy.Duration(float(args.lifetime))
             line_marker.header.stamp = now
             line_marker.points = []
@@ -102,7 +110,7 @@ def pose_cb(msg):
             # if label_1 in ["right_hip", "left_hip"]:
             #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
             # else:
-            #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
+            pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
             pnt_marker.color.a = 1.0
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0
@@ -112,11 +120,11 @@ def pose_cb(msg):
             if len(pnt_1):
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
                 # logger.debug(pnt_marker.pose.position)
-                pnt_marker.id = skeleton_i*100 + i*2
+                pnt_marker.id = topic_hash+skeleton_i*100 + i*2
                 skel_pub.publish(pnt_marker)
             if len(pnt_2):
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
-                pnt_marker.id = skeleton_i*100 + i*2+1
+                pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
                 skel_pub.publish(pnt_marker)
 
             skel_centroid = skeleton_dict['centroid']
@@ -127,7 +135,7 @@ def pose_cb(msg):
                 centroid_marker.action = centroid_marker.ADD
                 centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
                 centroid_marker.color.a = 1.0
-                centroid_marker.id = skeleton_i
+                centroid_marker.id = topic_hash+skeleton_i
                 if skeleton_i == msg.tracked_person_id:
                     centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,1.0,0.0)
                 else:
@@ -136,7 +144,7 @@ def pose_cb(msg):
                 if skeleton.dummy:
                     centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.05, 0.05, 0.05
                     centroid_marker.color.r, centroid_marker.color.g, centroid_marker.color.b = (0.0,0.0,0.0)
-                    centroid_marker.id = 9999999999
+                    centroid_marker.id = topic_hash+9999999999
 
                 centroid_marker.pose.orientation.w = 1.0
                 centroid_marker.pose.position.x = skel_centroid[0]
@@ -147,12 +155,10 @@ def pose_cb(msg):
                 centroid_marker.header.stamp = now
                 skel_pub.publish(centroid_marker)
 
-rospy.init_node('pose_visualizer')
-skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
+rospy.init_node(f'pose_visualizer_{args.topic}')
 
-logger.warning("Using /openpifpaf_pose_transformed")
-if args.kalman:
-    pose_sub = rospy.Subscriber('openpifpaf_pose_kalman', PoseEstimation, pose_cb)
-else:
-    pose_sub = rospy.Subscriber('openpifpaf_pose_full', PoseEstimation, pose_cb)
+
+logger.warning(f"Using /{args.topic}")
+pose_sub = rospy.Subscriber(f"/{args.topic}", PoseEstimation, pose_cb)
+skel_pub = rospy.Publisher(f'openpifpaf_markers_{args.topic.split("_")[-1]}', Marker, queue_size=100)
 rospy.spin()
