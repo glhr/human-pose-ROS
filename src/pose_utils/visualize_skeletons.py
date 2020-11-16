@@ -47,9 +47,6 @@ parser.add_argument('--filter',
 parser.add_argument('--debug',
                  action='store_true',
                  help='Print visualization debug')
-parser.add_argument('--kalman',
-                 action='store_true',
-                 help='use kalman filter for visualization')
 
 args, unknown = parser.parse_known_args()
 
@@ -102,7 +99,7 @@ def pose_cb(msg):
             # if label_1 in ["right_hip", "left_hip"]:
             #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
             # else:
-            #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
+            pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.03, 0.03, 0.03
             pnt_marker.color.a = 1.0
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0
@@ -151,8 +148,5 @@ rospy.init_node('pose_visualizer')
 skel_pub = rospy.Publisher('openpifpaf_markers', Marker, queue_size=100)
 
 logger.warning("Using /openpifpaf_pose_transformed")
-if args.kalman:
-    pose_sub = rospy.Subscriber('openpifpaf_pose_full_kalman', PoseEstimation, pose_cb)
-else:
-    pose_sub = rospy.Subscriber('openpifpaf_pose_full', PoseEstimation, pose_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_transformed', PoseEstimation, pose_cb)
 rospy.spin()
