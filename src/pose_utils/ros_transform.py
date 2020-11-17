@@ -109,7 +109,7 @@ def points_cb(msg):
 
             for i,v in msg_dict.items():
                 msg_dict_tf[i].extend(v[3:6])
-                
+
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
 
@@ -125,7 +125,7 @@ if args.realsense:
 ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
 pose_sub = rospy.Subscriber("/{}".format(args.topic), PoseEstimation, points_cb)
 
-pose_pub = rospy.Publisher('ros_transformed_{}'.format(args.topic), PoseEstimation, queue_size=1)
+pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
 
 if args.cam in ["wrist","base"]:
     tf_listener = tf.TransformListener()

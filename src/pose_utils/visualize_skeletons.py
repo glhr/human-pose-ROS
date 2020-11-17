@@ -63,10 +63,18 @@ topic_hash = abs(int(str(hash(args.topic))[:9]))
 logger.warning(topic_hash)
 
 def alpha_from_uncertainty(uncertainty):
-    uncertainty_norm = min(MAX_UNCERTAINTY, max(uncertainty))/MAX_UNCERTAINTY
-    # print(f"uncertainty: {uncertainty} -> alpha {1-uncertainty_norm}")
-    return 1-uncertainty_norm
+    if len(uncertainty):
+        uncertainty_norm = min(MAX_UNCERTAINTY, max(uncertainty))/MAX_UNCERTAINTY
+        # print(f"uncertainty: {uncertainty} -> alpha {1-uncertainty_norm}")
+        return 1-uncertainty_norm
+    else:
+        return 1
 
+def scale_from_uncertainty(uncertainty):
+    if len(uncertainty):
+        return uncertainty
+    else:
+        return 0,0,0
 
 def pose_cb(msg):
 
@@ -128,7 +136,7 @@ def pose_cb(msg):
 
             if len(pnt_1):
                 pnt_marker.color.a = alpha_from_uncertainty(uncertainty_1)
-                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_1
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = scale_from_uncertainty(uncertainty_1)
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
                 # logger.debug(pnt_marker.pose.position)
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2
@@ -136,7 +144,7 @@ def pose_cb(msg):
                 skel_pub.publish(pnt_marker)
             if len(pnt_2):
                 pnt_marker.color.a = alpha_from_uncertainty(uncertainty_2)
-                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_2
+                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = scale_from_uncertainty(uncertainty_2)
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
 
