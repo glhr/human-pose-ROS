@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="cam" default="wrist" />
-  <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--cam --realsense $(arg cam) --scale 0.5 --debug" required="true" output="screen"/>
+  <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--cam --realsense $(arg cam) --scale 0.5" required="true" output="screen"/>
   <node name="visualize_skeletons_kalman" pkg="human_pose_ROS" type="visualize_skeletons.py" args="--topic openpifpaf_pose_kalman" required="true" output="screen"/>
   <node name="openpifpaf_transformed" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose_kalman" required="true" output="screen"/>
   <node name="visualize_skeletons_transformed" pkg="human_pose_ROS" type="visualize_skeletons.py" args="--topic openpifpaf_pose_transformed --marker_frame world" required="true" output="screen"/>
