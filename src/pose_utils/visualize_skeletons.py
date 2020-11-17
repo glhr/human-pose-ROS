@@ -184,7 +184,11 @@ def pose_cb(msg):
 rospy.init_node(f'pose_visualizer_{args.topic}')
 
 
-logger.warning(f"Using /{args.topic}")
+logger.warning(f"Visualizer subscribing to /{args.topic}")
 pose_sub = rospy.Subscriber(f"/{args.topic}", PoseEstimation, pose_cb)
-skel_pub = rospy.Publisher(f'openpifpaf_markers_{args.topic.split("_")[-1]}', Marker, queue_size=100)
+
+publish_topic = f'markers_{args.topic.split("/")[-1]}'
+logger.warning(f"Visualizer publishing to /{publish_topic}")
+skel_pub = rospy.Publisher(publish_topic, Marker, queue_size=100)
+
 rospy.spin()
