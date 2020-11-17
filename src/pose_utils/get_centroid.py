@@ -44,21 +44,20 @@ def skel_cb(msg):
 
         # print(list(msg_dict_tf.values()))
 
-        valid_points = [v for v in msg_dict.values() if len(v)]
+        # valid_points = [v for v in msg_dict.values() if len(v)]
 
-        if len(valid_points):
-            centroids[skeleton_i] = get_points_centroid(list(valid_points))
-            centroids[skeleton_i] = filter_joint(history,centroids[skeleton_i],skeleton_i)
+        if len(msg_dict["centroid"]):
+            # centroids[skeleton_i] = get_points_centroid(list(valid_points))
+            centroids[skeleton_i] = msg_dict["centroid"][0:3]
+            #
+            # if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
+            # skeleton.centroid = centroids[skeleton_i]
 
-            if args.debug: logger.debug("{} - Centroid: {}".format(skeleton_i, centroids[skeleton_i] ))
-            skeleton.centroid = centroids[skeleton_i]
-
-            if len(centroids[skeleton_i]):
-                distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
-            else:
-                distances[skeleton_i] = -1
+            # if len(centroids[skeleton_i]):
+            distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
         else:
-            skeleton.centroid = []
+            distances[skeleton_i] = -1
+
 
     if len(msg.skeletons):
         closest_skeleton_i = max(0,min(distances, key=distances.get))
@@ -78,8 +77,8 @@ def skel_cb(msg):
 
 rospy.init_node("get_centroid")
 
-rospy.Subscriber("openpifpaf_pose_transformed",PoseEstimation,skel_cb)
-pose_pub = rospy.Publisher("openpifpaf_pose_full",PoseEstimation, queue_size=1)
+rospy.Subscriber("openpifpaf_pose_transformed_openpifpaf_pose_kalman",PoseEstimation,skel_cb)
+pose_pub = rospy.Publisher("kalman_pose_full",PoseEstimation, queue_size=1)
 pan_pub = rospy.Publisher('ref_pan_angle', Float32, queue_size=1)
 tilt_pub = rospy.Publisher('ref_tilt_angle', Float32, queue_size=1)
 
