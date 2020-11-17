@@ -125,7 +125,7 @@ if args.realsense:
 ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
 pose_sub = rospy.Subscriber("/{}".format(args.topic), PoseEstimation, points_cb)
 
-pose_pub = rospy.Publisher('openpifpaf_pose_transformed_{}'.format(args.topic), PoseEstimation, queue_size=1)
+pose_pub = rospy.Publisher('ros_transformed_{}'.format(args.topic), PoseEstimation, queue_size=1)
 
 if args.cam in ["wrist","base"]:
     tf_listener = tf.TransformListener()
