@@ -144,7 +144,8 @@ def pose_cb(msg):
                 centroid_marker.type = centroid_marker.SPHERE
                 centroid_marker.action = centroid_marker.ADD
 
-                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = uncertainty_centroid
+                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.05, 0.05, 0.05
+                # centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = uncertainty_centroid
                 centroid_marker.color.a = 1.0
                 centroid_marker.id = topic_hash+skeleton_i
                 if skeleton_i == msg.tracked_person_id:

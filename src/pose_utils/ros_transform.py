@@ -109,7 +109,7 @@ def points_cb(msg):
 
             for i,v in msg_dict.items():
                 msg_dict_tf[i].extend(v[3:6])
-                print(msg_dict_tf[i])
+                
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
 

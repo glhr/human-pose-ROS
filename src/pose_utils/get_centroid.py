@@ -9,6 +9,7 @@ from vision_utils.timing import CodeTimer
 from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points, vector_from_2_points
 from visualization_msgs.msg import Marker, MarkerArray
 from human_pose_ROS.msg import Skeleton, PoseEstimation
+from safety.kalman_utils import uncertainty_gain
 import vg
 import argparse
 
@@ -57,9 +58,9 @@ def skel_cb(msg):
             distances[skeleton_i] = distance_between_points([0,0,0],centroids[skeleton_i])
         else:
             distances[skeleton_i] = -1
+    uncertain = msg_dict["centroid"][3:6]
 
-
-    if len(msg.skeletons):
+    if np.sum(np.array(msg_dict["centroid"][3:6])*uncertainty_gain) < 1000:
         closest_skeleton_i = max(0,min(distances, key=distances.get))
         msg.tracked_person_id = closest_skeleton_i
         pan_angle = angle_from_centroid(centroids[closest_skeleton_i], ref_vector=[0,1,0], normal_vector=[0,0,-1])
