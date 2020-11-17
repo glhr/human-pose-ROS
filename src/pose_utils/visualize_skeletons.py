@@ -62,6 +62,12 @@ MAX_UNCERTAINTY = 0.5
 topic_hash = abs(int(str(hash(args.topic))[:9]))
 logger.warning(topic_hash)
 
+def alpha_from_uncertainty(uncertainty):
+    uncertainty_norm = min(MAX_UNCERTAINTY, max(uncertainty))/MAX_UNCERTAINTY
+    # print(f"uncertainty: {uncertainty} -> alpha {1-uncertainty_norm}")
+    return 1-uncertainty_norm
+
+
 def pose_cb(msg):
 
     for n, skeleton in enumerate(msg.skeletons):
@@ -83,7 +89,7 @@ def pose_cb(msg):
             line_marker.type = line_marker.LINE_STRIP
             line_marker.action = line_marker.ADD
             line_marker.scale.x = 0.02
-            line_marker.color.a = 1.0
+            line_marker.color.a = min(alpha_from_uncertainty(uncertainty_1), alpha_from_uncertainty(uncertainty_2))
             line_marker.color.r, line_marker.color.g, line_marker.color.b = colors.get(skeleton_i, (0,0,0))
             line_marker.pose.orientation.w = 1.0
             line_marker.pose.position.x, line_marker.pose.position.y, line_marker.pose.position.z = 0, 0, 0
@@ -114,27 +120,27 @@ def pose_cb(msg):
             #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
             # else:
 
-            pnt_marker.color.a = 0.3
+
             pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
             pnt_marker.pose.orientation.w = 1.0
             pnt_marker.lifetime = rospy.Duration(float(args.lifetime))
             pnt_marker.header.stamp = now
 
             if len(pnt_1):
+                pnt_marker.color.a = alpha_from_uncertainty(uncertainty_1)
                 pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_1
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
                 # logger.debug(pnt_marker.pose.position)
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2
 
-                if max(uncertainty_1) < MAX_UNCERTAINTY:
-                    skel_pub.publish(pnt_marker)
+                skel_pub.publish(pnt_marker)
             if len(pnt_2):
+                pnt_marker.color.a = alpha_from_uncertainty(uncertainty_2)
                 pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = uncertainty_2
                 pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
                 pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
 
-                if max(uncertainty_2) < MAX_UNCERTAINTY:
-                    skel_pub.publish(pnt_marker)
+                skel_pub.publish(pnt_marker)
 
             skel_centroid = skeleton_dict['centroid']
             uncertainty_centroid = skel_centroid[3:6]
@@ -144,7 +150,7 @@ def pose_cb(msg):
                 centroid_marker.type = centroid_marker.SPHERE
                 centroid_marker.action = centroid_marker.ADD
 
-                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.05, 0.05, 0.05
+                centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = 0.1, 0.1, 0.1
                 # centroid_marker.scale.x, centroid_marker.scale.y, centroid_marker.scale.z = uncertainty_centroid
                 centroid_marker.color.a = 1.0
                 centroid_marker.id = topic_hash+skeleton_i
