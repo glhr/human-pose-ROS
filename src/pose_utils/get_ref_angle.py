@@ -40,7 +40,10 @@ def skel_cb(msg):
     centroid = msg_dict["centroid"][0:3]
     uncertainty = msg_dict["centroid"][3:6]
 
-    if np.sum(np.array(uncertainty)*uncertainty_gain) < 1000:
+    uncertainty_value = max(uncertainty)
+
+    if uncertainty_value < 1:
+
         pan_angle = angle_from_centroid(centroid, ref_vector=[0,1,0], normal_vector=[0,0,-1])
 
         centroid_v = vector_from_2_points(camera_point,centroid)
@@ -49,6 +52,7 @@ def skel_cb(msg):
         pan_pub.publish(pan_angle)
         tilt_pub.publish(tilt_angle)
     else:
+        logger.info(f"Uncertainty is >= {uncertainty_value}")
         pan_pub.publish(200)
         tilt_pub.publish(200)
 
