@@ -62,7 +62,8 @@ MAX_UNCERTAINTY = 0.5
 topic_hash = abs(int(str(hash(args.topic))[:9]))
 logger.warning(topic_hash)
 
-def alpha_from_uncertainty(uncertainty):
+def alpha_from_uncertainty(uncertainty, override=None):
+    if override is not None: return override
     if len(uncertainty):
         uncertainty_norm = min(MAX_UNCERTAINTY, max(uncertainty))/MAX_UNCERTAINTY
         # print(f"uncertainty: {uncertainty} -> alpha {1-uncertainty_norm}")
@@ -97,7 +98,7 @@ def pose_cb(msg):
             line_marker.type = line_marker.LINE_STRIP
             line_marker.action = line_marker.ADD
             line_marker.scale.x = 0.02
-            line_marker.color.a = min(alpha_from_uncertainty(uncertainty_1), alpha_from_uncertainty(uncertainty_2))
+            line_marker.color.a = min(alpha_from_uncertainty(uncertainty_1, override=1), alpha_from_uncertainty(uncertainty_2, override=1))
             line_marker.color.r, line_marker.color.g, line_marker.color.b = colors.get(skeleton_i, (0,0,0))
             line_marker.pose.orientation.w = 1.0
             line_marker.pose.position.x, line_marker.pose.position.y, line_marker.pose.position.z = 0, 0, 0
