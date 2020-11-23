@@ -95,14 +95,15 @@ def reposition_joint(ref_joint, old_joint, desired_length):
     print("Old joint {}".format([x_old, y_old, z_old.real], [x_ref, y_ref, z_ref.real]))
 
     a = 1
-    b = 2*z_ref
+    b = -2*z_ref
     c = (x_old - x_ref)**2 + (y_old - y_ref)**2 + z_ref**2 - desired_length**2
 
     z_new_1 = (-b + np.sqrt(b**2 + 4*a*c+0j))/2*a
     z_new_2 = (-b + np.sqrt(b**2 - 4*a*c+0j))/2*a
 
-    x = Symbol('x')
-    z_new = float(min(solve((x_old-x_ref)**2 + (y_old-y_ref)**2 + (x-z_ref)**2 - desired_length**2, x)))
+    # x = Symbol('x')
+    # z_new = float(min(solve((x_old-x_ref)**2 + (y_old-y_ref)**2 + (x-z_ref)**2 - desired_length**2, x)))
+    z_new = min(z_new_1, z_new_2)
 
     new_joint = [x_old, y_old, z_new]
 
