@@ -25,12 +25,12 @@ connected_points = [
 (11,12), (5,6)]
 
 # excluding ears and feet
-connected_points = [
-(0,2), (2,6), (6,8), (8,10),
-(0,1), (1,5), (5,7), (7,9),
-(5,11), (11,13),
-(6,12), (12,14),
-(11,12), (5,6)]
+# connected_points = [
+# (0,2), (2,6), (6,8), (8,10),
+# (0,1), (1,5), (5,7), (7,9),
+# (5,11), (11,13),
+# (6,12), (12,14),
+# (11,12), (5,6)]
 
 colors = dict()
 for k in range(100):
@@ -98,7 +98,7 @@ def pose_cb(msg):
             line_marker.type = line_marker.LINE_STRIP
             line_marker.action = line_marker.ADD
             line_marker.scale.x = 0.02
-            line_marker.color.a = min(alpha_from_uncertainty(uncertainty_1, override=1), alpha_from_uncertainty(uncertainty_2, override=1))
+            line_marker.color.a = min(alpha_from_uncertainty(uncertainty_1), alpha_from_uncertainty(uncertainty_2))
             line_marker.color.r, line_marker.color.g, line_marker.color.b = colors.get(skeleton_i, (0,0,0))
             line_marker.pose.orientation.w = 1.0
             line_marker.pose.position.x, line_marker.pose.position.y, line_marker.pose.position.z = 0, 0, 0

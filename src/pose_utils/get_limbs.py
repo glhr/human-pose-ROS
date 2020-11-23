@@ -46,8 +46,12 @@ DEPTH_INFO_TOPIC = f'/{args.cam}_camera/camera/aligned_depth_to_color/camera_inf
 print(DEPTH_INFO_TOPIC)
 
 connected_points = {
-'eyeshoulder_left': (1,5),
-'eyeshoulder_right': (2,6),
+'eyeshoulder_left': (5,1),
+'eyeshoulder_right': (6,2),
+'earshoulder_left': (5,3),
+'earshoulder_right': (6,4),
+'eyear_left': (1,3),
+'eyear_right': (2,4),
 'noseye_left': (0,1),
 'noseye_right': (0,2),
 'torso_left': (5,11),
@@ -66,15 +70,17 @@ connected_points = {
 
 thresholds = {
     'forearm': 0.35,
-    'upperarm': 0.4,
+    'upperarm': 0.35,
     'calf': 0.55,
     'thigh': 0.6,
     'noseye': 0.1,
     'eyeshoulder': 0.4,
-    'torso': 0.5
+    'earshoulder': 0.25,
+    'torso': 0.5,
+    'eyear': 0.15
 }
 
-apply_constraints = ['forearm']
+apply_constraints = ['upperarm','forearm','thigh','calf','noseye','eyear','earshoulder']
 
 pairs = dict(list(enumerate(openpifpaf.datasets.constants.COCO_KEYPOINTS)))
 pp.pprint(pairs)
@@ -107,7 +113,7 @@ def reposition_joint(ref_joint, old_joint, desired_length):
 
     new_joint = [x_old, y_old, z_new]
 
-    print("--> New joint: {} | distance from ref: {} vs. {}".format(new_joint, distance_between_points(new_joint, ref_joint), desired_length) )
+    print("--> New joint: {}".format(new_joint) )
     return new_joint
 
 def pose_cb(msg):
