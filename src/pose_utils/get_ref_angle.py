@@ -38,9 +38,13 @@ def skel_cb(msg):
     msg_dict = message_converter.convert_ros_message_to_dictionary(msg.skeletons[0])
 
     centroid = msg_dict["centroid"][0:3]
+    print(centroid)
     uncertainty = msg_dict["centroid"][3:6]
 
-    uncertainty_value = max(uncertainty)
+    if len(uncertainty):
+        uncertainty_value = max(uncertainty)
+    else:
+        uncertainty_value = 0
 
     if uncertainty_value < 1:
 

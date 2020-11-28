@@ -39,6 +39,9 @@ parser.add_argument('--debug',
                  help='Print visualization debug')
 parser.add_argument('--cam',
                  default='wrist')
+parser.add_argument('--pixel',
+                 action='store_true',
+                 help='convert pixel to coords')
 
 args, unknown = parser.parse_known_args()
 
@@ -99,7 +102,7 @@ def reposition_joint(ref_joint, old_joint, desired_length):
     x_ref, y_ref, z_ref = ref_joint[:3]
     x_old, y_old, z_old = old_joint[:3]
 
-    print("Old joint {}".format([x_old, y_old, z_old.real], [x_ref, y_ref, z_ref.real]))
+    if args.debug: print("Old joint {}".format([x_old, y_old, z_old.real], [x_ref, y_ref, z_ref.real]))
 
     a = 1
     b = -2*z_ref
@@ -114,7 +117,7 @@ def reposition_joint(ref_joint, old_joint, desired_length):
 
     new_joint = [x_old, y_old, z_new]
 
-    print("--> New joint: {}".format(new_joint) )
+    if args.debug: print("--> New joint: {}".format(new_joint) )
     return new_joint
 
 def pose_cb(msg):
@@ -125,10 +128,11 @@ def pose_cb(msg):
     for n, skeleton in enumerate(msg.skeletons):
         skeleton_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
 
-        for k, v in skeleton_dict.items():
-            if isinstance(v,list) and len(v):
-                if args.cam in ["wrist","base"]:
-                    v[:3] = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+        if args.pixel:
+            for k, v in skeleton_dict.items():
+                if isinstance(v,list) and len(v):
+                    if args.cam in ["wrist","base"]:
+                        v[:3] = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
 
         limbs_before, limbs_after = dict(), dict()
         for limb,conn in connected_points.items():
@@ -155,7 +159,7 @@ def pose_cb(msg):
                     limbs_after[limb] = distance_between_points(pnt_1, pnt_2)
                     # print(distance)
 
-            pose.skeletons[n] = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton", skeleton_dict)
+        pose.skeletons[n] = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton", skeleton_dict)
 
         if n == person_id:
             limb_before_pub.publish(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Limbs",limbs_before))
@@ -169,7 +173,7 @@ def pose_cb(msg):
 
 
 logger.warning("Using /openpifpaf_pose")
-pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, pose_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_kalman', PoseEstimation, pose_cb)
 limb_before_pub = rospy.Publisher('limbs_before', Limbs, queue_size=100)
 limb_after_pub = rospy.Publisher('limbs_after', Limbs, queue_size=100)
 skel_pub = rospy.Publisher('openpifpaf_pose_constrained_limbs', PoseEstimation, queue_size=100)
