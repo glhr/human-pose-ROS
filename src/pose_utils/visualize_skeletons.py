@@ -61,6 +61,7 @@ args, unknown = parser.parse_known_args()
 
 FRAME_ID = args.marker_frame
 MAX_UNCERTAINTY = 10
+SHOW_UNCERTAINTY = True
 
 topic_hash = abs(int(str(hash(args.topic))[:9]))
 logger.warning(topic_hash)
@@ -123,36 +124,37 @@ def pose_cb(msg):
                 if args.debug: pp.pprint(line_marker.points)
                 skel_pub.publish(line_marker)
 
-            pnt_marker = Marker()
-            pnt_marker.header.frame_id = FRAME_ID
-            pnt_marker.type = pnt_marker.SPHERE
-            pnt_marker.action = pnt_marker.ADD
-            # ass cheek special effet
-            # if label_1 in ["right_hip", "left_hip"]:
-            #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
-            # else:
+            if SHOW_UNCERTAINTY:
+                pnt_marker = Marker()
+                pnt_marker.header.frame_id = FRAME_ID
+                pnt_marker.type = pnt_marker.SPHERE
+                pnt_marker.action = pnt_marker.ADD
+                # ass cheek special effet
+                # if label_1 in ["right_hip", "left_hip"]:
+                #     pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = 0.3, 0.3, 0.3
+                # else:
 
 
-            pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
-            pnt_marker.pose.orientation.w = 1.0
-            pnt_marker.lifetime = rospy.Duration(float(args.lifetime))
-            pnt_marker.header.stamp = now
+                pnt_marker.color.r, pnt_marker.color.g, pnt_marker.color.b = (1.0,1.0,1.0)
+                pnt_marker.pose.orientation.w = 1.0
+                pnt_marker.lifetime = rospy.Duration(float(args.lifetime))
+                pnt_marker.header.stamp = now
 
-            if len(pnt_1):
-                pnt_marker.color.a = alpha_from_uncertainty(uncertainty_1)
-                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = scale_from_uncertainty(uncertainty_1)
-                pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
-                # logger.debug(pnt_marker.pose.position)
-                pnt_marker.id = topic_hash+skeleton_i*100 + i*2
+                if len(pnt_1):
+                    pnt_marker.color.a = alpha_from_uncertainty(uncertainty_1)
+                    pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = scale_from_uncertainty(uncertainty_1)
+                    pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_1
+                    # logger.debug(pnt_marker.pose.position)
+                    pnt_marker.id = topic_hash+skeleton_i*100 + i*2
 
-                skel_pub.publish(pnt_marker)
-            if len(pnt_2):
-                pnt_marker.color.a = alpha_from_uncertainty(uncertainty_2)
-                pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = scale_from_uncertainty(uncertainty_2)
-                pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
-                pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
+                    skel_pub.publish(pnt_marker)
+                if len(pnt_2):
+                    pnt_marker.color.a = alpha_from_uncertainty(uncertainty_2)
+                    pnt_marker.scale.x, pnt_marker.scale.y, pnt_marker.scale.z = scale_from_uncertainty(uncertainty_2)
+                    pnt_marker.pose.position.x, pnt_marker.pose.position.y, pnt_marker.pose.position.z = pnt_2
+                    pnt_marker.id = topic_hash+skeleton_i*100 + i*2+1
 
-                skel_pub.publish(pnt_marker)
+                    skel_pub.publish(pnt_marker)
 
             skel_centroid = skeleton_dict['centroid']
             uncertainty_centroid = skel_centroid[3:6]
@@ -196,9 +198,10 @@ logger.warning(f"Visualizer publishing to /{publish_topic}")
 skel_pub = rospy.Publisher(publish_topic, Marker, queue_size=100)
 
 def cfg_callback(config, level):
-    global MAX_UNCERTAINTY
-    rospy.loginfo("""Reconfigure Request: {visualization_max_uncertainty}""".format(**config))
+    global MAX_UNCERTAINTY, SHOW_UNCERTAINTY
+    # rospy.loginfo("""Reconfigure Request: {visualization_max_uncertainty}""".format(**config))
     MAX_UNCERTAINTY = config['visualization_max_uncertainty']
+    SHOW_UNCERTAINTY = config['visualization_show_uncertainty']
     return config
 
 srv = Server(poseConfig, cfg_callback)
