@@ -11,6 +11,9 @@ from vision_utils.timing import get_timestamp
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
 
+from dynamic_reconfigure.server import Server
+from human_pose_ROS.cfg import poseConfig
+
 logger=get_logger()
 pp = get_printer()
 
@@ -57,7 +60,7 @@ parser.add_argument('--marker_frame',default='/wrist_camera_color_optical_frame'
 args, unknown = parser.parse_known_args()
 
 FRAME_ID = args.marker_frame
-MAX_UNCERTAINTY = 0.5
+MAX_UNCERTAINTY = 10
 
 topic_hash = abs(int(str(hash(args.topic))[:9]))
 logger.warning(topic_hash)
@@ -192,4 +195,11 @@ publish_topic = f'markers_{args.topic.split("/")[-1]}'
 logger.warning(f"Visualizer publishing to /{publish_topic}")
 skel_pub = rospy.Publisher(publish_topic, Marker, queue_size=100)
 
+def cfg_callback(config, level):
+    global MAX_UNCERTAINTY
+    rospy.loginfo("""Reconfigure Request: {visualization_max_uncertainty}""".format(**config))
+    MAX_UNCERTAINTY = config['visualization_max_uncertainty']
+    return config
+
+srv = Server(poseConfig, cfg_callback)
 rospy.spin()
