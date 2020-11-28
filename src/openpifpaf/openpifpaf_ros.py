@@ -202,6 +202,14 @@ def skeleton_from_keypoints(skel_dict):
 
 depth_history = dict()
 
+def get_depth_value(pnt, im_h, im_w):
+    if pnt[1] >= im_h-10 or pnt[0] >= im_w-10:
+        if args.debug: logger.error(pnt)
+    y = min(im_h-1, int(pnt[1]))
+    x = min(im_w-1, int(pnt[0]))
+    z = depth_predict[y if y<im_h-1 else im_h-10][x if y<im_w-1 else im_w-10]/1000
+    return [x,y,z]
+
 
 def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     predictions = [ann.json_data() for ann in predictions[0]]
@@ -229,12 +237,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
             if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
-                    if pnt_1[1] >= im_h-10 or pnt_1[0] >= im_w-10:
-                        if args.debug: logger.error(pnt_1)
-                    y = min(im_h-1, int(pnt_1[1]))
-                    x = min(im_w-1, int(pnt_1[0]))
-                    z = depth_predict[y if y<im_h-1 else im_h-10][x if y<im_w-1 else im_w-10]/1000
-                    pnt1_cam = [x,y,z]
+                    pnt1_cam = get_depth_value(pnt_1, im_h, im_w)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt1_cam.append(1)
