@@ -148,15 +148,16 @@ def pose_cb(msg):
 
                 skeleton_dict[list(skeleton_dict.keys())[conn[1]]][:3] = pnt_2
 
+                distance = distance_between_points(pnt_1, pnt_2)
+                limbs_before[limb] = distance
+
                 if label in apply_constraints:
-                    distance = distance_between_points(pnt_1, pnt_2)
-                    limbs_before[limb] = distance
                     thresh = thresholds[label]
                     if distance > thresh:
                         if args.cam in ["wrist","base"]:
                             pnt_2 = reposition_joint(ref_joint=pnt_1, old_joint=pnt_2, desired_length=thresh)
                         skeleton_dict[list(skeleton_dict.keys())[conn[1]]][:3] = pnt_2
-                    limbs_after[limb] = distance_between_points(pnt_1, pnt_2)
+                limbs_after[limb] = distance_between_points(pnt_1, pnt_2)
                     # print(distance)
 
         pose.skeletons[n] = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton", skeleton_dict)
