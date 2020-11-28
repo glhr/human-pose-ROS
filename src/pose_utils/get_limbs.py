@@ -42,8 +42,9 @@ parser.add_argument('--cam',
 
 args, unknown = parser.parse_known_args()
 
-DEPTH_INFO_TOPIC = f'/{args.cam}_camera/camera/aligned_depth_to_color/camera_info'
-print(DEPTH_INFO_TOPIC)
+if args.cam in ["wrist","base"]:
+    DEPTH_INFO_TOPIC = f'/{args.cam}_camera/camera/aligned_depth_to_color/camera_info'
+    print(DEPTH_INFO_TOPIC)
 
 connected_points = {
 'eyeshoulder_left': (1,5),
@@ -84,9 +85,9 @@ for k in range(100):
   colors[k] = tuple(np.random.randint(256, size=3)/256)
 
 
-
-cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
-logger.info("Got camera info")
+if args.cam in ["wrist","base"]:
+    cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=2)
+    logger.info("Got camera info")
 
 def reposition_joint(ref_joint, old_joint, desired_length):
     x_ref, y_ref, z_ref = ref_joint[:3]
@@ -120,7 +121,8 @@ def pose_cb(msg):
 
         for k, v in skeleton_dict.items():
             if isinstance(v,list) and len(v):
-                v[:3] = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                if args.cam in ["wrist","base"]:
+                    v[:3] = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
 
         limbs_before, limbs_after = dict(), dict()
         for limb,conn in connected_points.items():
@@ -141,7 +143,8 @@ def pose_cb(msg):
                     limbs_before[limb] = distance
                     thresh = thresholds[label]
                     if distance > thresh:
-                        pnt_2 = reposition_joint(ref_joint=pnt_1, old_joint=pnt_2, desired_length=thresh)
+                        if args.cam in ["wrist","base"]:
+                            pnt_2 = reposition_joint(ref_joint=pnt_1, old_joint=pnt_2, desired_length=thresh)
                         skeleton_dict[list(skeleton_dict.keys())[conn[1]]][:3] = pnt_2
                     limbs_after[limb] = distance_between_points(pnt_1, pnt_2)
                     # print(distance)
