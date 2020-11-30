@@ -47,37 +47,42 @@ if args.cam in ["wrist","base"]:
     logger.info("Got camera info")
 
 
-pnts_dict = []
+pnts_dict = dict()
 
 def save_everything():
     csv_columns = ['x','y','z']
-    with open(Path.joinpath(project_path,f'joint_data/{time.time()}-test.csv'), 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
-        writer.writeheader()
-        for data in pnts_dict:
-            writer.writerow(data)
+    t = time.time()
+    for joint in pnts_dict:
+        with open(Path.joinpath(project_path,f'joint_data/{t}-{joint}.csv'), 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for data in pnts_dict[joint]:
+                writer.writerow(data)
 
 
 def points_cb(msg):
     global num_frames, num_images, images, frames
 
-    if not saving:
+    if not saving and 60 > time.time()-start > 3:
         num_frames += 1
         if len(msg.skeletons):
             skeleton = msg.skeletons[0]
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
             msg_dict = {k: v for k, v in msg_dict.items() if isinstance(v, list)}
             for i,v in msg_dict.items():
-                if i == "left_shoulder":
-                    # pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                    pnt1_cam = v
-                    pnts_dict.append({
+                # pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                pnt1_cam = v
+                if len(pnt1_cam):
+                    pnts_dict[i] = pnts_dict.get(i,[])
+                    pnts_dict[i].append({
                         'x': pnt1_cam[0],
                         'y': pnt1_cam[1],
                         'z': pnt1_cam[2]
                     })
 
             logger.info(num_frames)
+    else:
+        print("time's up :D")
 
 pose_sub = rospy.Subscriber('openpifpaf_pose_transformed_pose_cam', PoseEstimation, points_cb)
 # img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
@@ -95,4 +100,5 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+start = time.time()
 rospy.spin()
