@@ -62,7 +62,7 @@ def skel_cb(msg):
 
 rospy.init_node("get_centroid")
 
-rospy.Subscriber("openpifpaf_pose_transformed_kalman",PoseEstimation,skel_cb)
+rospy.Subscriber("openpifpaf_pose_transformed_kalman_world",PoseEstimation,skel_cb)
 pan_pub = rospy.Publisher('ref_pan_angle', Float32, queue_size=1)
 tilt_pub = rospy.Publisher('ref_tilt_angle', Float32, queue_size=1)
 

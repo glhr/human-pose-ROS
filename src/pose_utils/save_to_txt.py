@@ -111,12 +111,7 @@ def points_cb(msg):
             msg_dict_tf = dict()
             pnts = []
             for i,v in msg_dict.items():
-                if len(v) and args.cam in ["wrist","base"]:
-                    pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                elif len(v):
-                    pnt1_cam = v
-                else:
-                    pnt1_cam = [0,0,0]
+                pnt1_cam = v if len(v) else [0,0,0]
                 msg_dict_tf[i] = pnt1_cam
                 pnts.extend(pnt1_cam)
 
@@ -124,7 +119,7 @@ def points_cb(msg):
 
             logger.info(num_frames)
 
-pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_transformed_pose_cam', PoseEstimation, points_cb)
 # img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
 poseimg_sub = rospy.Subscriber('openpifpaf_img', Image, img_cb)
 

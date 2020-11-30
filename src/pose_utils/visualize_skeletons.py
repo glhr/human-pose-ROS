@@ -54,7 +54,7 @@ parser.add_argument('--kalman',
                  action='store_true',
                  help='use kalman filter for visualization')
 parser.add_argument('--topic',
-                    default='openpifpaf_pose_transformed')
+                    default='openpifpaf_pose_transformed_pose_cam')
 parser.add_argument('--marker_frame',default='/wrist_camera_color_optical_frame')
 
 args, unknown = parser.parse_known_args()

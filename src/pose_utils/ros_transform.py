@@ -31,6 +31,9 @@ parser.add_argument('--ar',
 parser.add_argument('--pixel',
                  action='store_true',
                  help='convert pixel to coords')
+parser.add_argument('--camframe',
+                 action='store_true',
+                 help='keep coords in camera frame')
 parser.add_argument('--topic',
                     default='openpifpaf_pose_kalman')
 args, unknown = parser.parse_known_args()
@@ -65,7 +68,10 @@ def ar_cb(msg):
             if args.cam in ["wrist","base"]:
                 for i,v in msg_dict.items():
                     pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                    msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+                    if args.camframe:
+                        msg_dict_tf[i] = pnt1_cam
+                    else:
+                        msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
             else:
                 msg_dict_tf = msg_dict
 
@@ -103,7 +109,10 @@ def points_cb(msg):
                         pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
                     else:
                         pnt1_cam = v[0:3]
-                    msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+                    if args.camframe:
+                        msg_dict_tf[i] = pnt1_cam
+                    else:
+                        msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
             else:
                 msg_dict_tf = msg_dict
 
@@ -125,7 +134,7 @@ if args.realsense:
 ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
 pose_sub = rospy.Subscriber("/{}".format(args.topic), PoseEstimation, points_cb)
 
-pose_pub = rospy.Publisher('openpifpaf_pose_transformed_{}'.format(args.topic.split("_")[-1]), PoseEstimation, queue_size=1)
+pose_pub = rospy.Publisher('openpifpaf_pose_transformed_{}_{}'.format(args.topic.split("_")[-1], "cam" if args.camframe else "world"), PoseEstimation, queue_size=1)
 
 if args.cam in ["wrist","base"]:
     tf_listener = tf.TransformListener()

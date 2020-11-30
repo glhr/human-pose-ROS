@@ -32,20 +32,9 @@ rospy.init_node("save_joints")
 
 DEPTH_INFO_TOPIC = '/{}_camera/camera/aligned_depth_to_color/camera_info'.format(args.cam)
 
-im_h = 480
-im_w = 848
-
 num_frames = 0
-num_images = 0
-
 saving = False
 
-frames = {}
-
-joint_coords = []
-images = []
-
-FRAMES_PER_SEQ = args.seqlength
 
 import os
 import csv
@@ -77,12 +66,11 @@ def points_cb(msg):
         if len(msg.skeletons):
             skeleton = msg.skeletons[0]
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
-            msg_dict = {k: v for k, v in msg_dict.items() if isinstance(v, list) and k.split("_")[-1] in save_points}
-            msg_dict_tf = dict()
+            msg_dict = {k: v for k, v in msg_dict.items() if isinstance(v, list)}
             for i,v in msg_dict.items():
                 if i == "left_shoulder":
-                    pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                    msg_dict_tf[i] = pnt1_cam
+                    # pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                    pnt1_cam = v
                     pnts_dict.append({
                         'x': pnt1_cam[0],
                         'y': pnt1_cam[1],
@@ -91,7 +79,7 @@ def points_cb(msg):
 
             logger.info(num_frames)
 
-pose_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_cb)
+pose_sub = rospy.Subscriber('openpifpaf_pose_transformed_pose_cam', PoseEstimation, points_cb)
 # img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
 
 import signal, sys
