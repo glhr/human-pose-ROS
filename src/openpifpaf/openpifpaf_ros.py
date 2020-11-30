@@ -85,9 +85,7 @@ parser.add_argument('--debug',
 
 args, unknown = parser.parse_known_args()
 
-aspect_ratio = 480/848
-
-valid_scales = {0.25,0.5,0.75}
+valid_scales = {0.25,0.5,0.75,1}
 
 def predict(img_path, scale=1, json_output=None):
 
@@ -102,18 +100,23 @@ def predict(img_path, scale=1, json_output=None):
         img_name = f'{args.realsense}_camera_{get_timestamp()}.png'
 
     if scale < 1 and scale in valid_scales:
-        dim = (round(i*scale) for i in pil_im.size)
-        pil_im = pil_im.resize(dim)
+        # print("rgb:",pil_im.size)
+        dim = tuple(int(i*scale) for i in pil_im.size)
+        # print("-> rgb:",dim)
+        # pil_im = pil_im.resize(pil_im.size)
     elif scale < 1:
         logger.warning("Scale should be in {valid_scales}, not resizing")
     if args.cam:
         if scale < 1 and scale in valid_scales:
-            dim = (round(i*scale) for i in pil_im_depth.size)
+            # print("depth:",pil_im_depth.size)
+            dim = tuple(int(i*scale) for i in pil_im_depth.size)
             pil_im_depth = pil_im_depth.convert('F')
             pil_im_depth = pil_im_depth.resize(dim)
+            # print("-> depth:",pil_im_depth.size)
         elif scale < 1:
             logger.warning("Scale should be in {valid_scales}, not resizing")
         im_depth = np.asarray(pil_im_depth)
+        # print("-> depth:",im_depth.size)
         # im_depth = gaussian_filter(im_depth, sigma=2)
         # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
         # poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
@@ -202,12 +205,12 @@ def skeleton_from_keypoints(skel_dict):
 
 depth_history = dict()
 
-def get_depth_value(pnt, im_h, im_w):
-    if pnt[1] >= im_h-10 or pnt[0] >= im_w-10:
-        if args.debug: logger.error(pnt)
-    y = min(im_h-1, int(pnt[1]))
-    x = min(im_w-1, int(pnt[0]))
-    z = depth_predict[y if y<im_h-1 else im_h-10][x if y<im_w-1 else im_w-10]/1000
+def get_depth_value(pnt):
+    # if pnt[1] >= im_h-10 or pnt[0] >= im_w-10:
+    #     if args.debug: logger.error(pnt)
+    y = int(pnt[1])
+    x = int(pnt[0])
+    z = depth_predict[y][x]/1000
     return [x,y,z]
 
 
@@ -215,9 +218,6 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
     predictions = [ann.json_data() for ann in predictions[0]]
     pose_msg = PoseEstimation()
     pose_msg.skeletons = []
-
-    im_w = int(im.shape[1]/scale)
-    im_h = int(im.shape[0]/scale)
 
     angles = dict()
     for person_id, person in enumerate(predictions):
@@ -231,13 +231,19 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         skel_dict = dict()
 
+
+
         for i,pnt in enumerate(pnts_openpifpaf):
-            pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[i])
+            # print(min(pnts_openpifpaf[i]), max(pnts_openpifpaf[i]))
+            if scale < 1:
+                pnt_1 = tuple(pnt for pnt in pnts_openpifpaf[i])
+            else:
+                pnt_1 = tuple(pnt for pnt in pnts_openpifpaf[i])
             # pnt_1 = pnts_openpifpaf[i]
 
             if pnt_1[0] > 0 and pnt_1[1] > 0:
                 if cam:
-                    pnt1_cam = get_depth_value(pnt_1, im_h, im_w)
+                    pnt1_cam = get_depth_value(pnt_1)
                 else:
                     pnt1_cam = [i/100 for i in pnt_1]
                     pnt1_cam.append(1)
