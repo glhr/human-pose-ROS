@@ -63,7 +63,7 @@ def save_everything():
 def points_cb(msg):
     global num_frames, num_images, images, frames
 
-    if not saving and 60 > time.time()-start > 3:
+    if not saving and 63 > time.time()-start > 3:
         num_frames += 1
         if len(msg.skeletons):
             skeleton = msg.skeletons[0]
