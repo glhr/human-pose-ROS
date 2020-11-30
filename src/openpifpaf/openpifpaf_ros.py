@@ -208,8 +208,8 @@ depth_history = dict()
 def get_depth_value(pnt):
     # if pnt[1] >= im_h-10 or pnt[0] >= im_w-10:
     #     if args.debug: logger.error(pnt)
-    y = int(pnt[1])
-    x = int(pnt[0])
+    y = int(pnt[1]-1)
+    x = int(pnt[0]-1)
     z = depth_predict[y][x]/1000
     return [x,y,z]
 
