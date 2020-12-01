@@ -76,6 +76,7 @@ h = findobj(gca,'Tag','Box');
 for j=1:length(h)
     patch(get(h(j),'XData'),get(h(j),'YData'),colors(j,:),'FaceAlpha',.5);
 end
+set(gcf,'position',[0,0,400,600])
 
 figure(2)
 boxplot(totals_y, g,'Whisker',1,'Symbol','k+')
@@ -87,6 +88,7 @@ h = findobj(gca,'Tag','Box');
 for j=1:length(h)
     patch(get(h(j),'XData'),get(h(j),'YData'),colors(j,:),'FaceAlpha',.5);
 end
+set(gcf,'position',[0,0,400,600])
 
 figure(3)
 boxplot(totals_z, g,'Whisker',1,'Symbol','k+')
@@ -98,4 +100,5 @@ h = findobj(gca,'Tag','Box');
 for j=1:length(h)
     patch(get(h(j),'XData'),get(h(j),'YData'),colors(j,:),'FaceAlpha',.5);
 end
+set(gcf,'position',[0,0,400,600])
 % T = table(joints_valid,std_x,std_y,std_z)
