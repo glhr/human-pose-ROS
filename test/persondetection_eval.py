@@ -60,7 +60,7 @@ new_image = {
     'raw': False
 }
 
-MAX_UNCERTAINTY = 1
+MAX_UNCERTAINTY = None
 
 logger.info("Waiting for camera info :)")
 cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo)
@@ -72,38 +72,46 @@ if not os.path.exists(Path.joinpath(project_path,f"action_data")):
 
 def save_everything():
     timestamp = time.time()
-    save_images(images, name=timestamp, pose='kalman')
-    save_images(images, name=timestamp, pose='raw')
+    save_images(images, name=timestamp)
 
     logger.warning(f"Person found in {found_person} out of {num_frames} frames")
 
-def save_images(images, pose='raw', name=time.time()):
+def save_images(images, name=time.time()):
     height,width,layers=images[0].shape
     fourcc = cv2.VideoWriter_fourcc(*'H264')
 
-    video=cv2.VideoWriter(f"persondetection-{name}-{pose}.mp4",fourcc,10,(width,height))
+    video=cv2.VideoWriter(f"persondetection-{name}.mp4",fourcc,10,(width,height))
 
-    for i,coords in enumerate(joint_coords[pose]):
+    for i,(coords_kalman, coords_raw) in enumerate(zip(joint_coords['kalman'],joint_coords['raw'])):
+        print(coords_raw, coords_kalman)
         font = cv2.FONT_HERSHEY_SIMPLEX
         try:
             image = images[i]
-            if len(coords):
-                if pose == 'kalman':
-                    pt1 = list(coords[:3])
-                    pt2 = list(coords[-3:])
-                    pt1 = camera_to_pixel(cameraInfo, pt1)
-                    pt2 = camera_to_pixel(cameraInfo, pt2)
-                    color = (0,0,255)
-                else:
-                    pt1 = list(coords[:2])
-                    pt2 = list(coords[-3:-1])
-                    color = (0,255,0)
+            if len(coords_raw):
+
+                pt1 = list(coords_raw[:2])
+                pt2 = list(coords_raw[-3:-1])
+                color = (0,255,0)
 
                 pt1 = tuple(int(i) for i in pt1)
                 pt2 = tuple(int(i) for i in pt2)
 
                 print(pt1, pt2)
                 image_bb = cv2.rectangle(image.copy(), pt1, pt2, color, 2)
+            else:
+                image_bb = image
+            if len(coords_kalman):
+                pt1 = list(coords_kalman[:3])
+                pt2 = list(coords_kalman[-3:])
+                pt1 = camera_to_pixel(cameraInfo, pt1)
+                pt2 = camera_to_pixel(cameraInfo, pt2)
+                pt1 = tuple(int(i) for i in pt1)
+                pt2 = tuple(int(i) for i in pt2)
+
+                color = (0,0,255)
+                print(pt1, pt2)
+                image_bb = cv2.rectangle(image_bb.copy(), pt1, pt2, color, 2)
+
             video.write(cv2.cvtColor(image_bb, cv2.COLOR_BGR2RGB))
         except IndexError as e:
             print(e)
@@ -123,7 +131,7 @@ def img_cb(msg):
 def points_raw_cb(msg):
     global num_frames, num_images, images, joint_coords, found_person, new_image
 
-    if not saving and new_image['raw']:
+    if not saving:
         new_image['raw'] = False
         num_frames['raw'] += 1
         if len(msg.skeletons):
@@ -167,7 +175,7 @@ def points_kalman_cb(msg):
             for i,v in msg_dict.items():
                 if len(v):
                     uncertainty = v[3:]
-                    if max(uncertainty) < MAX_UNCERTAINTY:
+                    if MAX_UNCERTAINTY is None or max(uncertainty) < MAX_UNCERTAINTY:
                         x.append(v[0])
                         y.append(v[1])
                         z.append(v[2])
