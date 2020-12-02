@@ -15,6 +15,7 @@ import argparse
 from pathlib import Path
 import imageio
 import cv2
+import time
 
 project_path = Path(__file__).parent.absolute()
 
@@ -78,19 +79,39 @@ def save_images(images):
     #         image = imageio.imread(path)
     #         writer.append_data(image)
 
-    with imageio.get_writer(Path.joinpath(project_path,f"test.gif"), mode='I') as writer:
-        for i,coords in enumerate(joint_coords):
-            font = cv2.FONT_HERSHEY_SIMPLEX
+    # with imageio.get_writer(Path.joinpath(project_path,f"test.gif"), mode='I') as writer:
+    #     for i,coords in enumerate(joint_coords):
+    #         font = cv2.FONT_HERSHEY_SIMPLEX
+    #         image = images[i]
+    #         try:
+    #             if len(coords):
+    #                 pt1 = tuple(coords[:2])
+    #                 pt2 = tuple(coords[-2:])
+    #                 print(pt1, pt2)
+    #                 image = cv2.rectangle(image, pt1, pt2, (255,0,0), 2)
+    #         except IndexError as e:
+    #             print(e)
+    #         writer.append_data(image)
+
+    height,width,layers=images[0].shape
+    fourcc = cv2.VideoWriter_fourcc(*'H264')
+
+    video=cv2.VideoWriter(f"persondetection-{time.time()}.mp4",fourcc,10,(width,height))
+
+    for i,coords in enumerate(joint_coords):
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        try:
             image = images[i]
-            try:
-                if len(coords):
-                    pt1 = tuple(coords[:2])
-                    pt2 = tuple(coords[-2:])
-                    print(pt1, pt2)
-                    image = cv2.rectangle(image, pt1, pt2, (255,0,0), 2)
-            except IndexError as e:
-                print(e)
-            writer.append_data(image)
+            if len(coords):
+                pt1 = tuple(coords[:2])
+                pt2 = tuple(coords[-2:])
+                print(pt1, pt2)
+                image = cv2.rectangle(image, pt1, pt2, (0,255,0), 2)
+            video.write(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        except IndexError as e:
+            print(e)
+
+    video.release()
 
 
 def img_cb(msg):
