@@ -38,27 +38,30 @@ def skel_cb(msg):
     msg_dict = message_converter.convert_ros_message_to_dictionary(msg.skeletons[0])
 
     centroid = msg_dict["centroid"][0:3]
-    print(centroid)
-    uncertainty = msg_dict["centroid"][3:6]
+    if len(centroid):
+        print(centroid)
+        uncertainty = msg_dict["centroid"][3:6]
 
-    if len(uncertainty):
-        uncertainty_value = max(uncertainty)
+        if len(uncertainty):
+            uncertainty_value = max(uncertainty)
+        else:
+            uncertainty_value = 0
+
+        if uncertainty_value < 1:
+
+            pan_angle = angle_from_centroid(centroid, ref_vector=[0,1,0], normal_vector=[0,0,-1])
+
+            centroid_v = vector_from_2_points(camera_point,centroid)
+            tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
+            if args.debug: logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
+            pan_pub.publish(pan_angle)
+            tilt_pub.publish(tilt_angle)
+        else:
+            logger.info(f"Uncertainty is >= {uncertainty_value}")
+            pan_pub.publish(200)
+            tilt_pub.publish(200)
     else:
-        uncertainty_value = 0
-
-    if uncertainty_value < 1:
-
-        pan_angle = angle_from_centroid(centroid, ref_vector=[0,1,0], normal_vector=[0,0,-1])
-
-        centroid_v = vector_from_2_points(camera_point,centroid)
-        tilt_angle = angle_from_centroid(centroid_v, ref_vector=ref_v, normal_vector=[1,0,0])
-        if args.debug: logger.debug("--> Angle of closest person {}: pan {} tilt {}".format(closest_skeleton_i, pan_angle, tilt_angle))
-        pan_pub.publish(pan_angle)
-        tilt_pub.publish(tilt_angle)
-    else:
-        logger.info(f"Uncertainty is >= {uncertainty_value}")
-        pan_pub.publish(200)
-        tilt_pub.publish(200)
+        logger.error("No centroid to compute ref angle")
 
 rospy.init_node("get_centroid")
 

@@ -16,6 +16,7 @@ from pathlib import Path
 import imageio
 import cv2
 import time
+import itertools
 
 project_path = Path(__file__).parent.absolute()
 
@@ -24,7 +25,6 @@ pp = get_printer()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--debug', default=True, action='store_true')
-parser.add_argument('--transform', action='store_true', default=False)
 parser.add_argument('--cam', default='wrist')
 args, unknown = parser.parse_known_args()
 
@@ -82,7 +82,7 @@ def save_images(images, name=time.time()):
 
     video=cv2.VideoWriter(f"persondetection-{name}.mp4",fourcc,10,(width,height))
 
-    for i,(coords_kalman, coords_raw) in enumerate(zip(joint_coords['kalman'],joint_coords['raw'])):
+    for i,(coords_kalman, coords_raw) in enumerate(itertools.zip_longest(joint_coords['kalman'],joint_coords['raw'], fillvalue=[])):
         print(coords_raw, coords_kalman)
         font = cv2.FONT_HERSHEY_SIMPLEX
         try:
