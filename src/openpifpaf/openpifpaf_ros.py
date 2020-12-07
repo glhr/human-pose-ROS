@@ -85,7 +85,7 @@ parser.add_argument('--debug',
 
 args, unknown = parser.parse_known_args()
 
-valid_scales = {0.25,0.5,0.75,1}
+valid_scales = {0.1,0.25,0.5,0.75,1}
 
 def predict(img_path, scale=1, json_output=None):
 
@@ -103,7 +103,7 @@ def predict(img_path, scale=1, json_output=None):
         # print("rgb:",pil_im.size)
         dim = tuple(int(i*scale) for i in pil_im.size)
         # print("-> rgb:",dim)
-        # pil_im = pil_im.resize(pil_im.size)
+        pil_im = pil_im.resize(dim)
     elif scale < 1:
         logger.warning("Scale should be in {valid_scales}, not resizing")
     if args.cam:
@@ -208,8 +208,8 @@ depth_history = dict()
 def get_depth_value(pnt):
     # if pnt[1] >= im_h-10 or pnt[0] >= im_w-10:
     #     if args.debug: logger.error(pnt)
-    y = int(pnt[1]-1)
-    x = int(pnt[0]-1)
+    y = int(pnt[1])
+    x = int(pnt[0])
     z = depth_predict[y][x]/1000
     return [x,y,z]
 
@@ -236,7 +236,7 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
         for i,pnt in enumerate(pnts_openpifpaf):
             # print(min(pnts_openpifpaf[i]), max(pnts_openpifpaf[i]))
             if scale < 1:
-                pnt_1 = tuple(pnt for pnt in pnts_openpifpaf[i])
+                pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[i])
             else:
                 pnt_1 = tuple(pnt for pnt in pnts_openpifpaf[i])
             # pnt_1 = pnts_openpifpaf[i]
