@@ -3,7 +3,7 @@
   <arg name="cam" default="wrist" />
   <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--cam --realsense $(arg cam) --scale 0.5" required="true" output="screen"/>
 
-  <!-- <node name="median_filter" pkg="human_pose_ROS" type="filter_skeletons.py" args="" required="true" output="screen"/> -->
+  <node name="median_filter" pkg="human_pose_ROS" type="filter_skeletons.py" args="" required="true" output="screen"/>
 
   <node name="openpifpaf_transformed_raw_cam" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel --camframe" required="true" output="screen"/>
   <node name="openpifpaf_transformed_raw_world" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel" required="true" output="screen"/>

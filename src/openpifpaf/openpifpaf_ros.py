@@ -38,6 +38,8 @@ from vision_utils.img import image_to_numpy, numpy_to_image, load_image
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import get_timestamp
 
+import cv2
+
 import pathlib
 filepath = pathlib.Path(__file__).parent.absolute()
 
@@ -62,7 +64,7 @@ processor = openpifpaf.decoder.factory_decode(net.head_nets, basenet_stride=net.
 preprocess = openpifpaf.transforms.Compose([
     openpifpaf.transforms.NormalizeAnnotations(),
     openpifpaf.transforms.CenterPadTight(16),
-    openpifpaf.transforms.EVAL_TRANSFORM,
+    openpifpaf.transforms.EVAL_TRANSFORM
 ])
 
 depth_image = []
@@ -87,45 +89,44 @@ args, unknown = parser.parse_known_args()
 
 valid_scales = {0.1,0.25,0.5,0.75,1}
 
-def predict(img_path, scale=1, json_output=None):
+def resize_img(scale, im):
+    if scale in valid_scales:
+        # print("rgb:",pil_im.size)
+        dim = tuple(int(i*scale) for i in im.shape[0:2][::-1])
+        # print("-> rgb:",dim)
 
+        img = cv2.resize(im, dsize=dim)
+        return img
+    else:
+        logger.warning("Scale should be in {valid_scales}, not resizing")
+        return im
+
+def predict(img_path, scale=1, json_output=None):
     if isinstance(img_path, str):
         pil_im = PIL.Image.open(img_path)
         img_name = img_path.split("/")[-1]
         img_name = f'{img_path.split("/")[-1].split(".")[-2]}-{scale}.{img_path.split(".")[-1]}' if scale<1 else img_path.split("/")[-1]
     else:
-        pil_im = PIL.Image.fromarray(np.array(img_path))
-        if args.cam:
-            pil_im_depth = PIL.Image.fromarray(depth_predict)
+        pil_im = img_path
+        im_depth = depth_predict
         img_name = f'{args.realsense}_camera_{get_timestamp()}.png'
 
-    if scale < 1 and scale in valid_scales:
-        # print("rgb:",pil_im.size)
-        dim = tuple(int(i*scale) for i in pil_im.size)
-        # print("-> rgb:",dim)
-        pil_im = pil_im.resize(dim)
-    elif scale < 1:
-        logger.warning("Scale should be in {valid_scales}, not resizing")
-    if args.cam:
-        if scale < 1 and scale in valid_scales:
-            # print("depth:",pil_im_depth.size)
-            dim = tuple(int(i*scale) for i in pil_im_depth.size)
-            pil_im_depth = pil_im_depth.convert('F')
-            pil_im_depth = pil_im_depth.resize(dim)
-            # print("-> depth:",pil_im_depth.size)
-        elif scale < 1:
-            logger.warning("Scale should be in {valid_scales}, not resizing")
-        im_depth = np.asarray(pil_im_depth)
-        # print("-> depth:",im_depth.size)
-        # im_depth = gaussian_filter(im_depth, sigma=2)
-        # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
-        # poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
+    pil_im = resize_img(scale,pil_im)
 
-    im = np.asarray(pil_im)
+    # if args.cam:
+    #         # print("-> depth:",pil_im_depth.size)
+    #     im_depth = np.asarray(pil_im_depth)
+    #     # print("-> depth:",im_depth.size)
+    #     # im_depth = gaussian_filter(im_depth, sigma=2)
+    #     # im_depth = denoise_tv_chambolle(im_depth, multichannel=False, weight=0.2)
+    #     # poseimg_pub.publish(numpy_to_image(im_depth, encoding="32FC1"))
+
+    im = pil_im
 
     predictions_list = []
 
     with CodeTimer() as timer:
+        pil_im = PIL.Image.fromarray(pil_im)
         data = openpifpaf.datasets.PilImageList([pil_im], preprocess=preprocess)
 
         loader = torch.utils.data.DataLoader(
@@ -136,6 +137,7 @@ def predict(img_path, scale=1, json_output=None):
 
         for images_batch, _, __ in loader:
             predictions = processor.batch(net, images_batch, device=device)[0]
+
             predictions_list.append(predictions)
 
             if json_output is not None:
@@ -155,19 +157,21 @@ def predict(img_path, scale=1, json_output=None):
     if args.save:
         save_path_depth = f"{filepath}/out_depth/depth-{img_name}"
         save_path_rgb = f"{filepath}/out_rgb/rgb-{img_name}"
-        save_path = save_path_depth if args.cam else save_path_rgb
-        im = im_depth if args.cam else im
-        if args.debug: logger.warning("Saving to {}".format(save_path))
-        try:
-            for predictions in predictions_list:
-              # with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
-              #   keypoint_painter.annotations(ax, predictions)
-                with openpifpaf.show.image_canvas(im, save_path, show=False) as ax:
-                    keypoint_painter.annotations(ax, predictions)
-                image = load_image(save_path)[:,:,:3]
-                save_pub.publish(save_path)
-        except Exception as e:
-            image = np.zeros_like(im)
+        # save_path = save_path_depth if args.cam else save_path_rgb
+        # im = im_depth if args.cam else im
+
+        for im, save_path in zip([im_depth,im],[save_path_depth,save_path_rgb]):
+            if args.debug: logger.warning("Saving to {}".format(save_path))
+            try:
+                for predictions in predictions_list:
+                  # with openpifpaf.show.image_canvas(im, f"out/{img_name}" if save else None, show=False) as ax:
+                  #   keypoint_painter.annotations(ax, predictions)
+                    with openpifpaf.show.image_canvas(im, save_path, show=False) as ax:
+                        keypoint_painter.annotations(ax, predictions)
+                    image = load_image(save_path)[:,:,:3]
+                    save_pub.publish(save_path)
+            except Exception as e:
+                image = np.zeros_like(im)
 
         return predictions_list, image, timer.took
 
@@ -208,8 +212,8 @@ depth_history = dict()
 def get_depth_value(pnt):
     # if pnt[1] >= im_h-10 or pnt[0] >= im_w-10:
     #     if args.debug: logger.error(pnt)
-    y = int(pnt[1]-1)
-    x = int(pnt[0]-1)
+    y = int(pnt[0]-1)
+    x = int(pnt[1]-1)
     z = depth_predict[y][x]/1000
     return [x,y,z]
 
@@ -231,17 +235,21 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
 
         skel_dict = dict()
 
+        w = im.shape[0]
+        h = im.shape[1]
+
 
 
         for i,pnt in enumerate(pnts_openpifpaf):
             # print(min(pnts_openpifpaf[i]), max(pnts_openpifpaf[i]))
-            if scale < 1:
-                pnt_1 = tuple(pnt/scale for pnt in pnts_openpifpaf[i])
-            else:
-                pnt_1 = tuple(pnt for pnt in pnts_openpifpaf[i])
+
+
+
+            pnt_1 = (pnts_openpifpaf[i][1], pnts_openpifpaf[i][0])
+            print(pnt_1)
             # pnt_1 = pnts_openpifpaf[i]
 
-            if pnt_1[0] > 0 and pnt_1[1] > 0:
+            if pnt_1[0] > 0 and pnt_1[1] > 0 and pnt_1[0] < w and pnt_1[1] < h:
                 if cam:
                     pnt1_cam = get_depth_value(pnt_1)
                 else:
@@ -249,6 +257,8 @@ def openpifpaf_viz(predictions, im, time, cam=True, scale=1):
                     pnt1_cam.append(1)
 
                 # if pnt1_cam[2] > 0.1 and (not depth_history[person_id].get(i,0) or abs(depth_history[person_id][i][2] - pnt1_cam[2])<1.0):
+                if scale < 1:
+                    pnt1_cam = (pnt1_cam[0]/scale, pnt1_cam[1]/scale, pnt1_cam[2])
                 skel_dict[pairs[i]] = pnt1_cam
 
                     # depth_history[person_id][i] = pnt1_cam
@@ -277,24 +287,26 @@ if args.webcam:
     cap = cv2.VideoCapture(0)
 
 while not rospy.is_shutdown():
+    scale = 0.5
     if args.webcam:
         ret, img = cap.read()
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        predictions, im, time = predict(img, scale=float(args.scale))
+        predictions, im, time = predict(img, scale=scale)
         openpifpaf_viz(predictions, im, time, cam=False)
     elif not args.cam:
         img_path = imgs[randint(0,len(imgs)-1)]
         # img_path = "/home/robotlab/pose test input/base_cam_1600951547.png"
-        predictions, im, time = predict(img_path, scale=float(args.scale))
+        predictions, im, time = predict(img_path, scale=scale)
         openpifpaf_viz(predictions, im, time, cam=False)
     else:
         # imagemsg = rospy.wait_for_message(RGB_CAMERA_TOPIC, Image, timeout=2)
         # depth_imagemsg = rospy.wait_for_message(DEPTH_CAMERA_TOPIC, Image, timeout=2)
         # image = image_to_numpy(imagemsg)
         if len(depth_image):
-            depth_predict = depth_image
-            predictions, im, time = predict(rgb_image, scale=float(args.scale))
-            openpifpaf_viz(predictions, im, time, cam=True, scale=float(args.scale))
+            im_depth = resize_img(scale,depth_image)
+            depth_predict = im_depth
+            predictions, im, time = predict(rgb_image, scale=scale)
+            openpifpaf_viz(predictions, im, time, cam=True, scale=scale)
             # pp.pprint(markerArray.markers)
             # pp.pprint(pnts_dict)
 # while True:

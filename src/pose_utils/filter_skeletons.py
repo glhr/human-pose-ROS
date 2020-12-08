@@ -61,7 +61,7 @@ def skel_callback(msg):
     if args.debug: logger.info(f"Filter: outputting {len(pose_filtered.skeletons)} skeletons")
 
 rospy.init_node('average_skeletons')
-rospy.Subscriber('/openpifpaf_pose', PoseEstimation, skel_callback)
+rospy.Subscriber('/openpifpaf_pose_transformed_pose_cam', PoseEstimation, skel_callback)
 pose_filtered_pub = rospy.Publisher('/openpifpaf_pose_filtered', PoseEstimation, queue_size=1)
 pose_raw_pub = rospy.Publisher('/openpifpaf_pose_raw', PoseEstimation, queue_size=1)
 rospy.spin()
