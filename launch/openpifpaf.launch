@@ -6,7 +6,7 @@
   <node name="median_filter" pkg="human_pose_ROS" type="filter_skeletons.py" args="" required="true" output="screen"/>
 
   <node name="openpifpaf_transformed_raw_cam" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel --camframe" required="true" output="screen"/>
-  <node name="openpifpaf_transformed_raw_world" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel" required="true" output="screen"/>
+  <node name="openpifpaf_transformed_constrained_world" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose_constrained_limbs" required="true" output="screen"/>
 
   <node name="visualize_skeletons_transformed" pkg="human_pose_ROS" type="visualize_skeletons.py" args="--topic openpifpaf_pose_transformed_pose_world --marker_frame world" required="true" output="screen"/>
   <node name="visualize_skeletons_constrained" pkg="human_pose_ROS" type="visualize_skeletons.py" args="--topic openpifpaf_pose_constrained_limbs" required="true" output="screen"/>

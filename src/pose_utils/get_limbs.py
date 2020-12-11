@@ -108,8 +108,8 @@ def reposition_joint(ref_joint, old_joint, desired_length):
     b = -2*z_ref
     c = (x_old - x_ref)**2 + (y_old - y_ref)**2 + z_ref**2 - desired_length**2
 
-    z_new_1 = (-b + np.sqrt(b**2 + 4*a*c+0j))/2*a
-    z_new_2 = (-b + np.sqrt(b**2 - 4*a*c+0j))/2*a
+    z_new_1 = (-b + np.sqrt(b**2 + 4*a*c))/2*a
+    z_new_2 = (-b + np.sqrt(b**2 - 4*a*c))/2*a
 
     # x = Symbol('x')
     # z_new = float(min(solve((x_old-x_ref)**2 + (y_old-y_ref)**2 + (x-z_ref)**2 - desired_length**2, x)))

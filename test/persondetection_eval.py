@@ -60,7 +60,10 @@ new_image = {
     'raw': False
 }
 
-MAX_UNCERTAINTY = None
+new_image['kalman'] = True
+new_image['raw'] = True
+
+MAX_UNCERTAINTY = 0.2
 
 logger.info("Waiting for camera info :)")
 cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo)
@@ -93,8 +96,8 @@ def save_images(images, name=time.time()):
                 pt2 = list(coords_raw[-3:-1])
                 color = (0,255,0)
 
-                pt1 = tuple(int(i) for i in pt1)
-                pt2 = tuple(int(i) for i in pt2)
+                pt1 = tuple(int(i/2) for i in pt1)
+                pt2 = tuple(int(i/2) for i in pt2)
 
                 print(pt1, pt2)
                 image_bb = cv2.rectangle(image.copy(), pt1, pt2, color, 2)
@@ -103,10 +106,12 @@ def save_images(images, name=time.time()):
             if len(coords_kalman):
                 pt1 = list(coords_kalman[:3])
                 pt2 = list(coords_kalman[-3:])
+                pt1[2] = 2
+                pt2[2] = 2
                 pt1 = camera_to_pixel(cameraInfo, pt1)
                 pt2 = camera_to_pixel(cameraInfo, pt2)
-                pt1 = tuple(int(i) for i in pt1)
-                pt2 = tuple(int(i) for i in pt2)
+                pt1 = tuple(int(i/2) for i in pt1)
+                pt2 = tuple(int(i/2) for i in pt2)
 
                 color = (0,0,255)
                 print(pt1, pt2)
@@ -118,22 +123,25 @@ def save_images(images, name=time.time()):
 
     video.release()
 
+latest_image = None
 def img_cb(msg):
-    global images, num_images, new_image
+    global images, num_images, new_image, latest_image
     if not saving:
         # path = msg.data
-        num_images['kalman'] += 1
-        num_images['raw'] += 1
-        images.append(image_to_numpy(msg))
-        new_image['kalman'] = True
-        new_image['raw'] = True
+
+        latest_image = image_to_numpy(msg)
+        # new_image['raw'] = True
+
 
 def points_raw_cb(msg):
     global num_frames, num_images, images, joint_coords, found_person, new_image
 
-    if not saving:
+    if not saving and new_image['raw']:
         new_image['raw'] = False
+        new_image['kalman'] = True
         num_frames['raw'] += 1
+        num_images['raw'] += 1
+        print("NUm frames raw",num_frames['raw'])
         if len(msg.skeletons):
             skeleton = msg.skeletons[0]
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
@@ -164,7 +172,11 @@ def points_kalman_cb(msg):
 
     if not saving and new_image['kalman']:
         new_image['kalman'] = False
+        new_image['raw'] = True
+        if latest_image is not None: images.append(latest_image)
         num_frames['kalman'] += 1
+        num_images['kalman'] += 1
+        print("NUm frames kalman",num_frames['kalman'] )
         if len(msg.skeletons):
             skeleton = msg.skeletons[0]
             msg_dict = message_converter.convert_ros_message_to_dictionary(skeleton)
@@ -191,7 +203,7 @@ def points_kalman_cb(msg):
             joint_coords['kalman'].append([])
         logger.info(num_frames['kalman'])
 
-pose_kalman_sub = rospy.Subscriber('openpifpaf_pose_kalman', PoseEstimation, points_kalman_cb)
+pose_kalman_sub = rospy.Subscriber('openpifpaf_pose_constrained_limbs', PoseEstimation, points_kalman_cb)
 pose_raw_sub = rospy.Subscriber('openpifpaf_pose', PoseEstimation, points_raw_cb)
 # img_sub = rospy.Subscriber('openpifpaf_savepath', String, img_cb)
 poseimg_sub = rospy.Subscriber('openpifpaf_img', Image, img_cb)
