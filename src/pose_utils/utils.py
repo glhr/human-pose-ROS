@@ -65,6 +65,21 @@ def pixel_to_camera(cameraInfo, pixel, depth):
 
     return result
 
+def camera_to_pixel(cameraInfo, point):
+    _intrinsics = rs.intrinsics()
+    _intrinsics.width = cameraInfo.width
+    _intrinsics.height = cameraInfo.height
+    _intrinsics.ppx = cameraInfo.K[2]
+    _intrinsics.ppy = cameraInfo.K[5]
+    _intrinsics.fx = cameraInfo.K[0]
+    _intrinsics.fy = cameraInfo.K[4]
+    #_intrinsics.model = cameraInfo.distortion_model
+    _intrinsics.model  = rs.distortion.none
+    _intrinsics.coeffs = [i for i in cameraInfo.D]
+    result = rs.rs2_project_point_to_pixel(_intrinsics, point)
+
+    return result
+
 def get_points_centroid(arr):
     length = len(arr)
     arr = np.array(arr)

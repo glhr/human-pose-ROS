@@ -3,7 +3,7 @@ project(human_pose_ROS)
 
 #add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED COMPONENTS rospy roscpp message_generation message_runtime geometry_msgs sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp message_generation message_runtime geometry_msgs sensor_msgs dynamic_reconfigure)
 
 include_directories(${catkin_INCLUDE_DIRS})
 
@@ -26,12 +26,18 @@ generate_messages(
 	geometry_msgs  # Or other packages containing msgs
 )
 
+generate_dynamic_reconfigure_options(
+  cfg/pose.cfg
+)
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES CCN
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
+
+
 
 include_directories(
 # include

@@ -28,6 +28,14 @@ parser.add_argument('--debug',
 parser.add_argument('--ar',
                  action='store_true',
                  help='Use AR dummy marker')
+parser.add_argument('--pixel',
+                 action='store_true',
+                 help='convert pixel to coords')
+parser.add_argument('--camframe',
+                 action='store_true',
+                 help='keep coords in camera frame')
+parser.add_argument('--topic',
+                    default='openpifpaf_pose_kalman')
 args, unknown = parser.parse_known_args()
 
 CAM_FRAME = "/{}_camera_depth_optical_frame".format(args.cam)
@@ -36,7 +44,7 @@ DEPTH_INFO_TOPIC = '/{}_camera/camera/aligned_depth_to_color/camera_info'.format
 im_h = 480
 im_w = 848
 
-rospy.init_node("point_transform")
+rospy.init_node("point_transform_{}".format(args.topic))
 
 if args.cam in ["wrist","base"]:
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=3)
@@ -60,7 +68,10 @@ def ar_cb(msg):
             if args.cam in ["wrist","base"]:
                 for i,v in msg_dict.items():
                     pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                    msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+                    if args.camframe:
+                        msg_dict_tf[i] = pnt1_cam
+                    else:
+                        msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
             else:
                 msg_dict_tf = msg_dict
 
@@ -94,10 +105,20 @@ def points_cb(msg):
             msg_dict_tf = dict()
             if args.cam in ["wrist","base"] and (not args.norobot or not args.ar):
                 for i,v in msg_dict.items():
-                    pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
-                    msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
+                    if args.pixel:
+                        pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
+                    else:
+                        pnt1_cam = v[0:3]
+                    if args.camframe:
+                        msg_dict_tf[i] = pnt1_cam
+                    else:
+                        msg_dict_tf[i] = cam_to_world(pnt1_cam, world_to_cam)
             else:
                 msg_dict_tf = msg_dict
+
+            for i,v in msg_dict.items():
+                msg_dict_tf[i].extend(v[3:6])
+
 
             msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
 
@@ -108,16 +129,12 @@ def points_cb(msg):
     if args.debug: logger.info("{} person(s) found, callback took {}ms".format(len(msg.skeletons), timer.took))
 
 
-
-
-
-
 if args.realsense:
     pose_sub = rospy.Subscriber('realsense_pose', PoseEstimation, points_cb)
 ar_sub = rospy.Subscriber('ar_skeleton', PoseEstimation, ar_cb)
-pose_sub = rospy.Subscriber('openpifpaf_pose_filtered', PoseEstimation, points_cb)
+pose_sub = rospy.Subscriber("/{}".format(args.topic), PoseEstimation, points_cb)
 
-pose_pub = rospy.Publisher('openpifpaf_pose_transformed', PoseEstimation, queue_size=1)
+pose_pub = rospy.Publisher('openpifpaf_pose_transformed_{}_{}'.format(args.topic.split("_")[-1], "cam" if args.camframe else "world"), PoseEstimation, queue_size=1)
 
 if args.cam in ["wrist","base"]:
     tf_listener = tf.TransformListener()

@@ -1,0 +1,244 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root version="2.3.8">
+ <tabbed_widget name="Main Window" parent="main_window">
+  <plotmatrix columns="2" rows="3" tab_name="pose">
+   <plot col="0" row="0" style="Lines">
+    <range top="1.516940" right="655.107928" bottom="-1.023240" left="594.931896"/>
+    <limitY/>
+    <curve G="0" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/left_wrist.0" B="0" R="0"/>
+    <curve G="80" custom_transform="noTransform" name="/openpifpaf_pose_transformed_pose_cam/skeletons.0/left_wrist.0" B="76" R="241"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1" style="Lines">
+    <range top="1.017473" right="655.107928" bottom="-0.027996" left="594.931896"/>
+    <limitY/>
+    <curve G="0" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/left_wrist.1" B="0" R="0"/>
+    <curve G="39" custom_transform="noTransform" name="/openpifpaf_pose_transformed_pose_cam/skeletons.0/left_wrist.1" B="40" R="214"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2" style="Lines">
+    <range top="3.104873" right="655.107928" bottom="2.186189" left="594.931896"/>
+    <limitY/>
+    <curve G="0" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/left_wrist.2" B="0" R="0"/>
+    <curve G="39" custom_transform="noTransform" name="/openpifpaf_pose_transformed_pose_cam/skeletons.0/left_wrist.2" B="40" R="214"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="1" row="0" style="Lines">
+    <range top="0.500000" right="655.107928" bottom="0.000000" left="595.124477"/>
+    <limitY max="0.5" min="0"/>
+    <curve G="189" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/left_wrist.3" B="34" R="188"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="1" row="1" style="Lines">
+    <range top="0.500000" right="655.107928" bottom="0.000000" left="595.124477"/>
+    <limitY max="0.5" min="0"/>
+    <curve G="119" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/left_wrist.4" B="180" R="31"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="1" row="2" style="Lines">
+    <range top="0.500000" right="655.107928" bottom="0.000000" left="595.124477"/>
+    <limitY max="0.5" min="0"/>
+    <curve G="39" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/left_wrist.5" B="40" R="214"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix columns="1" rows="2" tab_name="ptu">
+   <plot col="0" row="0" style="Lines">
+    <range top="26.269352" right="655.147588" bottom="-26.239353" left="0.000000"/>
+    <limitY/>
+    <curve G="190" custom_transform="noTransform" name="/angle_ref/data" B="207" R="23"/>
+    <curve G="201" custom_transform="rad_to_deg" name="/joint_states/ptu_panner/position" B="56" R="26"/>
+    <transform value="Custom::noTransform"/>
+   </plot>
+   <plot col="0" row="1" style="Lines">
+    <range top="5.753249" right="655.147588" bottom="-25.890383" left="0.000018"/>
+    <limitY/>
+    <curve G="127" custom_transform="rad_to_deg" name="/joint_states/ptu_tilter/position" B="14" R="255"/>
+    <curve G="189" custom_transform="noTransform" name="/tilt_angle_ref/data" B="34" R="188"/>
+    <transform value="Custom::noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix columns="2" rows="3" tab_name="plot">
+   <plot col="0" row="0" style="Lines">
+    <range top="0.768338" right="-1552.473733" bottom="-0.441891" left="-1582.451031"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="1" style="Lines">
+    <range top="0.032967" right="-1552.473733" bottom="-0.310971" left="-1582.451031"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="0" row="2" style="Lines">
+    <range top="2.914750" right="-1552.473733" bottom="2.331298" left="-1582.451031"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="1" row="0" style="Lines">
+    <range top="0.237576" right="655.107928" bottom="0.019298" left="595.124477"/>
+    <limitY/>
+    <curve G="201" custom_transform="noTransform" name="/openpifpaf_pose_kalman/skeletons.0/right_elbow.3" B="56" R="26"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="1" row="1" style="Lines">
+    <range top="1.000000" right="-1552.435755" bottom="0.000000" left="-9304.844894"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="1" row="2" style="Lines">
+    <range top="1.000000" right="-1552.435755" bottom="0.000000" left="-9304.844894"/>
+    <limitY/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <plotmatrix columns="3" rows="2" tab_name="plot">
+   <plot col="0" row="0" style="Lines">
+    <range top="30.000000" right="655.147588" bottom="-30.000000" left="595.149088"/>
+    <limitY max="30" min="-30"/>
+    <curve G="76" custom_transform="rad_to_deg" name="/joint_states/ptu_panner/position" B="193" R="241"/>
+    <transform value="Custom::noTransform"/>
+   </plot>
+   <plot col="0" row="1" style="Lines">
+    <range top="30.000000" right="655.147588" bottom="-30.000000" left="595.149088"/>
+    <limitY max="30" min="-30"/>
+    <curve G="127" custom_transform="rad_to_deg" name="/joint_states/ptu_tilter/position" B="14" R="255"/>
+    <transform value="Custom::noTransform"/>
+   </plot>
+   <plot col="1" row="0" style="Lines">
+    <range top="2.670557" right="0.594376" bottom="2.195167" left="-0.003942"/>
+    <limitY/>
+    <curve G="0" custom_transform="XYPlot" name="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.[0;1]" B="0" curve_x="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.0" curve_y="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.1" R="0"/>
+    <curve G="190" custom_transform="XYPlot" name="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.[0;1]" B="207" curve_x="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.0" curve_y="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.1" R="23"/>
+    <transform value="XYPlot"/>
+   </plot>
+   <plot col="1" row="1" style="Lines">
+    <range top="1.551269" right="0.594376" bottom="1.075878" left="-0.003942"/>
+    <limitY/>
+    <curve G="0" custom_transform="XYPlot" name="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.[0;2]" B="0" curve_x="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.0" curve_y="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.2" R="0"/>
+    <curve G="201" custom_transform="XYPlot" name="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.[0;2]" B="56" curve_x="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.0" curve_y="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.2" R="26"/>
+    <transform value="XYPlot"/>
+   </plot>
+   <plot col="2" row="0" style="Lines">
+    <range top="0.594376" right="655.110517" bottom="-0.003942" left="595.099991"/>
+    <limitY/>
+    <curve G="0" custom_transform="noTransform" name="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.0" B="0" R="0"/>
+    <curve G="190" custom_transform="noTransform" name="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.0" B="207" R="23"/>
+    <transform value="noTransform"/>
+   </plot>
+   <plot col="2" row="1" style="Lines">
+    <range top="2.642537" right="655.110517" bottom="2.223187" left="595.099991"/>
+    <limitY/>
+    <curve G="0" custom_transform="noTransform" name="/openpifpaf_pose_transformed_kalman_world/skeletons.0/left_shoulder.1" B="0" R="0"/>
+    <curve G="201" custom_transform="noTransform" name="/openpifpaf_pose_transformed_pose_world/skeletons.0/left_shoulder.1" B="56" R="26"/>
+    <transform value="noTransform"/>
+   </plot>
+  </plotmatrix>
+  <currentPlotMatrix index="3"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad CSV">
+   <default time_axis=""/>
+  </plugin>
+  <plugin ID="DataLoad ROS bags">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="DataLoad ULog"/>
+  <plugin ID="ROS Topic Subscriber">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin status="idle" ID="ROS /rosout Visualization"/>
+  <plugin status="idle" ID="ROS Topic Re-Publisher"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets>
+  <snippet name="1st_derivative" language="JS">
+   <global>var prevX = 0
+var prevY = 0</global>
+   <equation>dx = time - prevX
+dy = value - prevY
+prevX = time
+prevY = value
+
+return dy/dx</equation>
+  </snippet>
+  <snippet name="1st_order_lowpass" language="JS">
+   <global>var prevY = 0
+var alpha = 0.1</global>
+   <equation>prevY = alpha * value + (1.-alpha) * prevY
+
+return prevY</equation>
+  </snippet>
+  <snippet name="2D_velocity" language="JS">
+   <global>var prev_x = 0
+var prev_y = 0
+var prev_t = 0</global>
+   <equation>X = $$your_odometry/position/x$$
+Y = $$your_odometry/position/y$$
+
+var dist = sqrt( (X-prev_x)*(X-prev_x) + (Y-prev_y)*(Y-prev_y) )
+var dT = time - prev_t
+
+prev_x = X
+prev_y = Y
+prev_t = time
+
+return dist / dT</equation>
+  </snippet>
+  <snippet name="average_two_curves" language="JS">
+   <global></global>
+   <equation>a = $$PLOT_A$$
+b = $$PLOT_B$$
+
+return (a+b)/2</equation>
+  </snippet>
+  <snippet name="integral" language="JS">
+   <global>var integral = 0</global>
+   <equation>integral += value
+return integral</equation>
+  </snippet>
+  <snippet name="rad_to_deg" language="JS">
+   <global></global>
+   <equation>return value*180/3.1417</equation>
+  </snippet>
+  <snippet name="remove_offset" language="JS">
+   <global>var is_first = true
+var first_value = 0</global>
+   <equation>if (is_first)
+{
+  is_first = false
+  first_value = value
+}
+
+return value - first_value</equation>
+  </snippet>
+  <snippet name="yaw_from_quaternion" language="JS">
+   <global>// source: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+
+function quaternionToYaw(x, y, z, w)
+{
+  // yaw (z-axis rotation)
+  t1 = 2.0 * (w * z + x * y);
+  t2 = 1.0 - 2.0 * (y * y + z * z);
+  yaw = Math.atan2(t1, t2);
+
+  return yaw
+}</global>
+   <equation>return quaternionToYaw(x, y, z, w);</equation>
+  </snippet>
+ </snippets>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+

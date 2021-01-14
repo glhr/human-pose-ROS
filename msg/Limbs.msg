@@ -10,6 +10,10 @@ float32 noseye_left
 float32 noseye_right
 float32 eyeshoulder_left
 float32 eyeshoulder_right
+float32 earshoulder_left
+float32 earshoulder_right
+float32 eyear_left
+float32 eyear_right
 float32 torso_left
 float32 torso_right
 float32 torso_top

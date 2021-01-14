@@ -66,7 +66,7 @@ rospy.init_node("ar_test")
 
 tf_listener = tf.TransformListener()
 rospy.Subscriber("visualization_marker",Marker,ar_cb)
-rospy.Subscriber("openpifpaf_pose_transformed",PoseEstimation,skel_cb)
+rospy.Subscriber("openpifpaf_pose_transformed_pose_world",PoseEstimation,skel_cb)
 pose_pub = rospy.Publisher("ar_skeleton",PoseEstimation, queue_size=1)
 ar_distance_pub = rospy.Publisher("ar_distance",Float32, queue_size=1)
 
