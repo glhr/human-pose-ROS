@@ -42,7 +42,7 @@ for k in range(100):
 import argparse
 parser = argparse.ArgumentParser(description='Visualization options')
 parser.add_argument('--lifetime',
-                 default=1,
+                 default=0.1,
                  help='Marker lifetime')
 parser.add_argument('--filter',
                  action='store_true',
