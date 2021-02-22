@@ -1,9 +1,6 @@
 [submodule "src/pytorch_Realtime_Multi-Person_Pose_Estimation"]
 	path = src/pytorch_Realtime_Multi-Person_Pose_Estimation
 	url = https://github.com/glhr/pytorch_Realtime_Multi-Person_Pose_Estimation
-[submodule "src/mmpose"]
-	path = src/mmpose
-	url = https://github.com/open-mmlab/mmpose
 [submodule "src/pytorch-pose-hg-3d"]
 	path = src/pytorch-pose-hg-3d
 	url = https://github.com/glhr/pytorch-pose-hg-3d
