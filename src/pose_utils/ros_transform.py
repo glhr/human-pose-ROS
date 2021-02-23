@@ -46,7 +46,7 @@ im_w = 848
 
 rospy.init_node("point_transform_{}".format(args.topic))
 
-if args.cam in ["wrist","base"]:
+if args.cam in ["wrist","base","ptu"]:
     cameraInfo = rospy.wait_for_message(DEPTH_INFO_TOPIC, CameraInfo, timeout=3)
     logger.info("Got camera info")
 
@@ -54,7 +54,7 @@ def ar_cb(msg):
     with CodeTimer() as timer:
         pose_tf = PoseEstimation()
 
-        if args.cam in ["wrist","base"] and (not args.norobot or not args.ar):
+        if args.cam in ["wrist","base","ptu"] and (not args.norobot or not args.ar):
             tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
             (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
             world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
@@ -65,7 +65,7 @@ def ar_cb(msg):
             msg_dict.pop("dummy",None)
             msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
-            if args.cam in ["wrist","base"]:
+            if args.cam in ["wrist","base","ptu"]:
                 for i,v in msg_dict.items():
                     pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
                     if args.camframe:
@@ -89,7 +89,7 @@ def ar_cb(msg):
 
 def points_cb(msg):
     with CodeTimer() as timer:
-        if args.cam in ["wrist","base"] and (not args.norobot or not args.ar):
+        if args.cam in ["wrist","base","ptu"] and (not args.norobot or not args.ar):
             tf_listener.waitForTransform('/world', CAM_FRAME, rospy.Time(), rospy.Duration(0.5))
             (trans, rot) = tf_listener.lookupTransform('/world', CAM_FRAME, rospy.Time())
             world_to_cam = tf.transformations.compose_matrix(translate=trans, angles=tf.transformations.euler_from_quaternion(rot))
@@ -103,7 +103,7 @@ def points_cb(msg):
             msg_dict.pop("dummy",None)
             msg_dict = {k: v for k, v in msg_dict.items() if len(v) and v[-1] > 0}
             msg_dict_tf = dict()
-            if args.cam in ["wrist","base"] and (not args.norobot or not args.ar):
+            if args.cam in ["wrist","base","ptu"] and (not args.norobot or not args.ar):
                 for i,v in msg_dict.items():
                     if args.pixel:
                         pnt1_cam = pixel_to_camera(cameraInfo, (v[0],v[1]), v[2])
@@ -136,7 +136,7 @@ pose_sub = rospy.Subscriber("/{}".format(args.topic), PoseEstimation, points_cb)
 
 pose_pub = rospy.Publisher('openpifpaf_pose_transformed_{}_{}'.format(args.topic.split("_")[-1], "cam" if args.camframe else "world"), PoseEstimation, queue_size=1)
 
-if args.cam in ["wrist","base"]:
+if args.cam in ["wrist","base","ptu"]:
     tf_listener = tf.TransformListener()
 
 rospy.spin()
