@@ -110,3 +110,6 @@ def vector_from_2_points(p1,p2):
     norm = np.linalg.norm(dist_v)
     direction = dist_v/norm
     return direction
+
+def vector_coords_from_2_points(p1,p2):
+    return np.subtract(p2,p1)
