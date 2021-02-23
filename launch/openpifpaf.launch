@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="cam" default="wrist" />
+  <arg name="cam" default="ptu" />
   <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--cam --realsense $(arg cam) --scale 0.5" required="true" output="screen"/>
 
   <node name="median_filter" pkg="human_pose_ROS" type="filter_skeletons.py" args="" required="true" output="screen"/>

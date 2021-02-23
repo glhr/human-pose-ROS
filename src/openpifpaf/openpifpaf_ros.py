@@ -79,7 +79,7 @@ parser.add_argument('--cam', dest='cam', action='store_true', default=False)
 parser.add_argument('--webcam', dest='webcam', action='store_true')
 parser.add_argument('--save', dest='save', action='store_true')
 parser.add_argument('--scale', default=0.5, dest='scale')
-parser.add_argument('--realsense', default='wrist')
+parser.add_argument('--realsense', default='ptu')
 parser.add_argument('--debug',
                 default=False,
                  action='store_true',
