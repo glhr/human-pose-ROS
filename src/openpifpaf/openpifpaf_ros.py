@@ -31,7 +31,7 @@ from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from pose_utils.utils import pixel_to_camera, get_points_centroid, angle_from_centroid
 
 from vision_utils.img import image_to_numpy, numpy_to_image, load_image
@@ -205,7 +205,7 @@ rospy.init_node('openpifpaf')
 def skeleton_from_keypoints(skel_dict):
     skel = skel_dict
     if args.debug: pp.pprint(skel)
-    return message_converter.convert_dictionary_to_ros_message('human_pose_ROS/Skeleton', skel_dict)
+    return message_converter.convert_dictionary_to_ros_message('human_pose_ros/Skeleton', skel_dict)
 
 depth_history = dict()
 

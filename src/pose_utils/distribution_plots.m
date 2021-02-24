@@ -3,7 +3,7 @@ close all
 time = ["1606816796.9493315","1606818486.7909591","1606826033.379091"]
 distances = [1,2,3]
 joints = ["nose" "left_eye" "right_eye" "left_ear" "left_shoulder" "right_shoulder" "left_elbow" "left_wrist" "left_hip" "right_hip" "left_knee" "right_knee" "right_ankle"]
-folder = "/home/slave/Documents/workspaces/real_ws/src/lh7-nlp/human_pose_ROS/src/pose_utils/joint_data/"
+folder = "/home/slave/Documents/workspaces/real_ws/src/lh7-nlp/human_pose_ros/src/pose_utils/joint_data/"
 
 
 for d = 1:length(distances)

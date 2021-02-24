@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 from std_msgs.msg import Int32
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 import numpy as np
 from vision_utils.logger import get_logger, get_printer
@@ -55,7 +55,7 @@ def skel_callback(msg):
                 average_z = np.median([i[2] for i in history[skeleton_i][joint]][-10:])
                 skel_filtered[joint] = (kp[0], kp[1], average_z)
         skel_filtered["id"] = skeleton_i
-        pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",skel_filtered))
+        pose_filtered.skeletons.append(message_converter.convert_dictionary_to_ros_message("human_pose_ros/Skeleton",skel_filtered))
     pose_filtered_pub.publish(pose_filtered)
     pose_raw_pub.publish(msg)
     if args.debug: logger.info(f"Filter: outputting {len(pose_filtered.skeletons)} skeletons")

@@ -4,14 +4,14 @@ import rospy
 import numpy as np
 import tf
 from tf.transformations import quaternion_from_euler, quaternion_multiply
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 from std_msgs.msg import Float32
 from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import CodeTimer
 from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points, vector_from_2_points
 from visualization_msgs.msg import Marker, MarkerArray
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 import vg
 import argparse
 

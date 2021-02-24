@@ -1,25 +1,25 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="cam" default="ptu" />
-  <node name="openpifpaf" pkg="human_pose_ROS" type="openpifpaf_ros.py" args="--cam --realsense $(arg cam) --scale 0.5" required="true" output="screen"/>
+  <node name="openpifpaf" pkg="human_pose_ros" type="openpifpaf_ros.py" args="--cam --realsense $(arg cam) --scale 0.5" required="true" output="screen"/>
 
-  <node name="median_filter" pkg="human_pose_ROS" type="filter_skeletons.py" args="" required="true" output="screen"/>
+  <node name="median_filter" pkg="human_pose_ros" type="filter_skeletons.py" args="" required="true" output="screen"/>
 
-  <node name="openpifpaf_transformed_raw_cam" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel --camframe" required="true" output="screen"/>
-  <node name="openpifpaf_transformed_raw_world" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel" required="true" output="screen"/>
-  <node name="openpifpaf_transformed_constrained_world" pkg="human_pose_ROS" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose_constrained_limbs" required="true" output="screen"/>
+  <node name="openpifpaf_transformed_raw_cam" pkg="human_pose_ros" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel --camframe" required="true" output="screen"/>
+  <node name="openpifpaf_transformed_raw_world" pkg="human_pose_ros" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose --pixel" required="true" output="screen"/>
+  <node name="openpifpaf_transformed_constrained_world" pkg="human_pose_ros" type="ros_transform.py" args="--cam $(arg cam) --topic openpifpaf_pose_constrained_limbs" required="true" output="screen"/>
 
-  <node name="visualize_skeletons_transformed" pkg="human_pose_ROS" type="visualize_skeletons.py" args="--topic openpifpaf_pose_transformed_pose_world --marker_frame world" required="true" output="screen"/>
-  <node name="visualize_skeletons_constrained" pkg="human_pose_ROS" type="visualize_skeletons.py" args="--topic openpifpaf_pose_constrained_limbs" required="true" output="screen"/>
+  <node name="visualize_skeletons_transformed" pkg="human_pose_ros" type="visualize_skeletons.py" args="--topic openpifpaf_pose_transformed_pose_world --marker_frame world" required="true" output="screen"/>
+  <node name="visualize_skeletons_constrained" pkg="human_pose_ros" type="visualize_skeletons.py" args="--topic openpifpaf_pose_constrained_limbs" required="true" output="screen"/>
 
-  <node name="get_limbs" pkg="human_pose_ROS" type="get_limbs.py" required="true" args="--cam $(arg cam)" output="screen"/>
+  <node name="get_limbs" pkg="human_pose_ros" type="get_limbs.py" required="true" args="--cam $(arg cam)" output="screen"/>
 
-  <node name="get_ref_angle" pkg="human_pose_ROS" type="get_ref_angle.py" args="" required="true" output="screen"/>
+  <node name="get_ref_angle" pkg="human_pose_ros" type="get_ref_angle.py" args="" required="true" output="screen"/>
 
   <!-- <node name="openpifpaf_kalman" pkg="safety" type="skeleton_kalman.py" args="" required="true" output="screen"/> -->
 
-  <!-- <node name="ar_tracker" pkg="human_pose_ROS" type="ar_tracker.py" args="" required="true" output="screen"/> -->
-  <!-- <node name="ar_tracker" pkg="human_pose_ROS" type="ros_transform.py" args="" required="true" output="screen"/> --> -->
+  <!-- <node name="ar_tracker" pkg="human_pose_ros" type="ar_tracker.py" args="" required="true" output="screen"/> -->
+  <!-- <node name="ar_tracker" pkg="human_pose_ros" type="ros_transform.py" args="" required="true" output="screen"/> --> -->
 
 
 </launch>

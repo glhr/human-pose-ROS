@@ -8,7 +8,7 @@ from vision_utils.logger import get_logger, get_printer
 from vision_utils.timing import CodeTimer
 from pose_utils.utils import get_points_centroid, angle_from_centroid, cam_to_world, distance_between_points, vector_from_2_points
 from visualization_msgs.msg import Marker, MarkerArray
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from tracking.kalman_utils import uncertainty_gain
 import vg
 import argparse

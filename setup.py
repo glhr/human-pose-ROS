@@ -13,7 +13,7 @@ try:
     setup(**setup_args)
 except ModuleNotFoundError:
     setup(
-        name="human-pose-ROS",
+        name="human-pose-ros",
         packages=['open_pose','eval','pose_utils'],
         package_dir={'': 'src'}
     )

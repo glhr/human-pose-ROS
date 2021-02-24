@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 import rospy
 import numpy as np
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 
 from vision_utils.img import image_to_numpy, numpy_to_image, load_image
@@ -12,7 +12,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
 
 from dynamic_reconfigure.server import Server
-from human_pose_ROS.cfg import poseConfig
+from human_pose_ros.cfg import poseConfig
 
 logger=get_logger()
 pp = get_printer()

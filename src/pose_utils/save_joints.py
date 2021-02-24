@@ -2,7 +2,7 @@
 
 import rospy
 import numpy as np
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 from std_msgs.msg import Float32, String
 from sensor_msgs.msg import Image, CameraInfo

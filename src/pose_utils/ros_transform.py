@@ -4,7 +4,7 @@ import rospy
 import numpy as np
 import tf
 from tf.transformations import quaternion_from_euler, quaternion_multiply
-from human_pose_ROS.msg import Skeleton, PoseEstimation
+from human_pose_ros.msg import Skeleton, PoseEstimation
 from rospy_message_converter import message_converter
 from std_msgs.msg import Float32
 from sensor_msgs.msg import Image, CameraInfo
@@ -75,7 +75,7 @@ def ar_cb(msg):
             else:
                 msg_dict_tf = msg_dict
 
-            msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
+            msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ros/Skeleton",msg_dict_tf)
             if args.debug: print(msg_tf.centroid)
 
             msg_tf.id = -1
@@ -120,7 +120,7 @@ def points_cb(msg):
                 msg_dict_tf[i].extend(v[3:6])
 
 
-            msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton",msg_dict_tf)
+            msg_tf = message_converter.convert_dictionary_to_ros_message("human_pose_ros/Skeleton",msg_dict_tf)
 
             msg_tf.id = skeleton.id
             pose_tf.skeletons.append(msg_tf)

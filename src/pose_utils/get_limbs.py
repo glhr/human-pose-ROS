@@ -2,7 +2,7 @@
 import openpifpaf
 import rospy
 import numpy as np
-from human_pose_ROS.msg import Skeleton, PoseEstimation, Limbs
+from human_pose_ros.msg import Skeleton, PoseEstimation, Limbs
 from rospy_message_converter import message_converter
 
 from vision_utils.img import image_to_numpy, numpy_to_image, load_image
@@ -160,11 +160,11 @@ def pose_cb(msg):
                 limbs_after[limb] = distance_between_points(pnt_1, pnt_2)
                     # print(distance)
 
-        pose.skeletons[n] = message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Skeleton", skeleton_dict)
+        pose.skeletons[n] = message_converter.convert_dictionary_to_ros_message("human_pose_ros/Skeleton", skeleton_dict)
 
         if n == person_id:
-            limb_before_pub.publish(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Limbs",limbs_before))
-            limb_after_pub.publish(message_converter.convert_dictionary_to_ros_message("human_pose_ROS/Limbs",limbs_after))
+            limb_before_pub.publish(message_converter.convert_dictionary_to_ros_message("human_pose_ros/Limbs",limbs_before))
+            limb_after_pub.publish(message_converter.convert_dictionary_to_ros_message("human_pose_ros/Limbs",limbs_after))
             # print(limbs_before)
 
     skel_pub.publish(pose)
