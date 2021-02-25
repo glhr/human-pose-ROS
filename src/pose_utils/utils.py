@@ -112,4 +112,4 @@ def vector_from_2_points(p1,p2):
     return direction
 
 def vector_coords_from_2_points(p1,p2):
-    return np.subtract(p2,p1)
+    return np.subtract(p1,p2)
