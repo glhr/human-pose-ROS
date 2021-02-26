@@ -2,7 +2,7 @@
 <launch>
 
   <node name="openpifpaf" pkg="human_pose_ros" type="openpifpaf_ros.py" args="--webcam --scale 0.25 --debug" required="true" output="screen"/>
-  <node name="filter_skeletons" pkg="human_pose_ros" type="filter_skeletons.py" required="true" output="screen"/>
+  <!-- <node name="filter_skeletons" pkg="human_pose_ros" type="filter_skeletons.py" required="true" output="screen"/> -->
   <node name="visualize_skeletons_transformed" pkg="human_pose_ros" type="visualize_skeletons.py" args="--topic openpifpaf_pose_transformed_pose_world --marker_frame world" required="true" output="screen"/>
   <node name="openpifpaf_transformed_raw" pkg="human_pose_ros" type="ros_transform.py" args="--cam webcam --topic openpifpaf_pose --pixel" required="true" output="screen"/>
   <node name="get_limbs" pkg="human_pose_ros" type="get_limbs.py" required="true" args="--cam webcam" output="screen"/>
